@@ -34,38 +34,21 @@ agent.chat('And which one has the most deals?')
 # Output: United States has the most deals
 ```
 
-### Clarification questions
+### Follow-up Questions
 
-An agent will also be able to ask clarification questions if it does not have enough information to answer the query. For example:
-
-```python
-agent.clarification_questions('What is the GDP of the United States?')
-```
-
-This will return up to 3 clarification questions that the agent can ask the user to get more information to answer the query.
-
-### Explanation
-
-An agent will also be able to explain the answer given to the user. For example:
+An agent can handle follow-up questions that continue the existing conversation without starting a new chat. This maintains the conversation context. For example:
 
 ```python
-response = agent.chat('What is the GDP of the United States?')
-explanation = agent.explain()
+# Start a new conversation
+response = agent.chat('What is the total sales?')
+print("First response:", response)
 
-print("The answer is", response)
-print("The explanation is", explanation)
+# Continue the conversation without clearing memory
+follow_up_response = agent.follow_up('What about last year?')
+print("Follow-up response:", follow_up_response)
 ```
 
-### Rephrase Question
-
-Rephrase question to get accurate and comprehensive response from the model. For example:
-
-```python
-rephrased_query = agent.rephrase_query('What is the GDP of the United States?')
-
-print("The rephrased query is", rephrased_query)
-
-```
+The `follow_up` method works just like `chat` but doesn't clear the conversation memory, allowing the agent to understand context from previous messages.
 
 ## Using the Agent in a Sandbox Environment
 
@@ -124,10 +107,12 @@ sandbox = DockerSandbox(
 ## Training the Agent with local Vector stores
 
 <Note>
-  Training agents with local vector stores requires a PandasAI Enterprise license. See [Enterprise Features](/v3/enterprise-features) for more details or [contact us](https://pandas-ai.com/) for production use.
+  Training agents with local vector stores requires a PandasAI Enterprise
+  license. See [Enterprise Features](/v3/enterprise-features) for more details
+  or [contact us](https://pandas-ai.com/) for production use.
 </Note>
 
-It is possible also to use PandasAI with a few-shot learning agent, thanks to the "train with local vector store" enterprise feature (requiring an enterprise license). 
+It is possible also to use PandasAI with a few-shot learning agent, thanks to the "train with local vector store" enterprise feature (requiring an enterprise license).
 
 If you want to train the agent with a local vector store, you can use the local `ChromaDB`, `Qdrant` or `Pinecone` vector stores. Here's how to do it:
 An enterprise license is required for using the vector stores locally. See [Enterprise Features](/v3/enterprise-features) for licensing information.
