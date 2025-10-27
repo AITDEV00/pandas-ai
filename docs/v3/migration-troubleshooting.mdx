@@ -4,7 +4,8 @@ description: "Common issues and solutions when migrating from v2 to v3"
 ---
 
 <Note>
-  This guide covers common issues encountered during migration. For breaking changes and migration steps, see the [Migration Guide](/v3/migration-guide).
+  This guide covers common issues encountered during migration. For breaking
+  changes and migration steps, see the [Migration Guide](/v3/migration-guide).
 </Note>
 
 ## Common Issues and Solutions
@@ -53,6 +54,23 @@ df = SmartDataframe(data, config=config)
 # v3
 pai.config.set(config)
 df = pai.DataFrame(data)
+```
+
+### Issue: Agent Methods Not Found
+
+**Problem**: `AttributeError: 'Agent' object has no attribute 'clarification_questions'` (or `rephrase_query`, `explain`)
+
+**Solution**: These methods have been removed in v3. Use alternatives:
+
+```python
+# v2 - These methods are removed
+agent.clarification_questions('What is the GDP?')
+agent.rephrase_query('What is the GDP?')
+agent.explain()
+
+# v3 - Use these instead
+response = agent.chat('What is the GDP?')
+follow_up = agent.follow_up('What about last year?')  # Maintains context
 ```
 
 ## Get Support

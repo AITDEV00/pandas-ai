@@ -4,7 +4,10 @@ description: "Using v2 classes in PandasAI v3"
 ---
 
 <Note>
-  PandasAI v3 maintains backward compatibility for `SmartDataframe`, `SmartDatalake`, and `Agent`. However, we recommend migrating to the new `pai.DataFrame()` and `pai.chat()` methods for better performance and features.
+  PandasAI v3 maintains backward compatibility for `SmartDataframe`,
+  `SmartDatalake`, and `Agent`. However, we recommend migrating to the new
+  `pai.DataFrame()` and `pai.chat()` methods for better performance and
+  features.
 </Note>
 
 ## SmartDataframe
@@ -54,6 +57,7 @@ response = df.chat("What are the top countries by sales?")
 ```
 
 **Benefits of pai.DataFrame():**
+
 - Better integration with semantic layer
 - Improved context management
 - Enhanced performance
@@ -114,6 +118,7 @@ response = pai.chat("Who gets paid the most?", employees, salaries)
 ```
 
 **Benefits of pai.chat():**
+
 - No need to instantiate `SmartDatalake`
 - Cleaner, more intuitive API
 - Better performance
@@ -122,7 +127,7 @@ response = pai.chat("Who gets paid the most?", employees, salaries)
 
 ## Agent
 
-The `Agent` class works the same way in v3 as it did in v2. The only requirement is to configure the LLM globally.
+The `Agent` class works mostly the same way in v3 as it did in v2, but some methods have been removed. The main requirement is to configure the LLM globally.
 
 ```python
 from pandasai import Agent
@@ -142,5 +147,25 @@ response = agent.chat("Analyze the data and provide insights")
 ```
 
 **Key Change:** Configure LLM globally with `pai.config.set()` instead of passing it per-agent.
+
+### New Agent Methods in v3
+
+PandasAI v3 introduces new Agent methods that enhance conversational capabilities:
+
+- **`follow_up(query)`**: Continue conversations without clearing memory (maintains context)
+
+```python
+agent = Agent([df1, df2])
+
+# Start conversation
+response = agent.chat('What is the total revenue?')
+
+# Follow up without losing context
+follow_up = agent.follow_up('What about last quarter?')
+```
+
+**Note:** The `clarification_questions()`, `explain()` and `rephrase_query()` methods have been removed in v3.
+
+These methods provide enhanced conversational capabilities not available in v2.
 
 For detailed information about Agent usage, see the [Agent documentation](/v3/agent). For information about using Skills with Agent, see the [Skills documentation](/v3/skills).

@@ -197,6 +197,41 @@ agent = Agent([df])
 
 **More details:** See [Skills](/v3/skills) for detailed usage and examples.
 
+### Agent
+
+Agent class works mostly the same, but some methods have been removed in v3.
+
+**Removed methods:** `clarification_questions()`, `rephrase_query()`, `explain()`
+
+**v2:**
+
+```python
+from pandasai import Agent
+
+agent = Agent(df)
+clarifications = agent.clarification_questions('What is the GDP?')
+rephrased = agent.rephrase_query('What is the GDP?')
+explanation = agent.explain()
+```
+
+**v3:**
+
+```python
+from pandasai import Agent
+
+agent = Agent(df)
+# ❌ These methods are removed in v3
+# Use chat() and follow_up() instead
+response = agent.chat('What is the GDP?')
+follow_up = agent.follow_up('What about last year?')  # New: maintains context
+```
+
+**Key Changes:**
+
+- `clarification_questions()`, `rephrase_query()`, and `explain()` have been removed
+- New `follow_up()` method maintains conversation context
+- Global LLM configuration required
+
 ### Training
 
 <Note title="Enterprise Feature">
