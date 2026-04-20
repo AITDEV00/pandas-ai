@@ -1,0 +1,17 @@
+# Setup Instructions for PandasAI with Custom VLLM Proxy & LiteLLM
+
+# 1. Navigate to the PandasAI project root directory
+cd /home/jyao/ait-projects/chat-excel-server/pandas-ai
+
+# 2. Sync / Install the core PandasAI dependencies using your lock file
+poetry sync
+
+# 3. Inject the `httpx` unverified client and the `pandasai-litellm` extension 
+# directly into the managed Poetry environment (this prevents modifying the root pyproject.toml)
+poetry run pip install httpx ./extensions/llms/litellm
+
+# 4. Run the get_started.py script
+poetry run python get_started.py
+
+# 5. Install FastAPI networking layers injected into the poetry environment
+poetry run pip install fastapi uvicorn python-multipart

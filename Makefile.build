@@ -1,0 +1,37 @@
+IMAGE_NAME := adeo-icarus-pandasai-server
+DOCKER_USER := jya0
+VERSION := latest
+HARBOR_REPO := zdc-ai-harbor.ecouncil.ae/aiteam
+
+.PHONY: all build tag run push login harbor_upload
+
+# Default command 
+all: build
+
+build:
+	@echo "Building Docker image $(IMAGE_NAME):$(VERSION)..."
+	docker build -f Dockerfile -t $(IMAGE_NAME):$(VERSION) .
+
+tag:
+	@echo "Tagging image for Dockerhub user $(DOCKER_USER)..."
+	docker tag $(IMAGE_NAME):$(VERSION) $(DOCKER_USER)/$(IMAGE_NAME):$(VERSION)
+
+run:
+	@echo "Running $(IMAGE_NAME):$(VERSION) on port 8000..."
+	docker run -p 8000:8000 $(IMAGE_NAME):$(VERSION)
+
+push: tag
+	@echo "Pushing image to Dockerhub repository $(DOCKER_USER)/$(IMAGE_NAME):$(VERSION)..."
+	docker push $(DOCKER_USER)/$(IMAGE_NAME):$(VERSION)
+
+login:
+	@echo "Logging into Dockerhub as user $(DOCKER_USER)..."
+	docker login -u $(DOCKER_USER)
+
+harbor_upload:
+	@echo "Logging into Harbor registry..."
+	docker login zdc-ai-harbor.ecouncil.ae
+	@echo "Tagging image for Harbor..."
+	docker tag $(IMAGE_NAME):$(VERSION) $(HARBOR_REPO)/$(IMAGE_NAME):$(VERSION)
+	@echo "Pushing image to Harbor..."
+	docker push $(HARBOR_REPO)/$(IMAGE_NAME):$(VERSION)
