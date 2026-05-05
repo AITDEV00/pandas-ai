@@ -2,8 +2,10 @@ import os
 import tempfile
 import uuid
 import shutil
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from .models import Base64UploadRequest, RegisterResponse
+import json
+from typing import Optional
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from .models import Base64UploadRequest, RegisterResponse, PandasAIConfigPayload, LLMConfigPayload
 from .handler import handle_base64_upload, create_agent_from_file_path
 
 router = APIRouter(prefix="/register", tags=["Registration"])
@@ -12,15 +14,32 @@ router = APIRouter(prefix="/register", tags=["Registration"])
 async def register_base64(payload: Base64UploadRequest):
     """Register endpoints using pure JSON base64 payloads."""
     try:
-        convo_id = handle_base64_upload(payload.base64_data, payload.mimetype)
-        return RegisterResponse(conversation_id=convo_id)
+        response = handle_base64_upload(
+            payload.base64_data, 
+            payload.mimetype,
+            semantic_model=payload.semantic_model,
+            pandasai_config=payload.pandasai_config,
+            llm_config=payload.llm_config
+        )
+        return response
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/file", response_model=RegisterResponse)
-async def register_file(file: UploadFile = File(...)):
+async def register_file(
+    file: UploadFile = File(...),
+    semantic_model: Optional[str] = Form(None, description="JSON string of SemanticLayerSchema"),
+    pandasai_config: Optional[str] = Form(None, description="JSON string of PandasAIConfigPayload"),
+    llm_config: Optional[str] = Form(None, description="JSON string of LLMConfigPayload")
+):
     """Register endpoints via standard multipart/form-data upload."""
     try:
+        semantic_model_dict = json.loads(semantic_model) if semantic_model else None
+        config_payload = PandasAIConfigPayload(**json.loads(pandasai_config)) if pandasai_config else PandasAIConfigPayload()
+        llm_payload = LLMConfigPayload(**json.loads(llm_config)) if llm_config else LLMConfigPayload()
+
         ext = ".csv" if "csv" in file.content_type.lower() else ".xlsx"
         safe_id = str(uuid.uuid4())
         
@@ -31,7 +50,17 @@ async def register_file(file: UploadFile = File(...)):
         with open(temp_path, "wb") as f:
             shutil.copyfileobj(file.file, f)
             
-        convo_id = create_agent_from_file_path(temp_path, file.content_type)
-        return RegisterResponse(conversation_id=convo_id)
+        response = create_agent_from_file_path(
+            temp_path, 
+            file.content_type,
+            semantic_model=semantic_model_dict,
+            pandasai_config=config_payload,
+            llm_config=llm_payload
+        )
+        return response
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="semantic_model, pandasai_config, and llm_config must be valid JSON strings.")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

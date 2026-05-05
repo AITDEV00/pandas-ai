@@ -51,6 +51,9 @@ class Column(BaseModel):
         None, description="Aggregation expression (avg, min, max, sum)"
     )
     alias: Optional[str] = Field(None, description="Alias for the column")
+    samples: Optional[Any] = Field(
+        None, description="Contextual samples (e.g. distinct values array, or numeric range dict)"
+    )
 
     @field_validator("type")
     @classmethod

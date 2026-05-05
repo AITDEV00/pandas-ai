@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/jyao/ADEO/services/ait-icarus/pandas-ai/test_enrichment.py", line 1, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'

@@ -63,12 +63,24 @@ class LiteLLM(LLM):
             str: The content of the model's response to the user prompt."""
 
         memory = context.memory if context else None
-        self.last_prompt = self.prepend_system_prompt(instruction.to_string(), memory)
+        
+        system_prompt = self.get_system_prompt(memory) if memory else ""
+        user_prompt = instruction.to_string()
+        
+        self.last_prompt = system_prompt + user_prompt
+        
+        if context and context.logger:
+            context.logger.log(f"FINAL PROMPT TO LLM:\n{self.last_prompt}")
+            
+        messages = []
+        if system_prompt.strip():
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": user_prompt})
 
         return (
             completion(
                 model=self.model,
-                messages=[{"content": self.last_prompt, "role": "user"}],
+                messages=messages,
                 **self.params,
             )
             .choices[0]

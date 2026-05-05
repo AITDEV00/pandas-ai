@@ -141,7 +141,7 @@ class DataFrame(pd.DataFrame):
 
         return dialect
 
-    def serialize_dataframe(self) -> str:
+    def serialize_dataframe(self, config=None) -> str:
         """
         Serialize DataFrame to string representation.
 
@@ -149,7 +149,7 @@ class DataFrame(pd.DataFrame):
             str: Serialized string representation of the DataFrame
         """
         dialect = self.get_dialect()
-        return DataframeSerializer.serialize(self, dialect)
+        return DataframeSerializer.serialize(self, dialect, config)
 
     def get_head(self):
         return self.head()

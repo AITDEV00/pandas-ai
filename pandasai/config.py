@@ -15,6 +15,12 @@ class Config(BaseModel):
     file_manager: FileManager = DefaultFileManager()
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    enrich_column_values: bool = False
+    llm_context_window: int = 8192
+    column_values_budget_ratio: float = 0.02
+    column_values_token_budget: Optional[int] = None
+    categorical_max_unique: int = 50
+
     @classmethod
     def from_dict(cls, config: Dict[str, Any]) -> "Config":
         return cls(**config)

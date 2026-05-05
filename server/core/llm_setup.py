@@ -23,6 +23,5 @@ def setup_global_llm():
 
     pai.config.set({
         "llm": llm,
-        # Remove comment to enable debug logging
-        # "verbose": True
+        "verbose": True
     })
