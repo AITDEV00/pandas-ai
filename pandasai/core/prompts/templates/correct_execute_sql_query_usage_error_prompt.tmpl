@@ -11,4 +11,7 @@ You generated the following Python code:
 However, it resulted in the following error:
 {{error}}
 
-Fix the python code above and return the new python code but the code generated should use execute_sql_query function
+Fix the python code above and generate the new python code. The code generated MUST use the execute_sql_query function.
+At the end of the generated code, you MUST declare a "result" variable as a dictionary of type and value in the following format:
+{% include 'shared/output_type_template.tmpl' with context %}
+Do NOT use the `return` keyword, as the code will be executed in the global scope.

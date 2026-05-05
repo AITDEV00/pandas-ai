@@ -19,6 +19,10 @@ class ColumnValueExtractor:
         Returns samples for a column Series to be fed to the LLM.
         """
         if col_type == "string":
+            # Fast check if it's actually datetime masquerading as string
+            sample_strs = series.dropna().head(20).astype(str)
+            if not sample_strs.empty and sample_strs.str.match(r"^\d{4}-\d{2}-\d{2}").mean() > 0.8:
+                return cls._extract_datetime(series)
             return cls._extract_string(series, categorical_max_unique)
         elif col_type in ("integer", "float"):
             return cls._extract_numeric(series)
@@ -38,29 +42,38 @@ class ColumnValueExtractor:
             return "id_like"
 
         n_unique = series.dropna().nunique()
+        avg_words = series.dropna().astype(str).apply(lambda v: len(str(v).split())).mean()
 
-        # Signal 1: Absolute cap
+        # Signal 1: Paragraphs/Free-text — multi-word cells are ALWAYS free-text
+        if avg_words > 4.0:
+            return "freetext"
+
+        # Signal 2: ID-like for highly unique short strings
+        if n_unique == n_total and n_total > 5 and avg_words < 2.0:
+            # Check length variance (IDs usually have consistent lengths)
+            str_lengths = series.dropna().astype(str).apply(len)
+            if str_lengths.mean() > 0 and (str_lengths.std() / str_lengths.mean()) < 0.2:
+                return "id_like"
+
+        # Signal 3: Absolute cap
         if n_unique <= max_unique:
             return "categorical"
 
-        # Signal 2: Frequency concentration (Top 20 cover > 80%)
+        # Signal 4: Frequency concentration (Top 20 cover > 80%)
         top20_coverage = series.value_counts(normalize=True).head(20).sum()
         if top20_coverage > 0.8:
             return "categorical"
 
-        # Signal 3: Log-scaled dynamic ratio
+        # Signal 5: Log-scaled dynamic ratio
         dynamic_threshold = min(0.5, max(0.01, 10.0 / math.sqrt(n_total)))
         ratio = n_unique / n_total
         if ratio < dynamic_threshold:
             return "categorical"
 
-        # Signal 4: Free-text vs ID-like
-        # 4a: Average word count — multi-word cells → free-text
-        avg_words = series.dropna().astype(str).apply(lambda v: len(str(v).split())).mean()
+        # Signal 6: Fallback to freetext vs id_like
         if avg_words > 2.0:
             return "freetext"
 
-        # 4b: String length consistency — IDs have very uniform length (CV < 0.1)
         str_lengths = series.dropna().astype(str).apply(len)
         mean_len = str_lengths.mean()
         if mean_len > 0:

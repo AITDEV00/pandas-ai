@@ -4,7 +4,7 @@ from .handler import handle_chat_query
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
-@router.post("/", response_model=ChatResponse)
+@router.post("", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     """
     Submit a prompt to a specific registered conversation. 
