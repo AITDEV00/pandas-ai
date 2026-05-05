@@ -63,19 +63,31 @@ class LiteLLM(LLM):
             str: The content of the model's response to the user prompt."""
 
         memory = context.memory if context else None
-        
-        system_prompt = self.get_system_prompt(memory) if memory else ""
+
+        messages = []
+
+        if memory:
+            # System message with agent description
+            if memory.agent_description:
+                messages.append({"role": "system", "content": memory.agent_description})
+
+            # Previous conversation as proper multi-turn messages
+            # Take only the last N messages (respecting memory.size limit),
+            # then exclude the final one — it's the current query already
+            # embedded in the instruction template
+            recent_msgs = memory.all()[-memory.size:]
+            for msg in recent_msgs[:-1]:
+                role = "user" if msg["is_user"] else "assistant"
+                messages.append({"role": role, "content": msg["message"]})
+
+        # The rendered instruction (table schemas + query + output format) as final user message
         user_prompt = instruction.to_string()
-        
-        self.last_prompt = system_prompt + user_prompt
-        
+        messages.append({"role": "user", "content": user_prompt})
+
+        self.last_prompt = "\n".join(m["content"] for m in messages)
+
         if context and context.logger:
             context.logger.log(f"FINAL PROMPT TO LLM:\n{self.last_prompt}")
-            
-        messages = []
-        if system_prompt.strip():
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": user_prompt})
 
         return (
             completion(
