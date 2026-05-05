@@ -1,0 +1,26 @@
+### 🔍 DUCKDB SEARCH & VOCABULARY STRATEGY
+
+You are generating DuckDB SQL. You must use the `execute_sql_query(sql)` function.
+The table schema above contains a `"samples"` field. **This is your VOCABULARY DICTIONARY.**
+
+**Rule 1: Handling "freetext" columns**
+- The `"samples"` array contains isolated word tokens, NOT complete sentences.
+- When the user searches for a text value, FIRST find the closest matching word in the `"samples"` vocabulary.
+- NEVER use `=`. ALWAYS use `ILIKE '%word%'` with the vocabulary word you found.
+- If searching for multiple words, chain them: `ILIKE '%word1%' AND ILIKE '%word2%'`.
+- If no vocabulary matches, use fuzzy search: `jaro_winkler_similarity(LOWER("col"), 'user_typo') > 0.85`
+{% for df in context.dfs %}{% for col in df.schema.columns %}{% if col.samples is not none and col.semantic_type is defined and col.semantic_type == 'freetext' %}
+  → Column `"{{ col.name }}"` is freetext. Apply Rule 1.
+{% endif %}{% endfor %}{% endfor %}
+
+**Rule 2: Handling "categorical" columns**
+- The `"samples"` array contains the EXACT, complete cell values.
+- Use exact matches (`=`) or `IN (...)`.
+{% for df in context.dfs %}{% for col in df.schema.columns %}{% if col.samples is not none and col.semantic_type is defined and col.semantic_type == 'categorical' %}
+  → Column `"{{ col.name }}"` is categorical. Apply Rule 2.
+{% endif %}{% endfor %}{% endfor %}
+
+**Rule 3: General SQL Rules**
+- Wrap column names with spaces in double quotes: `"English Name"`.
+- For OR regex matching, use: `regexp_matches("col", '(?i)(term1|term2)')`.
+- If NO vocabulary is available for a column, default to `ILIKE '%term%'`.

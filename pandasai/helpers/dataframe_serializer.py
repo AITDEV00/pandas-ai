@@ -43,6 +43,13 @@ class DataframeSerializer:
                 if config.enrich_column_values:
                     # Lazy extraction for local dataframes
                     if not isinstance(df, VirtualDataFrame) and col_dict.get("samples") is None:
+                        if col_dict.get("type") == "string":
+                            classification = ColumnValueExtractor._classify_string_column(
+                                df[col.name], config.categorical_max_unique
+                            )
+                            col_dict["semantic_type"] = classification
+                            col.semantic_type = classification
+
                         samples = ColumnValueExtractor.extract(
                             df[col.name],
                             col_dict.get("type"),
@@ -65,7 +72,10 @@ class DataframeSerializer:
         dataframe_info += f' dimensions="{df.rows_count}x{df.columns_count}">'
 
         # Truncate long values
-        df_truncated = cls._truncate_dataframe(df.head())
+        sample_size = min(getattr(config, "sample_head_size", 10), len(df))
+        df_truncated = cls._truncate_dataframe(
+            df.sample(n=sample_size, random_state=42) if sample_size > 0 else df.head(0)
+        )
 
         # Convert to CSV format
         dataframe_info += f"\n{df_truncated.to_csv(index=False)}"

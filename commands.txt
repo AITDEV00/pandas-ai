@@ -15,3 +15,31 @@ poetry run python get_started.py
 
 # 5. Install FastAPI networking layers injected into the poetry environment
 poetry run pip install fastapi uvicorn python-multipart
+
+# 6. Example payload for /register (Base64 file upload with Qwen parameters)
+# Pass this JSON body to a POST request at http://localhost:8000/register
+# 
+# {
+#   "base64_data": "data:text/csv;base64,RGF0Z...<BASE64_STRING_HERE>",
+#   "mimetype": "text/csv",
+#   "pandasai_config": {
+#     "enrich_column_values": true,
+#     "llm_context_window": 250000,
+#     "column_values_budget_ratio": 0.10
+#   },
+#   "llm_config": {
+#     "api_key": "sk-your-vllm-key",
+#     "base_url": "http://your-vllm-host/v1",
+#     "model_name": "openai//model/Qwen/Qwen3.5-35B-A3B-GPTQ-Int4",
+#     "temperature": 0.1,
+#     "max_tokens": 1024
+#   }
+# }
+
+# 7. Example payload for /register/file (Multipart Form Upload)
+# Use this when sending the raw file over HTTP instead of base64
+# 
+# curl -X POST http://localhost:8000/register/file \
+#   -F "file=@/path/to/your/data.csv" \
+#   -F 'pandasai_config={"enrich_column_values": true, "llm_context_window": 250000, "column_values_budget_ratio": 0.10}' \
+#   -F 'llm_config={"api_key": "sk-your-vllm-key", "base_url": "http://your-vllm-host/v1", "model_name": "openai//model/Qwen/Qwen3.5-35B-A3B-GPTQ-Int4"}'

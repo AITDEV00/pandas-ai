@@ -88,7 +88,7 @@ class ColumnValueExtractor:
                 for token in tokens:
                     cleaned = token.strip(".,;:!?\"'()[]{}-—")
                     if cleaned and len(cleaned) > 1:  # skip single chars
-                        words.add(cleaned.lower())
+                        words.add(cleaned)
             return sorted(words) if words else None
 
         else:  # id_like

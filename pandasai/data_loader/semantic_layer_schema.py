@@ -54,6 +54,9 @@ class Column(BaseModel):
     samples: Optional[Any] = Field(
         None, description="Contextual samples (e.g. distinct values array, or numeric range dict)"
     )
+    semantic_type: Optional[str] = Field(
+        None, description="Column semantic type: categorical, freetext, or id_like"
+    )
 
     @field_validator("type")
     @classmethod

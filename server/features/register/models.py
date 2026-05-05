@@ -12,10 +12,7 @@ class LLMConfigPayload(BaseModel):
     base_url: Optional[str] = None
     model_name: Optional[str] = "openai//model/Qwen/Qwen3.5-35B-A3B-GPTQ-Int4"
     system_prompt: Optional[str] = Field(
-        "You are an expert data assistant. When writing SQL queries, you MUST adhere to these rules:\n"
-        "1. SEMANTIC MATCHING: Always analyze the 'samples' metadata for columns. If the user asks a conceptual question (e.g. 'UAE universities'), use the samples to identify the exact matching values.\n"
-        "2. CASE INSENSITIVITY: Never use strict '=' for text. Always use LOWER() for case-insensitive matching (e.g. LOWER(column) LIKE LOWER('%value%')). Do NOT use ILIKE as a function.\n"
-        "3. TYPOS: If searching for a specific name/word, assume the user might have misspelled it. Use DuckDB's levenshtein(LOWER(column), LOWER('value')) <= 2 OR jaro_winkler_similarity(LOWER(column), LOWER('value')) > 0.85 to perform fuzzy matching.",
+        "You are an expert data assistant. Always follow the DuckDB Search Strategy provided in the context exactly. Do not invent Python code for filtering data; always use the `execute_sql_query` function. Do not make assumptions about data formats without checking the vocabulary lists.",
         description="Instructional prompt to guide the agent behavior"
     )
     temperature: Optional[float] = None

@@ -292,9 +292,9 @@ def load(dataset_path: str) -> DataFrame:
 
 
 def read_csv(filepath: Union[str, BytesIO]) -> DataFrame:
-    data = pd.read_csv(filepath)
+    data = pd.read_csv(filepath, encoding="utf-8-sig")
     table = get_table_name_from_path(filepath)
-    return DataFrame(data, _table_name=table)
+    return DataFrame(data, name=table)
 
 
 def read_excel(
@@ -305,7 +305,7 @@ def read_excel(
 
     if isinstance(data, pd.DataFrame):
         table = get_table_name_from_path(filepath)
-        return DataFrame(data, _table_name=table)
+        return DataFrame(data, name=table)
 
     return {
         k: DataFrame(

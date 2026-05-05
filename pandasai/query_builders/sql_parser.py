@@ -60,6 +60,11 @@ class SQLParser:
     def transpile_sql_dialect(
         query: str, to_dialect: str, from_dialect: Optional[str] = None
     ):
+        # When target is DuckDB, assume input is also DuckDB to preserve
+        # dialect-specific operators like ILIKE
+        if to_dialect == "duckdb" and from_dialect is None:
+            from_dialect = "duckdb"
+
         placeholder = "___PLACEHOLDER___"
         query = query.replace("%s", placeholder)
         query = (
