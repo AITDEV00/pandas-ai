@@ -1,0 +1,17 @@
+TO-DO LIST: PandasAI Nested Pipeline & Prompt Optimization
+
+1. Improve Prompts
+   - Further refine `shared/search_strategy.tmpl` to provide more robust examples for complex nested queries.
+   - Ensure system messages and error correction templates (e.g., `correct_execute_sql_query_usage_error_prompt.tmpl`) are fully aligned with the DuckDB nested search strategy.
+
+2. Ensure Succinct JSON Array Formatting
+   - Optimize the `DataframeSerializer` to ensure that the serialized `columns` JSON is compact and avoids redundant tokens.
+   - Verify that all nested struct metadata (type, semantic_type, description, samples) is correctly and concisely represented.
+
+3. Semantic Model Validation & Integration
+   - Fully integrate the `SemanticModelPayload` Pydantic model into the server's registration flow.
+   - Ensure the `SemanticLayerSchema` in PandasAI is strictly validated against the uploaded semantic model to prevent runtime errors.
+
+4. Smart Column Selector
+   - Implement a "pre-pass" or "semantic filter" to select only the most relevant columns based on the user's natural language query.
+   - Objective: Drastically reduce the token count in the LLM's context window by excluding irrelevant columns for a specific question.
