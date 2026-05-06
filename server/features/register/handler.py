@@ -29,6 +29,15 @@ def create_agent_from_file_path(
     else:
         raise ValueError(f"Unsupported mimetype: {mimetype}")
 
+    from pandasai.helpers.type_determination import is_json_array_column, safe_json_parse
+    import pandas as pd
+
+    for col in df.columns:
+        if is_json_array_column(df[col]):
+            df[col] = df[col].apply(lambda v: safe_json_parse(v) or [])
+
+
+
     if pandasai_config is None:
         pandasai_config = PandasAIConfigPayload()
         
@@ -40,7 +49,9 @@ def create_agent_from_file_path(
         if "name" not in semantic_model:
             semantic_model["name"] = getattr(df, "_table_name", "uploaded_table")
         if "source" not in semantic_model and "view" not in semantic_model:
-            semantic_model["source"] = {"type": "csv" if file_path.endswith(".csv") else "excel", "path": file_path}
+            # PandasAI only accepts csv/parquet as local source types.
+            # This is a dummy source — the data is already loaded into the DataFrame.
+            semantic_model["source"] = {"type": "csv", "path": file_path}
             
         try:
             validated_schema = SemanticLayerSchema(**semantic_model)
@@ -86,13 +97,30 @@ def create_agent_from_file_path(
     # --- 3. Extract Context for API Response ---
     extracted_context = None
     if pandasai_config.enrich_column_values:
-        # Trigger lazy extraction so we can return the exact tokens sent to LLM
-        agent._state.dfs[0].serialize_dataframe(config=agent._state.config)
+        from pandasai.helpers.column_enrichment import ColumnValueExtractor
+        from pandasai.helpers.type_determination import determine_series_type
+        
+        df_obj = agent._state.dfs[0]
+        df_schema = df_obj.schema
+        
+        # Trigger lazy serialization to populate schema.columns[*].samples for direct-match cols
+        df_obj.serialize_dataframe(config=agent._state.config)
+        
+        # Build schema sample lookup from direct-match schema columns
+        schema_samples = {col.name: col.samples for col in df_schema.columns if col.samples is not None}
         
         extracted_context = []
-        for col in agent._state.dfs[0].schema.columns:
-            if col.samples is not None:
-                extracted_context.append(ColumnContext(column=col.name, samples=col.samples))
+        for col_name in df_obj.columns:
+            if col_name in schema_samples:
+                # Direct schema match — samples already populated by serializer
+                extracted_context.append(ColumnContext(column=col_name, samples=schema_samples[col_name]))
+            else:
+                # Squashed JSON array column — run extraction directly
+                series = df_obj[col_name]
+                col_type = determine_series_type(series)
+                samples = ColumnValueExtractor.extract(series, col_type, pandasai_config.categorical_max_unique, df_schema)
+                if samples is not None:
+                    extracted_context.append(ColumnContext(column=col_name, samples=samples))
 
     return RegisterResponse(conversation_id=conversation_id, extracted_context=extracted_context)
 

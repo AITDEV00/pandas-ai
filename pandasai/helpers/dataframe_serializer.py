@@ -35,29 +35,57 @@ class DataframeSerializer:
         if df.schema.columns:
             from pandasai.dataframe.virtual_dataframe import VirtualDataFrame
             from pandasai.helpers.column_enrichment import ColumnValueExtractor
+            from pandasai.helpers.semantic_matching import get_matching_schema_columns, merge_descriptions
+            from pandasai.helpers.type_determination import determine_series_type
+
+            # Build a fast lookup: schema column name -> schema Column object
+            schema_by_name = {col.name: col for col in df.schema.columns}
 
             columns = []
-            for col in df.schema.columns:
-                col_dict = col.model_dump(exclude_none=True)
+            for col_name in df.columns:
+                # --- Resolve schema entry for this dataframe column ---
+                schema_col = schema_by_name.get(col_name)
+
+                if schema_col:
+                    # Direct match found in schema (normal column)
+                    col_dict = schema_col.model_dump(exclude_none=True)
+                else:
+                    # No direct match — could be a squashed JSON array column
+                    # e.g. "[Table[Col1][Col2]]" with schema entries "[Table[Col1]]", "[Table[Col2]]"
+                    matched = get_matching_schema_columns(col_name, df.schema)
+                    merged_desc = merge_descriptions(matched) if matched else None
+
+                    # Detect list[struct] columns vs normal flat columns
+                    first_valid = df[col_name].dropna().iloc[0] if not df[col_name].dropna().empty else None
+                    if isinstance(first_valid, list):
+                        col_dict = {"name": col_name, "type": "list[struct]", "semantic_type": "struct"}
+                    else:
+                        col_dict = {"name": col_name, "type": determine_series_type(df[col_name])}
+
+                    if merged_desc:
+                        col_dict["description"] = merged_desc
 
                 if config.enrich_column_values:
                     # Lazy extraction for local dataframes
                     if not isinstance(df, VirtualDataFrame) and col_dict.get("samples") is None:
+                        # Only classify flat string columns, NOT list[struct]
                         if col_dict.get("type") == "string":
-                            classification = ColumnValueExtractor._classify_string_column(
-                                df[col.name], config.categorical_max_unique
-                            )
-                            col_dict["semantic_type"] = classification
-                            col.semantic_type = classification
+                            try:
+                                classification = ColumnValueExtractor._classify_string_column(
+                                    df[col_name], config.categorical_max_unique
+                                )
+                                col_dict["semantic_type"] = classification
+                            except Exception:
+                                pass
 
                         samples = ColumnValueExtractor.extract(
-                            df[col.name],
+                            df[col_name],
                             col_dict.get("type"),
-                            config.categorical_max_unique
+                            config.categorical_max_unique,
+                            df.schema
                         )
                         if samples is not None:
                             col_dict["samples"] = samples
-                            col.samples = samples
                 else:
                     # Strip out samples if enrichment disabled
                     col_dict.pop("samples", None)

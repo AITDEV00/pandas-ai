@@ -14,10 +14,62 @@ class ColumnValueExtractor:
         series: pd.Series,
         col_type: str,
         categorical_max_unique: int = 50,
+        df_schema: Any = None
     ) -> Optional[Any]:
         """
         Returns samples for a column Series to be fed to the LLM.
         """
+        first_valid = series.dropna().iloc[0] if not series.dropna().empty else None
+
+        # --- INTERCEPT LIST OF STRUCTS ---
+        # Broad check: if the first value is ANY list (even empty), treat as struct column.
+        # This prevents fallthrough to .nunique() which cannot handle list values.
+        if isinstance(first_valid, list):
+            # Find the first non-empty list of dicts to determine the struct shape
+            first_nonempty = next(
+                (v for v in series.dropna() if isinstance(v, list) and v and isinstance(v[0], dict)),
+                None
+            )
+            if first_nonempty is None:
+                # All rows are empty arrays — nothing to extract
+                return None
+                
+            all_structs = [struct for row_list in series.dropna() for struct in row_list if isinstance(struct, dict)]
+            if not all_structs:
+                return None
+                
+            from pandasai.helpers.semantic_matching import match_column_details_to_schema
+            from pandasai.helpers.type_determination import determine_series_type
+            
+            temp_df = pd.DataFrame(all_structs)
+            struct_vocabulary = {}
+            for inner_col in temp_df.columns:
+                inner_series = temp_df[inner_col]
+                details = match_column_details_to_schema(inner_col, df_schema)
+                inner_type = details["type"]
+                inner_desc = details["description"]
+                            
+                # Fallback to pandas heuristics
+                if not inner_type or inner_type == "unknown":
+                    inner_type = determine_series_type(inner_series)
+                    
+                inner_samples = cls.extract(inner_series, inner_type, categorical_max_unique, df_schema)
+                if inner_samples:
+                    inner_entry = {
+                        "type": inner_type,
+                        "samples": inner_samples,
+                    }
+                    if inner_desc:
+                        inner_entry["description"] = inner_desc
+                    # Classify string inner columns
+                    if inner_type == "string":
+                        try:
+                            inner_entry["semantic_type"] = cls._classify_string_column(inner_series, categorical_max_unique)
+                        except Exception:
+                            inner_entry["semantic_type"] = None
+                    struct_vocabulary[inner_col] = inner_entry
+            return struct_vocabulary
+
         if col_type == "string":
             # Fast check if it's actually datetime masquerading as string
             sample_strs = series.dropna().head(20).astype(str)
@@ -109,7 +161,7 @@ class ColumnValueExtractor:
 
     @classmethod
     def _extract_numeric(cls, series: pd.Series) -> Optional[Dict[str, Any]]:
-        clean = series.dropna()
+        clean = pd.to_numeric(series, errors="coerce").dropna()
         if clean.empty:
             return None
         # 3 evenly-distributed example values (min, midpoint, max area)

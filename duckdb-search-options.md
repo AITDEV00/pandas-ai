@@ -129,3 +129,124 @@ Not built into core DuckDB, but worth knowing:
 
 
 
+
+
+
+DUCK DB NATIVELY SUPPORT JSON PER CELL!!
+
+When PandasAI uses DuckDB as its engine, it bridges natural language and your data by passing the **schema** of your DataFrame to the underlying LLM (like OpenAI or Anthropic). 
+
+Because you successfully parsed your columns into native Python lists of dictionaries (which DuckDB reads as `LIST(STRUCT)`), the LLM sees a highly structured schema. For example, it sees that `"Employee Leave Details"` is a list of objects containing `Leave Type`, `Leave Duration`, etc.
+
+When you ask a question, the LLM generates **DuckDB SQL** using specific functions designed for nested data. Here is exactly how PandasAI/DuckDB searches through those lists of structs under the hood.
+
+### Method 1: The `UNNEST` Approach (Flattening)
+The most common way the LLM will generate code to search inside your structs is by using DuckDB's `UNNEST` function. This temporarily flattens the array so it can filter using standard SQL `WHERE` clauses.
+
+**Your Prompt to PandasAI:**
+> "Find all employees who have taken 'Wellbeing' leave."
+
+**The DuckDB SQL PandasAI generates behind the scenes:**
+```sql
+SELECT DISTINCT "Employee Name"
+FROM my_dataframe, 
+     UNNEST("Employee Leave Details") AS t(leave_record)
+WHERE leave_record['Leave Type'] = 'Wellbeing';
+```
+*How it works:* It unpacks the array. If an employee has 5 leave records, they temporarily become 5 rows. It checks if the `Leave Type` inside the struct is 'Wellbeing', filters them, and then returns the distinct employee names.
+
+### Method 2: DuckDB Lambda Functions (List Filtering)
+DuckDB has incredibly powerful native functions for lists, such as `list_filter` and `list_transform`. Modern LLMs know these DuckDB dialects very well and often prefer them because they don't require altering the shape of the table.
+
+**Your Prompt to PandasAI:**
+> "Count how many employees had an assignment as 'Senior Developer'."
+
+**The DuckDB SQL PandasAI generates:**
+```sql
+SELECT COUNT(*)
+FROM my_dataframe
+WHERE len(
+    list_filter(
+        "Employee Assignment History", 
+        x -> x['Position Title'] = 'Senior Developer'
+    )
+) > 0;
+```
+*How it works:* The `list_filter` function iterates through the list of structs in the `Employee Assignment History` column for *every single row*. The lambda `x -> x['Position Title'] = 'Senior Developer'` keeps only the structs that match. It then checks if the length of that filtered list is greater than 0.
+
+### Method 3: Aggregating inside the Structs
+Because you casted the types (like integers and dates) in Python first, the LLM can also do math *across* the arrays.
+
+**Your Prompt to PandasAI:**
+> "What is the total duration of all 'Sick Leave' taken by 'John Doe'?"
+
+**The DuckDB SQL PandasAI generates:**
+```sql
+SELECT 
+    SUM(leave_record['Leave Duration (Days)']) AS total_sick_days
+FROM my_dataframe,
+     UNNEST("Employee Leave Details") AS t(leave_record)
+WHERE "Employee Name" = 'John Doe'
+  AND leave_record['Leave Type'] = 'Sick Leave';
+```
+
+### Pro-Tip for getting the best results with PandasAI
+Sometimes, if the LLM gets confused by complex nested structures, it might try to write clunky Python `apply()` loops instead of clean DuckDB SQL. To force it to write perfect array-search code, you can give it a gentle hint in your prompt:
+
+```python
+response = sdf.chat(
+    "List the Employee Names who have a 'Goal Status' of 'Completed'. "
+    "Hint: 'Employee Objectives' is a LIST of STRUCTS. You can use UNNEST or list_filter on it."
+)
+```
+
+
+**Yes, absolutely!** This is where combining DuckDB with an LLM (via PandasAI) becomes incredibly powerful. 
+
+Because DuckDB treats elements inside a `STRUCT` as standard data types, you have full access to its entire library of advanced string functions—even when querying deep inside nested arrays. 
+
+If you prompt PandasAI to do a "fuzzy match" or "find something similar," the underlying LLM will generate DuckDB SQL using those exact functions. 
+
+Here is how DuckDB handles both of those scenarios under the hood:
+
+### 1. Using `ILIKE` (Case-Insensitive & Partial Matching)
+If you want to find an employee who held any job title containing "manager" (regardless of whether it says "IT Manager", "Project manager", or "MANAGER"), DuckDB can use `ILIKE` directly inside its list lambda functions.
+
+**Your Prompt to PandasAI:**
+> "Find employees who have had any role containing 'manager' in their Assignment History."
+
+**The DuckDB SQL generated:**
+```sql
+SELECT "Employee Name"
+FROM my_dataframe
+WHERE len(
+    list_filter(
+        "Employee Assignment History", 
+        x -> x['Position Title'] ILIKE '%manager%'
+    )
+) > 0;
+```
+
+### 2. Using `levenshtein()` (Typo-Tolerant Search)
+DuckDB natively supports the Levenshtein distance (as well as Jaro-Winkler similarity). This calculates how many single-character edits it takes to change one word into another. This is perfect for messy HR data where someone might have typed "Welbeing" instead of "Wellbeing".
+
+**Your Prompt to PandasAI:**
+> "Count how many employees took 'Wellbeing' leave, but account for minor typos in the data."
+
+**The DuckDB SQL generated:**
+```sql
+SELECT COUNT(DISTINCT "Employee Name")
+FROM my_dataframe, 
+     UNNEST("Employee Leave Details") AS t(leave_record)
+WHERE levenshtein(leave_record['Leave Type'], 'Wellbeing') <= 2; 
+-- Matches exact "Wellbeing", but also "Welbeing" or "Well-being"
+```
+
+### 3. Other powerful DuckDB text functions you can trigger:
+Because DuckDB is evaluating these structs natively, PandasAI can also leverage:
+* **`regexp_matches()`**: For finding complex patterns (e.g., "Find all employees whose Previous Employer Name ends in 'LLC' or 'Inc'").
+* **`starts_with()` / `ends_with()`**: Faster alternatives to `ILIKE` for prefixes/suffixes.
+* **`contains()`**: For exact, case-sensitive substring searches.
+
+**How to get PandasAI to do this reliably:**
+LLMs are usually smart enough to map phrases like "fuzzy search" or "case-insensitive" to `ILIKE`. However, if you specifically want to use Levenshtein distance, it helps to be explicit in your natural language prompt to PandasAI:

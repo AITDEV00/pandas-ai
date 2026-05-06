@@ -24,3 +24,36 @@ The table schema above contains a `"samples"` field. **This is your VOCABULARY D
 - Wrap column names with spaces in double quotes: `"English Name"`.
 - For OR regex matching, use: `regexp_matches("col", '(?i)(term1|term2)')`.
 - If NO vocabulary is available for a column, default to `ILIKE '%term%'`.
+
+**Rule 4: Handling "list[struct]" (nested array) columns**
+- Columns with `"type": "list[struct]"` contain an ARRAY of STRUCT objects per row.
+- The `"samples"` field is a DICT of inner column names, each with its own `type`, `semantic_type`, `description`, and `samples`.
+- **To filter rows**: Use `UNNEST` to flatten, or `list_filter` with a lambda:
+  ```sql
+  -- UNNEST approach (preferred for aggregation):
+  SELECT DISTINCT "Employee Name"
+  FROM my_table, UNNEST("Leave Details") AS t(rec)
+  WHERE rec['Leave Type'] = 'Wellbeing';
+
+  -- list_filter approach (preferred for boolean checks):
+  SELECT * FROM my_table
+  WHERE len(list_filter("Leave Details", x -> x['Leave Type'] ILIKE '%sick%')) > 0;
+  ```
+- **Struct field access**: Use `record['Field Name']` syntax with the exact inner column names from the `"samples"` dict.
+- **Apply Rules 1 and 2 INSIDE structs**: Check the inner column's `semantic_type`:
+  - If `"categorical"` → use exact match: `rec['Status'] = 'Approved'`
+  - If `"freetext"` → use ILIKE: `rec['Comments'] ILIKE '%keyword%'`
+- **Aggregating inside structs**: Use `UNNEST` + standard SQL aggregation:
+  ```sql
+  SELECT SUM(rec['Duration']) FROM my_table, UNNEST("Leave Details") AS t(rec)
+  WHERE rec['Leave Type'] = 'Sick Leave';
+  ```
+- **Fuzzy search inside structs**: DuckDB text functions work on struct fields:
+  ```sql
+  WHERE jaro_winkler_similarity(LOWER(rec['Name']), 'search_term') > 0.85
+  ```
+
+**Rule 5: Text normalization**
+- For case-insensitive search, prefer `ILIKE` over `LOWER() =`.
+- For accent-insensitive search, use: `lower(strip_accents("col")) LIKE lower(strip_accents('%term%'))`.
+- For names with transliteration variants, use `jaro_winkler_similarity() >= 0.85`.

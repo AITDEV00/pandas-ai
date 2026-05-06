@@ -2,6 +2,8 @@
 
 {% include 'shared/sql_functions.tmpl' with context %}
 
+{% include 'shared/search_strategy.tmpl' with context %}
+
 The user asked the following question:
 {{context.memory.get_conversation()}}
 
