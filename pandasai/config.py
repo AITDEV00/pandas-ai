@@ -15,6 +15,7 @@ class Config(BaseModel):
     file_manager: FileManager = DefaultFileManager()
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    direct_sql: bool = True
     enrich_column_values: bool = True
     llm_context_window: int = 250000
     column_values_budget_ratio: float = 0.10

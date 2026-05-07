@@ -8,17 +8,27 @@ def handle_chat_query(conversation_id: str, query: str, output_type: str = None)
         raise HTTPException(status_code=404, detail="Conversation ID not found or expired.")
         
     try:
-        # Provide output_type per turn if the frontend specifically demands it
-        response = agent.chat(query, output_type=output_type)
-        
-        # In PandasAI, response could be a primitive string, number, or a Dataframe.
-        # It could also be a file path if a chart was generated. Convert to string to be JSON safe.
-        response_str = str(response) if response is not None else None
+        # Use follow_up() for subsequent turns to preserve multi-turn memory.
+        # chat() clears memory (starts fresh), follow_up() preserves it.
+        if agent._state.memory.count() > 0:
+            response = agent.follow_up(query, output_type=output_type)
+        else:
+            response = agent.chat(query, output_type=output_type)
+
+        # Extract the actual type from the response object (authoritative source)
+        # Falls back to the requested type, then "auto"
+        actual_type = getattr(response, 'type', None) or output_type or "auto"
+
+        # Serialize response value appropriately based on type
+        if actual_type == 'dataframe' and hasattr(response, 'value') and hasattr(response.value, 'to_dict'):
+            response_value = response.value.to_dict(orient='records')
+        else:
+            response_value = str(response) if response is not None else None
         
         return {
-            "response": response_str,
-            "type": output_type or "auto",
-            "last_code_executed": getattr(agent, "last_generated_code", None)
+            "response": response_value,
+            "type": actual_type,
+            "last_code_executed": getattr(agent, "last_code_executed", None)
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

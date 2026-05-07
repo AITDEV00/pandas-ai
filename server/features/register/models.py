@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field, model_validator
 from typing import Optional, Dict, Any, List
 
 class PandasAIConfigPayload(BaseModel):
-    enrich_column_values: bool = Field(False, description="Enable semantic enrichment of column values")
-    llm_context_window: int = Field(8192, description="Context window of the LLM to calculate proportional budget")
+    enrich_column_values: bool = Field(True, description="Enable semantic enrichment of column values")
+    llm_context_window: int = Field(250000, description="Context window of the LLM to calculate proportional budget")
     column_values_token_budget: Optional[int] = Field(None, description="Hard cap on token budget for column enrichment")
     categorical_max_unique: int = Field(50, description="Max unique values before a column is no longer considered categorical")
 

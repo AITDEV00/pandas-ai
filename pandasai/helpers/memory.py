@@ -10,7 +10,7 @@ class Memory:
     agent_description: str
 
     def __init__(
-        self, memory_size: int = 1, agent_description: Union[str, None] = None
+        self, memory_size: int = 10, agent_description: Union[str, None] = None
     ):
         self._messages = []
         self._memory_size = memory_size

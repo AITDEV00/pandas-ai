@@ -223,10 +223,18 @@ def handle_base64_upload(
     with open(temp_path, "wb") as f:
         f.write(file_bytes)
     
-    return create_agent_from_file_path(
-        temp_path, 
-        mimetype,
-        semantic_model=semantic_model,
-        pandasai_config=pandasai_config,
-        llm_config=llm_config
-    )
+    try:
+        result = create_agent_from_file_path(
+            temp_path, 
+            mimetype,
+            semantic_model=semantic_model,
+            pandasai_config=pandasai_config,
+            llm_config=llm_config
+        )
+        return result
+    finally:
+        # Clean up the temp file — the DataFrame is already in memory
+        try:
+            os.unlink(temp_path)
+        except OSError:
+            pass

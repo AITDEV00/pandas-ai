@@ -56,14 +56,21 @@ async def register_file(
         with open(temp_path, "wb") as f:
             shutil.copyfileobj(file.file, f)
             
-        response = create_agent_from_file_path(
-            temp_path, 
-            file.content_type,
-            semantic_model=semantic_model_payload,
-            pandasai_config=config_payload,
-            llm_config=llm_payload
-        )
-        return response
+        try:
+            response = create_agent_from_file_path(
+                temp_path, 
+                file.content_type,
+                semantic_model=semantic_model_payload,
+                pandasai_config=config_payload,
+                llm_config=llm_payload
+            )
+            return response
+        finally:
+            # Clean up the temp file — the DataFrame is already in memory
+            try:
+                os.unlink(temp_path)
+            except OSError:
+                pass
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="semantic_model, pandasai_config, and llm_config must be valid JSON strings.")
     except ValueError as e:

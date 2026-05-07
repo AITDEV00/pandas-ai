@@ -209,6 +209,8 @@ class Agent:
         while attempts <= max_retries:
             try:
                 result = self.execute_code(code)
+                # Track the code that actually executed successfully
+                self._state.last_code_executed = code
                 return self._response_parser.parse(result, code)
             except Exception as e:
                 attempts += 1
@@ -327,7 +329,9 @@ class Agent:
 
     @property
     def last_code_executed(self):
-        return self._state.last_code_generated
+        # Prefer the tracked executed code (set after successful execution),
+        # fall back to the generated code if execution hasn't completed yet
+        return self._state.last_code_executed or self._state.last_code_generated
 
     @property
     def last_prompt_used(self):

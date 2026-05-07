@@ -100,7 +100,7 @@ class DataframeSerializer:
         # Truncate long values
         sample_size = min(getattr(config, "sample_head_size", 10), len(df))
         df_truncated = cls._truncate_dataframe(
-            df.sample(n=sample_size, random_state=42) if sample_size > 0 else df.head(0)
+            df.head(n=sample_size) if sample_size > 0 else df.head(0)
         )
 
         # Convert to CSV format

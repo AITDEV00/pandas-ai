@@ -137,7 +137,7 @@ class DataFrame(pd.DataFrame):
         if source:
             dialect = "duckdb" if source.type in LOCAL_SOURCE_TYPES else source.type
         else:
-            dialect = "postgres"
+            dialect = "duckdb"
 
         return dialect
 
@@ -174,10 +174,18 @@ class DataFrame(pd.DataFrame):
 
     @classmethod
     def get_default_schema(cls, dataframe: DataFrame) -> SemanticLayerSchema:
-        columns_list = [
-            Column(name=str(name), type=DataFrame.get_column_type(dtype))
-            for name, dtype in dataframe.dtypes.items()
-        ]
+        from pandasai.helpers.type_determination import is_list_struct_column, determine_series_type
+
+        columns_list = []
+        for name, dtype in dataframe.dtypes.items():
+            series = dataframe[name]
+            if is_list_struct_column(series):
+                col_type = "list[struct]"
+            else:
+                col_type = DataFrame.get_column_type(dtype)
+                if col_type is None:
+                    col_type = determine_series_type(series)
+            columns_list.append(Column(name=str(name), type=col_type))
 
         table_name = getattr(
             dataframe, "_table_name", f"table_{dataframe._column_hash}"
