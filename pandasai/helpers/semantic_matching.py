@@ -9,18 +9,6 @@ import re
 from typing import Any, List, Optional
 
 
-def match_column_to_schema(col_name: str, df_schema: Any) -> Optional[str]:
-    """
-    Matches a single column name (or inner struct key) to a SemanticLayerSchema column type.
-
-    Returns the matched type string, or None if no match is found.
-    """
-    matches = get_matching_schema_columns(col_name, df_schema)
-    if matches:
-        return matches[0].type
-    return None
-
-
 def match_column_details_to_schema(col_name: str, df_schema: Any) -> dict:
     """
     Matches a single column name to a SemanticLayerSchema entry and returns
@@ -59,6 +47,18 @@ def get_matching_schema_columns(col_name: str, df_schema: Any) -> List:
         if schema_col.name.endswith(f"[{col_name}]]"):
             results.append(schema_col)
             continue
+
+        # Strategy 2b: Prefixed inner column match — col_name contains brackets
+        #   e.g. col_name is "Employee Performance[Calculated Rating]",
+        #   schema has "[Employee Performance[Calculated Rating][Normalized Performance Rating]]"
+        #   In the schema, the bracket group is "[Employee Performance[Calculated Rating]"
+        #   (one closing bracket), not "[Employee Performance[Calculated Rating]]" (two).
+        if "[" in col_name:
+            # Strip trailing ] from col_name's inner brackets to match schema format
+            bracket_group = f"[{col_name}"
+            if bracket_group in schema_col.name:
+                results.append(schema_col)
+                continue
 
         # Strategy 3: Squashed parent match — col_name contains multiple bracket groups
         #   e.g. col_name is "[Table[Col1][Col2]]", schema has "[Table[Col1]]"

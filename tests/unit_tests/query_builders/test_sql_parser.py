@@ -134,3 +134,95 @@ JOIN "department" AS d
     def test_extract_table_names(sql_query, dialect, expected_tables):
         result = SQLParser.extract_table_names(sql_query, dialect)
         assert SQLParser.extract_table_names(sql_query, dialect) == expected_tables
+
+    # --- fix_common_llm_mistakes tests ---
+
+    def test_fix_brackets_schema_driven(self):
+        """Schema-driven: LLM wrote stripped name, schema has bracketed name."""
+        sql = 'SELECT "Employee Master[Employee Name]" FROM t'
+        cols = ["[Employee Master[Employee Name]]"]
+        result = SQLParser.fix_common_llm_mistakes(sql, cols)
+        assert '"[Employee Master[Employee Name]]"' in result
+
+    def test_fix_brackets_already_correct(self):
+        """Already-correct bracketed names should not be changed."""
+        sql = 'SELECT "[Employee Master[Employee Name]]" FROM t'
+        cols = ["[Employee Master[Employee Name]]"]
+        result = SQLParser.fix_common_llm_mistakes(sql, cols)
+        assert '"[Employee Master[Employee Name]]"' in result
+
+    def test_fix_brackets_no_column_names(self):
+        """Without column_names, bracket fix must NOT be attempted."""
+        sql = 'SELECT "Employee Master[Employee Name]" FROM t'
+        result = SQLParser.fix_common_llm_mistakes(sql, column_names=None)
+        assert '"[Employee Master[Employee Name]]"' not in result
+
+    def test_fix_brackets_simple_names_untouched(self):
+        """Simple column names (no brackets) must not be altered."""
+        sql = 'SELECT "Sales", "Revenue_Q1" FROM t'
+        cols = ["Sales", "Revenue_Q1"]
+        result = SQLParser.fix_common_llm_mistakes(sql, cols)
+        assert '"Sales"' in result
+        assert '"Revenue_Q1"' in result
+
+    def test_fix_brackets_mixed_convention(self):
+        """Only bracketed column names get fixed; simple names stay as-is."""
+        sql = 'SELECT "Employee Master[Employee Name]", "Sales" FROM t'
+        cols = ["[Employee Master[Employee Name]]", "Sales"]
+        result = SQLParser.fix_common_llm_mistakes(sql, cols)
+        assert '"[Employee Master[Employee Name]]"' in result
+        assert '"Sales"' in result
+
+    def test_fix_unnest_alias_wrong(self):
+        """Wrong UNNEST alias (AS pe) gets fixed to AS t(rec)."""
+        sql = "SELECT pe['field'] FROM t CROSS JOIN UNNEST(\"col\") AS pe"
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "AS t(rec)" in result
+        assert "pe['" not in result
+        assert "rec['field']" in result
+
+    def test_fix_unnest_alias_correct_preserved(self):
+        """Correct UNNEST aliases (t1, t2) are preserved."""
+        sql = (
+            "SELECT t1.rec['a'], t2.rec['b'] FROM t "
+            "CROSS JOIN UNNEST(\"c1\") AS t1(rec) "
+            "CROSS JOIN UNNEST(\"c2\") AS t2(rec)"
+        )
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "AS t1(rec)" in result
+        assert "AS t2(rec)" in result
+
+    def test_fix_combined_bracket_and_unnest(self):
+        """The actual failing case: missing brackets + wrong UNNEST alias."""
+        sql = (
+            'SELECT "Employee Master[Employee Name]", '
+            "pe['Employee Performance[Calculated Rating]'] AS rating "
+            'FROM enterprise_data '
+            'CROSS JOIN UNNEST("[Employee Performance[...]]") AS pe'
+        )
+        cols = ["[Employee Master[Employee Name]]"]
+        result = SQLParser.fix_common_llm_mistakes(sql, cols)
+        assert '"[Employee Master[Employee Name]]"' in result
+        assert "AS t(rec)" in result
+        assert "rec['Employee Performance[Calculated Rating]']" in result
+
+    def test_fix_different_convention_no_brackets(self):
+        """Different Excel with no bracket convention should not break."""
+        sql = 'SELECT "Sales", pe["Rating"] FROM t CROSS JOIN UNNEST("Reviews") AS pe'
+        cols = ["Sales"]
+        result = SQLParser.fix_common_llm_mistakes(sql, cols)
+        assert '"Sales"' in result
+        assert "AS t(rec)" in result
+
+    def test_fix_empty_query(self):
+        """Empty/None query returns as-is."""
+        assert SQLParser.fix_common_llm_mistakes("") == ""
+        assert SQLParser.fix_common_llm_mistakes(None) is None
+
+    def test_fix_alias_rec_field_access(self):
+        """alias.rec['field'] → alias['field'] (pp IS the struct, .rec is wrong)."""
+        sql = "SELECT pp.rec['field_a'], pr.rec['field_b'] FROM t"
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "pp['field_a']" in result
+        assert "pr['field_b']" in result
+        assert ".rec[" not in result

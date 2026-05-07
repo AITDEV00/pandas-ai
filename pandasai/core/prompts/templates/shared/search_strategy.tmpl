@@ -1,59 +1,85 @@
-### 🔍 DUCKDB SEARCH & VOCABULARY STRATEGY
+### 🔍 SEARCH & VOCABULARY STRATEGY
 
-You are generating DuckDB SQL. You must use the `execute_sql_query(sql)` function.
-The table schema above contains a `"samples"` field. **This is your VOCABULARY DICTIONARY.**
+The table schema contains a `"samples"` field. **This is your VOCABULARY DICTIONARY.**
 
-**Rule 1: Handling "freetext" columns**
-- The `"samples"` array contains isolated word tokens, NOT complete sentences.
+{%- for df in context.dfs %}
+{%- set ns = namespace(flat_cols=[], struct_cols=[], id_like_cols=[]) %}
+{%- for col in df.schema.columns %}
+{%- if col.samples is not none and col.type is defined and col.type == 'list[struct]' %}
+{%- set _ = ns.struct_cols.append(col) %}
+{%- elif col.samples is not none and col.semantic_type is defined and col.semantic_type == 'id_like' %}
+{%- set _ = ns.id_like_cols.append(col) %}
+{%- elif col.samples is not none %}
+{%- set _ = ns.flat_cols.append(col) %}
+{%- endif %}
+{%- endfor %}
+{%- if ns.flat_cols %}
+
+**FLAT COLUMNS** (use `"col_name"` directly in SELECT/WHERE):
+{%- for col in ns.flat_cols %}
+  → `"{{ col.name }}"` ({{ col.type | default('string') }}{%- if col.semantic_type is defined and col.semantic_type is not none %}, {{ col.semantic_type }}{% endif %})
+{%- endfor %}
+{%- endif %}
+{%- if ns.id_like_cols %}
+
+**IDENTIFIER COLUMNS** (use for JOINs and exact lookups only — do NOT filter by arbitrary values):
+{%- for col in ns.id_like_cols %}
+  → `"{{ col.name }}"` (id_like, e.g. {{ col.samples[:3] | join(', ') }})
+{%- endfor %}
+{%- endif %}
+{%- if ns.struct_cols %}
+
+**STRUCT COLUMNS** (require UNNEST or list_filter):
+{%- for col in ns.struct_cols %}
+
+**STRUCT: `"{{ col.name }}"`** — fields:
+{%- for field_name in col.samples.keys() %}
+- `rec['{{ field_name }}']` ({{ col.samples[field_name].type | default('unknown') }}{%- if col.samples[field_name].semantic_type is defined and col.samples[field_name].semantic_type is not none %}, {{ col.samples[field_name].semantic_type }}{% endif %})
+{%- endfor %}
+{%- endfor %}
+{%- endif %}
+{%- endfor %}
+
+<search_rules>
+**Rule 1: Freetext columns** — The `"samples"` array contains isolated word tokens, NOT complete sentences.
 - When the user searches for a text value, FIRST find the closest matching word in the `"samples"` vocabulary.
 - NEVER use `=`. ALWAYS use `ILIKE '%word%'` with the vocabulary word you found.
 - If searching for multiple words, chain them: `ILIKE '%word1%' AND ILIKE '%word2%'`.
 - If no vocabulary matches, use fuzzy search: `jaro_winkler_similarity(LOWER("col"), 'user_typo') > 0.85`
-{% for df in context.dfs %}{% for col in df.schema.columns %}{% if col.samples is not none and col.semantic_type is defined and col.semantic_type == 'freetext' %}
-  → Column `"{{ col.name }}"` is freetext. Apply Rule 1.
-{% endif %}{% endfor %}{% endfor %}
+{%- for df in context.dfs %}
+{%- for col in df.schema.columns %}
+{%- if col.samples is not none and col.semantic_type is defined and col.semantic_type == 'freetext' %}
+  → `"{{ col.name }}"` is freetext
+{%- endif %}
+{%- endfor %}
+{%- endfor %}
 
-**Rule 2: Handling "categorical" columns**
-- The `"samples"` array contains the EXACT, complete cell values.
+**Rule 2: Categorical columns** — The `"samples"` array contains the EXACT, complete cell values.
 - Use exact matches (`=`) or `IN (...)`.
-{% for df in context.dfs %}{% for col in df.schema.columns %}{% if col.samples is not none and col.semantic_type is defined and col.semantic_type == 'categorical' %}
-  → Column `"{{ col.name }}"` is categorical. Apply Rule 2.
-{% endif %}{% endfor %}{% endfor %}
+{%- for df in context.dfs %}
+{%- for col in df.schema.columns %}
+{%- if col.samples is not none and col.semantic_type is defined and col.semantic_type == 'categorical' %}
+  → `"{{ col.name }}"` is categorical
+{%- endif %}
+{%- endfor %}
+{%- endfor %}
 
-**Rule 3: General SQL Rules**
-- Wrap column names with spaces in double quotes: `"English Name"`.
-- For OR regex matching, use: `regexp_matches("col", '(?i)(term1|term2)')`.
-- If NO vocabulary is available for a column, default to `ILIKE '%term%'`.
-
-**Rule 4: Handling "list[struct]" (nested array) columns**
-- Columns with `"type": "list[struct]"` contain an ARRAY of STRUCT objects per row.
-- The `"samples"` field is a DICT of inner column names, each with its own `type`, `semantic_type`, `description`, and `samples`.
-- **To filter rows**: Use `UNNEST` to flatten, or `list_filter` with a lambda:
+**Rule 3: Struct columns** — Use UNNEST for aggregation, list_filter for boolean checks:
   ```sql
   -- UNNEST approach (preferred for aggregation):
   SELECT DISTINCT "Employee Name"
-  FROM my_table, UNNEST("Leave Details") AS t(rec)
-  WHERE rec['Leave Type'] = 'Wellbeing';
+  FROM my_table, UNNEST("struct_col") AS t(rec)
+  WHERE rec['Field'] = 'Value';
 
   -- list_filter approach (preferred for boolean checks):
   SELECT * FROM my_table
-  WHERE len(list_filter("Leave Details", x -> x['Leave Type'] ILIKE '%sick%')) > 0;
+  WHERE len(list_filter("struct_col", x -> x['Field'] ILIKE '%term%')) > 0;
   ```
-- **Struct field access**: Use `record['Field Name']` syntax with the exact inner column names from the `"samples"` dict.
-- **Apply Rules 1 and 2 INSIDE structs**: Check the inner column's `semantic_type`:
-  - If `"categorical"` → use exact match: `rec['Status'] = 'Approved'`
-  - If `"freetext"` → use ILIKE: `rec['Comments'] ILIKE '%keyword%'`
-- **Aggregating inside structs**: Use `UNNEST` + standard SQL aggregation:
-  ```sql
-  SELECT SUM(rec['Duration']) FROM my_table, UNNEST("Leave Details") AS t(rec)
-  WHERE rec['Leave Type'] = 'Sick Leave';
-  ```
-- **Fuzzy search inside structs**: DuckDB text functions work on struct fields:
-  ```sql
-  WHERE jaro_winkler_similarity(LOWER(rec['Name']), 'search_term') > 0.85
-  ```
+- Apply Rules 1 and 2 INSIDE structs based on each field's semantic_type.
+- Fuzzy search inside structs: `jaro_winkler_similarity(LOWER(rec['Name']), 'search_term') > 0.85`
 
-**Rule 5: Text normalization**
-- For case-insensitive search, prefer `ILIKE` over `LOWER() =`.
-- For accent-insensitive search, use: `lower(strip_accents("col")) LIKE lower(strip_accents('%term%'))`.
-- For names with transliteration variants, use `jaro_winkler_similarity() >= 0.85`.
+**Rule 4: Text normalization**
+- Accent-insensitive: `lower(strip_accents("col")) ILIKE lower(strip_accents('%term%'))`
+- Multi-value OR: `regexp_matches("col", '(?i)(term1|term2)')`
+- No vocabulary available: default to `ILIKE '%term%'`
+</search_rules>

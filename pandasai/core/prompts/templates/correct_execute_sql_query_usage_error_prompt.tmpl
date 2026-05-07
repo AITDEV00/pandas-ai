@@ -1,8 +1,25 @@
-{% for df in context.dfs %}{% include 'shared/dataframe.tmpl' with context %}{% endfor %}
+{% include 'shared/duckdb_syntax.tmpl' with context %}
 
 {% include 'shared/sql_functions.tmpl' with context %}
 
+<result_format>
+At the end of the generated code, you MUST declare a variable named exactly `result` as a dictionary:
+result = {"type": "<type>", "value": <value>}
+{% include 'shared/output_type_template.tmpl' with context %}
+Do NOT use `return`. Do NOT name the variable anything else (not `result_dict`, `result_value`, `output`, etc.).
+</result_format>
+
+{% include 'shared/code_strategy.tmpl' with context %}
+
+<columns>
 {% include 'shared/search_strategy.tmpl' with context %}
+</columns>
+
+<tables>
+{% for df in context.dfs %}
+{% include 'shared/dataframe.tmpl' with context %}
+{% endfor %}
+</tables>
 
 The user asked the following question:
 {{context.memory.get_conversation()}}
@@ -14,6 +31,3 @@ However, it resulted in the following error:
 {{error}}
 
 Fix the python code above and generate the new python code. The code generated MUST use the execute_sql_query function.
-At the end of the generated code, you MUST declare a "result" variable as a dictionary of type and value in the following format:
-{% include 'shared/output_type_template.tmpl' with context %}
-Do NOT use the `return` keyword, as the code will be executed in the global scope.

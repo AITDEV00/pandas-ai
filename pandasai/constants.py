@@ -46,7 +46,8 @@ REMOTE_SOURCE_TYPES = [
     "oracle",
 ]
 SQL_SOURCE_TYPES = ["mysql", "postgres", "cockroachdb", "sqlserver", "oracle"]
-VALID_COLUMN_TYPES = ["string", "integer", "float", "datetime", "boolean"]
+VALID_COLUMN_TYPES = ["string", "integer", "float", "datetime", "boolean", "list[struct]"]
+VALID_SEMANTIC_TYPES = ["categorical", "freetext", "id_like", "struct"]
 
 VALID_TRANSFORMATION_TYPES = [
     "anonymize",

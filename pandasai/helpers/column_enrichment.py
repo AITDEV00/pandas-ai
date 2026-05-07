@@ -4,9 +4,51 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 
+from pandasai.helpers.type_determination import determine_series_type, is_list_struct_column
+
 
 class ColumnValueExtractor:
     """Extracts semantic value metadata from a pandas Series, per column type."""
+
+    @classmethod
+    def classify_and_extract(
+        cls,
+        series: pd.Series,
+        col_type: str,
+        categorical_max_unique: int = 50,
+        df_schema: Any = None,
+    ) -> Dict[str, Any]:
+        """Extract samples and semantic_type in a single pass.
+
+        Returns a dict with keys:
+          - ``samples``: the enrichment result (list, dict, or None)
+          - ``semantic_type``: one of ``VALID_SEMANTIC_TYPES`` or None
+
+        This avoids the double-classification that occurs when calling
+        ``_classify_string_column()`` and ``extract()`` separately for
+        string columns.
+        """
+        # list[struct] columns always have semantic_type "struct"
+        if is_list_struct_column(series):
+            return {
+                "samples": cls._extract_struct_vocabulary(series, categorical_max_unique, df_schema),
+                "semantic_type": "struct",
+            }
+
+        # String columns: classify once, then extract using the classification
+        if col_type == "string":
+            # Fast check if it's actually datetime masquerading as string
+            sample_strs = series.dropna().head(20).astype(str)
+            if not sample_strs.empty and sample_strs.str.match(r"^\d{4}-\d{2}-\d{2}").mean() > 0.8:
+                return {"samples": cls._extract_datetime(series), "semantic_type": None}
+
+            classification = cls._classify_string_column(series, categorical_max_unique)
+            samples = cls._extract_string(series, categorical_max_unique, _classification=classification)
+            return {"samples": samples, "semantic_type": classification}
+
+        # All other column types have no semantic_type
+        samples = cls.extract(series, col_type, categorical_max_unique, df_schema)
+        return {"samples": samples, "semantic_type": None}
 
     @classmethod
     def extract(
@@ -19,56 +61,11 @@ class ColumnValueExtractor:
         """
         Returns samples for a column Series to be fed to the LLM.
         """
-        first_valid = series.dropna().iloc[0] if not series.dropna().empty else None
-
         # --- INTERCEPT LIST OF STRUCTS ---
-        # Broad check: if the first value is ANY list (even empty), treat as struct column.
+        # If the column contains list-of-dict values, extract struct vocabulary.
         # This prevents fallthrough to .nunique() which cannot handle list values.
-        if isinstance(first_valid, list):
-            # Find the first non-empty list of dicts to determine the struct shape
-            first_nonempty = next(
-                (v for v in series.dropna() if isinstance(v, list) and v and isinstance(v[0], dict)),
-                None
-            )
-            if first_nonempty is None:
-                # All rows are empty arrays — nothing to extract
-                return None
-                
-            all_structs = [struct for row_list in series.dropna() for struct in row_list if isinstance(struct, dict)]
-            if not all_structs:
-                return None
-                
-            from pandasai.helpers.semantic_matching import match_column_details_to_schema
-            from pandasai.helpers.type_determination import determine_series_type
-            
-            temp_df = pd.DataFrame(all_structs)
-            struct_vocabulary = {}
-            for inner_col in temp_df.columns:
-                inner_series = temp_df[inner_col]
-                details = match_column_details_to_schema(inner_col, df_schema)
-                inner_type = details["type"]
-                inner_desc = details["description"]
-                            
-                # Fallback to pandas heuristics
-                if not inner_type or inner_type == "unknown":
-                    inner_type = determine_series_type(inner_series)
-                    
-                inner_samples = cls.extract(inner_series, inner_type, categorical_max_unique, df_schema)
-                if inner_samples:
-                    inner_entry = {
-                        "type": inner_type,
-                        "samples": inner_samples,
-                    }
-                    if inner_desc:
-                        inner_entry["description"] = inner_desc
-                    # Classify string inner columns
-                    if inner_type == "string":
-                        try:
-                            inner_entry["semantic_type"] = cls._classify_string_column(inner_series, categorical_max_unique)
-                        except Exception:
-                            inner_entry["semantic_type"] = None
-                    struct_vocabulary[inner_col] = inner_entry
-            return struct_vocabulary
+        if is_list_struct_column(series):
+            return cls._extract_struct_vocabulary(series, categorical_max_unique, df_schema)
 
         if col_type == "string":
             # Fast check if it's actually datetime masquerading as string
@@ -83,6 +80,75 @@ class ColumnValueExtractor:
         elif col_type == "boolean":
             return cls._extract_boolean(series)
         return None
+
+    @classmethod
+    def _extract_struct_vocabulary(
+        cls, series: pd.Series, categorical_max_unique: int, df_schema: Any
+    ) -> Optional[Dict]:
+        """Extract struct field vocabulary from a list[struct] column.
+
+        Flattens all struct dicts into a temporary DataFrame, then extracts
+        samples for each inner column using the same classification logic.
+        """
+        # Find the first non-empty list of dicts to determine the struct shape
+        first_nonempty = next(
+            (v for v in series.dropna() if isinstance(v, list) and v and isinstance(v[0], dict)),
+            None
+        )
+        if first_nonempty is None:
+            return None
+
+        all_structs = [struct for row_list in series.dropna() for struct in row_list if isinstance(struct, dict)]
+        if not all_structs:
+            return None
+
+        from pandasai.helpers.semantic_matching import match_column_details_to_schema
+
+        temp_df = pd.DataFrame(all_structs)
+        struct_vocabulary = {}
+        for inner_col in temp_df.columns:
+            inner_series = temp_df[inner_col]
+            details = match_column_details_to_schema(inner_col, df_schema)
+            inner_type = details["type"]
+            inner_desc = details["description"]
+
+            # Fallback to pandas heuristics
+            # Also: if the schema returned list[struct], it matched the parent
+            # squashed column instead of an actual inner field.  An inner field
+            # of a struct cannot itself be list[struct] (DuckDB doesn't support
+            # nested list[struct] in UNNEST), so this is a false match.
+            if not inner_type or inner_type == "unknown" or inner_type == "list[struct]":
+                inner_type = determine_series_type(inner_series)
+
+            inner_samples = cls.extract(inner_series, inner_type, categorical_max_unique, df_schema)
+            # Classify string inner columns so we always set semantic_type
+            inner_semantic_type = None
+            if inner_type == "string":
+                try:
+                    inner_semantic_type = cls._classify_string_column(inner_series, categorical_max_unique)
+                except Exception:
+                    inner_semantic_type = None
+
+            # For id_like inner fields, _extract_string (called by extract())
+            # now returns up to 5 representative values, so inner_samples
+            # should already be populated.  The fallback below is a safety
+            # net in case extract() returned None for an older code path.
+            if inner_samples is None and inner_semantic_type == "id_like":
+                sample_vals = inner_series.dropna().unique().tolist()
+                inner_samples = sorted(sample_vals[:5]) if sample_vals else None
+
+            if inner_samples:
+                inner_entry = {
+                    "type": inner_type,
+                    "samples": inner_samples,
+                }
+                if inner_desc:
+                    inner_entry["description"] = inner_desc
+                if inner_semantic_type is not None:
+                    inner_entry["semantic_type"] = inner_semantic_type
+                struct_vocabulary[inner_col] = inner_entry
+
+        return struct_vocabulary if struct_vocabulary else None
 
     @classmethod
     def _classify_string_column(
@@ -137,9 +203,9 @@ class ColumnValueExtractor:
 
     @classmethod
     def _extract_string(
-        cls, series: pd.Series, max_unique: int
+        cls, series: pd.Series, max_unique: int, _classification: Optional[str] = None
     ) -> Optional[List[Any]]:
-        classification = cls._classify_string_column(series, max_unique)
+        classification = _classification or cls._classify_string_column(series, max_unique)
 
         if classification == "categorical":
             # Keep exact original-case values — safe for SQL WHERE clauses
@@ -157,7 +223,12 @@ class ColumnValueExtractor:
             return sorted(words) if words else None
 
         else:  # id_like
-            return None
+            # Return a few representative values so the LLM knows this column
+            # exists and can use it for JOINs / filtering.  Without samples,
+            # id_like columns vanish from context entirely and the LLM
+            # hallucinates column names.
+            sample_vals = series.dropna().unique().tolist()
+            return sorted(sample_vals[:5]) if sample_vals else None
 
     @classmethod
     def _extract_numeric(cls, series: pd.Series) -> Optional[Dict[str, Any]]:

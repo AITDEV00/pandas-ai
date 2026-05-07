@@ -1,0 +1,58 @@
+<code_strategy>
+**You can write ANY valid Python code.** Use `execute_sql_query` for data retrieval, then process results with Python.
+
+**Strategy: Divide and conquer**
+1. Use SQL for filtering, joining, and aggregation (via `execute_sql_query`)
+2. Use Python for presenting, formatting, computing derived values, and conditional logic
+3. Keep SQL queries simple — retrieve raw data, then process in Python
+
+**Result type selection — choose the most appropriate type for the user's question:**
+- `"string"` → for natural language answers, summaries, comparisons
+- `"number"` → for counts, averages, percentages
+- `"dataframe"` → for tables/lists of data
+- `"plot"` → for charts
+
+**IMPORTANT: Use exact column names from the schema listings above.** Flat columns are `"column_name"`, struct fields after UNNEST are `var['field_name']`.
+
+**Examples of rich Python code:**
+
+```python
+# Example 1: String answer with conditional logic
+import pandas as pd
+df = execute_sql_query('SELECT "col_name" FROM enterprise_data ORDER BY "col_name" DESC LIMIT 1')
+top_val = df.iloc[0]["col_name"]
+if top_val >= 90:
+    verdict = "excellent"
+elif top_val >= 70:
+    verdict = "good"
+else:
+    verdict = "needs improvement"
+result = {"type": "string", "value": f"The top result is {top_val} — {verdict}."}
+
+# Example 2: Number answer with safe fallback
+import pandas as pd
+df = execute_sql_query('SELECT COUNT(*) as cnt FROM enterprise_data WHERE "col_name" = \'VALUE\'')
+count = int(df.iloc[0]["cnt"])
+result = {"type": "number", "value": count}
+
+# Example 3: String answer combining multiple queries
+import pandas as pd
+df_a = execute_sql_query('SELECT COUNT(*) as cnt FROM enterprise_data WHERE "col_a" = \'X\'')
+df_b = execute_sql_query('SELECT COUNT(DISTINCT "col_b") as cnt FROM enterprise_data')
+total = int(df_a.iloc[0]["cnt"])
+unique = int(df_b.iloc[0]["cnt"])
+result = {"type": "string", "value": f"There are {total} matching rows across {unique} groups."}
+
+# Example 4: String answer from struct fields (UNNEST)
+import pandas as pd
+df = execute_sql_query('''
+    SELECT "col_name", rec['field_name'] AS field_val
+    FROM enterprise_data, UNNEST("struct_col") AS t(rec)
+    WHERE rec['field_name'] = 'VALUE'
+    LIMIT 1
+''')
+name = df.iloc[0]["col_name"]
+val = df.iloc[0]["field_val"]
+result = {"type": "string", "value": f"Found: {name} with value {val}."}
+```
+</code_strategy>

@@ -1,12 +1,25 @@
+{% include 'shared/duckdb_syntax.tmpl' with context %}
+
+{% include 'shared/sql_functions.tmpl' with context %}
+
+<result_format>
+At the end of the generated code, you MUST declare a variable named exactly `result` as a dictionary:
+result = {"type": "<type>", "value": <value>}
+{% include 'shared/output_type_template.tmpl' with context %}
+Do NOT use `return`. Do NOT name the variable anything else (not `result_dict`, `result_value`, `output`, etc.).
+</result_format>
+
+{% include 'shared/code_strategy.tmpl' with context %}
+
+<columns>
+{% include 'shared/search_strategy.tmpl' with context %}
+</columns>
+
 <tables>
 {% for df in context.dfs %}
 {% include 'shared/dataframe.tmpl' with context %}
 {% endfor %}
 </tables>
-
-{% include 'shared/sql_functions.tmpl' with context %}
-
-{% include 'shared/search_strategy.tmpl' with context %}
 
 {% if last_code_generated and context.memory.count() > 0 %}
 Last code generated:
@@ -24,9 +37,5 @@ import pandas as pd
 {% endif %}
 {% include 'shared/vectordb_docs.tmpl' with context %}
 {{ context.memory.get_last_message() }}
-
-At the end, declare "result" variable as a dictionary of type and value in the following format:
-{% include 'shared/output_type_template.tmpl' with context %}
-
 
 Generate python code and return full updated code:

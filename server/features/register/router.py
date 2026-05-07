@@ -5,7 +5,7 @@ import shutil
 import json
 from typing import Optional
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from .models import Base64UploadRequest, RegisterResponse, PandasAIConfigPayload, LLMConfigPayload
+from .models import Base64UploadRequest, RegisterResponse, PandasAIConfigPayload, LLMConfigPayload, SemanticModelPayload
 from .handler import handle_base64_upload, create_agent_from_file_path
 
 router = APIRouter(prefix="/register", tags=["Registration"])
@@ -17,7 +17,7 @@ async def register_base64(payload: Base64UploadRequest):
         response = handle_base64_upload(
             payload.base64_data, 
             payload.mimetype,
-            semantic_model=payload.semantic_model,
+                semantic_model=payload.semantic_model,
             pandasai_config=payload.pandasai_config,
             llm_config=payload.llm_config
         )
@@ -36,7 +36,13 @@ async def register_file(
 ):
     """Register endpoints via standard multipart/form-data upload."""
     try:
-        semantic_model_dict = json.loads(semantic_model) if semantic_model else None
+        # Parse and validate semantic model FIRST (fast-fail before file I/O)
+        semantic_model_payload = None
+        if semantic_model:
+            semantic_model_dict = json.loads(semantic_model)
+            # Validate using SemanticModelPayload (handler will inject default source if needed)
+            semantic_model_payload = SemanticModelPayload(**semantic_model_dict)
+        
         config_payload = PandasAIConfigPayload(**json.loads(pandasai_config)) if pandasai_config else PandasAIConfigPayload()
         llm_payload = LLMConfigPayload(**json.loads(llm_config)) if llm_config else LLMConfigPayload()
 
@@ -53,13 +59,16 @@ async def register_file(
         response = create_agent_from_file_path(
             temp_path, 
             file.content_type,
-            semantic_model=semantic_model_dict,
+            semantic_model=semantic_model_payload,
             pandasai_config=config_payload,
             llm_config=llm_payload
         )
         return response
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="semantic_model, pandasai_config, and llm_config must be valid JSON strings.")
+    except ValueError as e:
+        # Catch SemanticModelPayload validation errors
+        raise HTTPException(status_code=400, detail=f"Invalid semantic model: {str(e)}")
     except HTTPException:
         raise
     except Exception as e:

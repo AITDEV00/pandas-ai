@@ -36,7 +36,7 @@ class DataframeSerializer:
             from pandasai.dataframe.virtual_dataframe import VirtualDataFrame
             from pandasai.helpers.column_enrichment import ColumnValueExtractor
             from pandasai.helpers.semantic_matching import get_matching_schema_columns, merge_descriptions
-            from pandasai.helpers.type_determination import determine_series_type
+            from pandasai.helpers.type_determination import determine_series_type, is_list_struct_column
 
             # Build a fast lookup: schema column name -> schema Column object
             schema_by_name = {col.name: col for col in df.schema.columns}
@@ -46,18 +46,24 @@ class DataframeSerializer:
                 # --- Resolve schema entry for this dataframe column ---
                 schema_col = schema_by_name.get(col_name)
 
+                # Detect list[struct] from actual data (needed even when schema
+                # has a direct match, because schema type may be 'string' for these)
+                is_list_struct = is_list_struct_column(df[col_name])
+
                 if schema_col:
                     # Direct match found in schema (normal column)
                     col_dict = schema_col.model_dump(exclude_none=True)
+                    # Override type if actual data is list[struct]
+                    if is_list_struct:
+                        col_dict["type"] = "list[struct]"
+                        col_dict["semantic_type"] = "struct"
                 else:
                     # No direct match — could be a squashed JSON array column
                     # e.g. "[Table[Col1][Col2]]" with schema entries "[Table[Col1]]", "[Table[Col2]]"
                     matched = get_matching_schema_columns(col_name, df.schema)
                     merged_desc = merge_descriptions(matched) if matched else None
 
-                    # Detect list[struct] columns vs normal flat columns
-                    first_valid = df[col_name].dropna().iloc[0] if not df[col_name].dropna().empty else None
-                    if isinstance(first_valid, list):
+                    if is_list_struct:
                         col_dict = {"name": col_name, "type": "list[struct]", "semantic_type": "struct"}
                     else:
                         col_dict = {"name": col_name, "type": determine_series_type(df[col_name])}
@@ -68,24 +74,16 @@ class DataframeSerializer:
                 if config.enrich_column_values:
                     # Lazy extraction for local dataframes
                     if not isinstance(df, VirtualDataFrame) and col_dict.get("samples") is None:
-                        # Only classify flat string columns, NOT list[struct]
-                        if col_dict.get("type") == "string":
-                            try:
-                                classification = ColumnValueExtractor._classify_string_column(
-                                    df[col_name], config.categorical_max_unique
-                                )
-                                col_dict["semantic_type"] = classification
-                            except Exception:
-                                pass
-
-                        samples = ColumnValueExtractor.extract(
+                        result = ColumnValueExtractor.classify_and_extract(
                             df[col_name],
                             col_dict.get("type"),
                             config.categorical_max_unique,
                             df.schema
                         )
-                        if samples is not None:
-                            col_dict["samples"] = samples
+                        if result["samples"] is not None:
+                            col_dict["samples"] = result["samples"]
+                        if result["semantic_type"] is not None:
+                            col_dict["semantic_type"] = result["semantic_type"]
                 else:
                     # Strip out samples if enrichment disabled
                     col_dict.pop("samples", None)
@@ -124,6 +122,18 @@ class DataframeSerializer:
             samples = col_dict.get("samples")
             if not samples:
                 return 0
+            
+            # Handle nested struct samples recursively
+            if isinstance(samples, dict):
+                # Recursively count nested struct samples
+                total = 0
+                for inner_col, inner_data in samples.items():
+                    if isinstance(inner_data, dict):
+                        total += len(json.dumps(inner_data, ensure_ascii=False)) // 4
+                    else:
+                        total += len(json.dumps({inner_col: inner_data}, ensure_ascii=False)) // 4
+                return total
+            
             # Rough estimate: ~4 chars per token
             return len(json.dumps({"samples": samples}, ensure_ascii=False)) // 4
 
@@ -160,9 +170,40 @@ class DataframeSerializer:
                 if len(samples) > max_items:
                     col["samples"] = sorted(random.sample(samples, max_items))
             elif isinstance(samples, dict):
-                # If numeric range is over budget, drop examples list
-                if col_token_budget < 5:
-                    col["samples"] = {k: v for k, v in samples.items() if k != "examples"}
+                # Handle nested struct samples
+                # Check if this is a struct vocabulary (has 'type' key in values)
+                is_struct_vocab = any(
+                    isinstance(v, dict) and "type" in v 
+                    for v in samples.values()
+                )
+                
+                if is_struct_vocab:
+                    # Reduce samples per inner column proportionally
+                    inner_cols = list(samples.keys())
+                    inner_budget = max(1, col_token_budget // max(len(inner_cols), 1))
+                    
+                    for inner_col in inner_cols:
+                        inner_data = samples[inner_col]
+                        if isinstance(inner_data, dict):
+                            inner_samples = inner_data.get("samples")
+                            if isinstance(inner_samples, list) and len(inner_samples) > 3:
+                                # Limit to 3 samples per inner column
+                                max_inner = max(1, inner_budget * 4 // 7)
+                                if len(inner_samples) > max_inner:
+                                    samples[inner_col]["samples"] = random.sample(
+                                        inner_samples, min(3, max_inner)
+                                    )
+                            elif isinstance(inner_samples, dict):
+                                # Drop examples from numeric ranges if tight budget
+                                if inner_budget < 5 and "examples" in inner_samples:
+                                    samples[inner_col]["samples"] = {
+                                        k: v for k, v in inner_samples.items() 
+                                        if k != "examples"
+                                    }
+                else:
+                    # If numeric range is over budget, drop examples list
+                    if col_token_budget < 5:
+                        col["samples"] = {k: v for k, v in samples.items() if k != "examples"}
 
         return result
 

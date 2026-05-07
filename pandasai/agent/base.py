@@ -151,6 +151,7 @@ class Agent:
 
         table_mapping = {}
         df_executor = None
+        column_names = []
 
         for df in self._state.dfs:
             if hasattr(df, "query_builder"):
@@ -160,6 +161,12 @@ class Agent:
             else:
                 # dataset created from loading a csv, no query builder available
                 db_manager.register(df.schema.name, df)
+            # Collect known column names for auto-fix
+            if df.schema and df.schema.columns:
+                column_names.extend(col.name for col in df.schema.columns)
+
+        # Auto-fix common LLM mistakes (missing brackets, wrong UNNEST alias)
+        query = SQLParser.fix_common_llm_mistakes(query, column_names)
 
         final_query = SQLParser.replace_table_and_column_names(query, table_mapping)
 

@@ -1,6 +1,19 @@
-{% for df in context.dfs %}{% set index = loop.index %}{% include 'shared/dataframe.tmpl' with context %}{% endfor %}
+{% include 'shared/duckdb_syntax.tmpl' with context %}
 
 {% include 'shared/sql_functions.tmpl' with context %}
+
+<result_format>
+At the end of the generated code, you MUST declare a variable named exactly `result` as a dictionary:
+result = {"type": "<type>", "value": <value>}
+The result type should be: {{output_type}}
+Do NOT use `return`. Do NOT name the variable anything else (not `result_dict`, `result_value`, `output`, etc.).
+</result_format>
+
+{% include 'shared/code_strategy.tmpl' with context %}
+
+<tables>
+{% for df in context.dfs %}{% set index = loop.index %}{% include 'shared/dataframe.tmpl' with context %}{% endfor %}
+</tables>
 
 The user asked the following question:
 {{context.memory.get_conversation()}}
@@ -11,7 +24,4 @@ You generated the following Python code:
 However, it resulted in the following error:
 {{error}}
 
-Fix the python code above and generate the new python code. 
-At the end of the generated code, you MUST declare a "result" variable as a dictionary of type and value.
-The result type should be: {{output_type}}
-Do NOT use the `return` keyword, as the code will be executed in the global scope.
+Fix the python code above and generate the new python code.

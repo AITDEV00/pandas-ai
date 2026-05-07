@@ -1,0 +1,40 @@
+<duckdb_syntax>
+You are writing **DuckDB SQL** — NOT PostgreSQL, MySQL, or T-SQL. Key differences:
+
+1. **IS only works with NULL**: `IS NULL` / `IS NOT NULL` / `IS DISTINCT FROM` / `IS NOT DISTINCT FROM` are the ONLY valid `IS` expressions.
+   - ✅ `WHERE col != '' AND col IS NOT NULL`
+   - ❌ `WHERE col IS NOT ''` ← SYNTAX ERROR
+   - ❌ `WHERE col IS 'value'` ← SYNTAX ERROR
+
+2. **Column names with brackets**: When a column name contains `[...]`, the outer `[...]` is part of the name and MUST be included in double quotes.
+   - ✅ `"[Employee Master[Employee Name]]"`
+   - ❌ `"Employee Master[Employee Name]"` ← missing outer brackets
+
+3. **UNNEST for list[struct] columns**: MUST use `AS alias(var)` pattern — the `(var)` destructuring is REQUIRED. Access struct fields as `var['field']` directly.
+   - ✅ `CROSS JOIN UNNEST("struct_col") AS t(rec)` then `rec['field_name']`
+   - ✅ `CROSS JOIN UNNEST("struct_col") AS t1(pp)` then `pp['field_name']` — `pp` IS the struct, access directly
+   - ✅ Multiple: `AS t1(r1)`, `AS t2(r2)` then `r1['field_a']`, `r2['field_b']`
+   - ❌ `AS t1(pp)` then `pp.rec['field']` ← `pp` IS the struct, `.rec` is NOT a sub-field
+   - ❌ `AS t1` then `t1['field']` ← missing `(var)` destructuring causes "unnest" wrapper
+
+4. **Copy names exactly**: Column names and struct field names from the listings must be copied character-for-character. Do NOT abbreviate, shorten, or reformat them.
+
+5. **Flat columns vs struct fields**: Flat (top-level) columns are `"column_name"` directly — NOT inside any UNNEST. Struct fields are `rec['field_name']` ONLY after UNNEST.
+
+6. **Regex operator `~` is FULL match**: Unlike PostgreSQL where `~` is partial match, DuckDB's `~` equals `regexp_full_match`. For partial match use `regexp_matches("col", 'pattern')`.
+   - ✅ `regexp_matches("col", '(?i)term')` ← partial match, case-insensitive
+   - ❌ `"col" ~ 'term'` ← this is FULL match only
+   - ❌ `"col" ~* 'term'` ← `~*` is NOT supported in DuckDB
+
+7. **Integer division returns float**: `1 / 2` returns `0.5`, not `0`. Use `//` for integer division: `1 // 2` returns `0`.
+
+8. **String concatenation with NULL**: `"a" || NULL` returns `NULL`. Use `concat("a", "b")` which ignores NULLs.
+
+9. **Aggregate on empty groups returns NULL**: `SUM(x)` on no rows returns `NULL`, not `0`. Use `COALESCE(SUM(x), 0)` if you need `0`.
+
+10. **Date parsing**: `to_date()` is NOT supported. Use `strptime('2024-01-15', '%Y-%m-%d')` instead.
+
+11. **String search**: Use `ILIKE '%term%'` for case-insensitive search. For accent-insensitive: `lower(strip_accents("col")) ILIKE lower(strip_accents('%term%'))`. For fuzzy matching: `jaro_winkler_similarity(LOWER("col"), 'term') >= 0.85`.
+
+12. **Double quotes = identifiers, single quotes = strings**: `"column_name"` is an identifier, `'string value'` is a string literal. Never use double quotes for string values.
+</duckdb_syntax>

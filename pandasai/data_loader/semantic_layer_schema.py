@@ -15,6 +15,7 @@ from pandasai.constants import (
     LOCAL_SOURCE_TYPES,
     REMOTE_SOURCE_TYPES,
     VALID_COLUMN_TYPES,
+    VALID_SEMANTIC_TYPES,
     VALID_TRANSFORMATION_TYPES,
 )
 from pandasai.helpers.path import (
@@ -55,7 +56,7 @@ class Column(BaseModel):
         None, description="Contextual samples (e.g. distinct values array, or numeric range dict)"
     )
     semantic_type: Optional[str] = Field(
-        None, description="Column semantic type: categorical, freetext, or id_like"
+        None, description="Column semantic type: categorical, freetext, id_like, or struct"
     )
 
     @field_validator("type")
@@ -66,6 +67,15 @@ class Column(BaseModel):
                 f"Unsupported column type: {type}. Supported types are: {VALID_COLUMN_TYPES}"
             )
         return type
+
+    @field_validator("semantic_type")
+    @classmethod
+    def is_semantic_type_supported(cls, semantic_type: str) -> str:
+        if semantic_type and semantic_type not in VALID_SEMANTIC_TYPES:
+            raise ValueError(
+                f"Unsupported semantic type: {semantic_type}. Supported types are: {VALID_SEMANTIC_TYPES}"
+            )
+        return semantic_type
 
     @field_validator("expression")
     @classmethod
@@ -274,6 +284,7 @@ class Destination(BaseModel):
 
 
 class SemanticLayerSchema(BaseModel):
+    schema_version: str = Field("1.0.0", description="Schema version for forward compatibility")
     name: str = Field(..., description="Dataset name.")
     source: Optional[Source] = Field(None, description="Data source for your dataset.")
     view: Optional[bool] = Field(None, description="Whether table is a view")
