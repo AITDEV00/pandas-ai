@@ -48,7 +48,7 @@ class TestSharedTemplate:
         # Should only contain execute_sql_query
         assert "execute_sql_query" in rendered
         assert "def execute_sql_query(sql_query: str) -> pd.DataFrame" in rendered
-        assert "This method connects to the database" in rendered
+        assert "Execute a DuckDB SQL query" in rendered
 
         # Should not contain any custom skills
         assert "def hello_world():" not in rendered

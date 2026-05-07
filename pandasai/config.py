@@ -23,6 +23,12 @@ class Config(BaseModel):
     categorical_max_unique: int = 50
     sample_head_size: int = 10
 
+    # Column selection pipeline (Issue 19)
+    column_selection_enabled: bool = False
+    column_selection_threshold: int = 30
+    column_selection_memory_size: int = 5
+    auto_fill_descriptions: bool = False
+
     @classmethod
     def from_dict(cls, config: Dict[str, Any]) -> "Config":
         return cls(**config)

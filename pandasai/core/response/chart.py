@@ -9,7 +9,7 @@ from .base import BaseResponse
 
 class ChartResponse(BaseResponse):
     def __init__(self, value: Any, last_code_executed: str):
-        super().__init__(value, "chart", last_code_executed)
+        super().__init__(value, "plot", last_code_executed)  # Issue 11: Use "plot" to match LLM output type and template
 
     def _get_image(self) -> Image.Image:
         if not self.value.startswith("data:image"):

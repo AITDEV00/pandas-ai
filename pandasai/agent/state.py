@@ -38,6 +38,10 @@ class AgentState:
     last_prompt_used: str = None
     output_type: Optional[str] = None
 
+    # Column selection caching (Issue 15)
+    last_selected_names: Optional[List[str]] = None
+    last_query: Optional[str] = None
+
     def __post_init__(self):
         if isinstance(self.config, dict):
             self.config = Config(**self.config)

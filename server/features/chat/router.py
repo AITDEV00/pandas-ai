@@ -13,6 +13,7 @@ async def chat_endpoint(request: ChatRequest):
     result = handle_chat_query(
         conversation_id=request.conversation_id, 
         query=request.query, 
-        output_type=request.output_type
+        output_type=request.output_type,
+        message_history=request.message_history,
     )
     return ChatResponse(**result)

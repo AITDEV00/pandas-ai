@@ -6,11 +6,16 @@
 2. Use Python for presenting, formatting, computing derived values, and conditional logic
 3. Keep SQL queries simple — retrieve raw data, then process in Python
 
-**Result type selection — choose the most appropriate type for the user's question:**
+**Result type selection:**
+{% if output_type %}
+You MUST use type "{{output_type}}" — this is non-negotiable. Do NOT choose a different type regardless of what the query seems to ask for. Reformulate the data as needed to match this type.
+{% else %}
+Choose the most appropriate type for the user's question:
 - `"string"` → for natural language answers, summaries, comparisons
 - `"number"` → for counts, averages, percentages
 - `"dataframe"` → for tables/lists of data
 - `"plot"` → for charts
+{% endif %}
 
 **IMPORTANT: Use exact column names from the schema listings above.** Flat columns are `"column_name"`, struct fields after UNNEST are `var['field_name']`.
 

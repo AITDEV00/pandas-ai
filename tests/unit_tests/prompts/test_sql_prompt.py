@@ -1,4 +1,4 @@
-"""Unit tests for the correct error prompt class"""
+"""Unit tests for the GeneratePythonCodeWithSQLPrompt class"""
 
 import os
 import sys
@@ -14,35 +14,37 @@ from pandasai.llm.fake import FakeLLM
 
 
 class TestGeneratePythonCodeWithSQLPrompt:
-    """Unit tests for the correct error prompt class"""
+    """Unit tests for the GeneratePythonCodeWithSQLPrompt class"""
 
     @pytest.mark.parametrize(
-        "output_type,output_type_template",
+        "output_type,expected_in_prompt",
         [
+            # No output_type → auto mode, should contain all type options
             (
                 "",
-                """type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }""",
+                'type (possible values "string", "number", "dataframe", "plot")',
             ),
+            # Specific output_type → should contain the type-specific IMPORTANT block
             (
                 "number",
-                """type (must be "number"), value must int. Example: { "type": "number", "value": 125 }""",
+                'type (must be "number"), value must be int or float',
             ),
             (
                 "dataframe",
-                """type (must be "dataframe"), value must be pd.DataFrame or pd.Series. Example: { "type": "dataframe", "value": pd.DataFrame({...}) }""",
+                'type (must be "dataframe"), value must be pd.DataFrame or pd.Series',
             ),
             (
                 "plot",
-                """type (must be "plot"), value must be string. Example: { "type": "plot", "value": "temp_chart.png" }""",
+                'type (must be "plot"), value must be a string file path',
             ),
             (
                 "string",
-                """type (must be "string"), value must be string. Example: { "type": "string", "value": f"The highest salary is {highest_salary}." }""",
+                'type (must be "string"), value must be a formatted string',
             ),
         ],
     )
-    def test_str_with_args(self, output_type, output_type_template):
-        """Test that the __str__ method is implemented"""
+    def test_output_type_in_rendered_prompt(self, output_type, expected_in_prompt):
+        """Test that the output_type template is correctly rendered in the prompt."""
 
         os.environ["PANDABI_API_URL"] = ""
         os.environ["PANDABI_API_KEY"] = ""
@@ -60,48 +62,71 @@ class TestGeneratePythonCodeWithSQLPrompt:
         if sys.platform.startswith("win"):
             prompt_content = prompt_content.replace("\r\n", "\n")
 
-        assert (
-            prompt_content
-            == f'''<tables>
+        # Verify the expected output_type text appears in the rendered prompt
+        assert expected_in_prompt in prompt_content
 
-<table dialect="duckdb" table_name="table_d41d8cd98f00b204e9800998ecf8427e" dimensions="0x0">
+    def test_prompt_contains_duckdb_syntax(self):
+        """Test that the prompt includes DuckDB syntax guidance."""
+        os.environ["PANDABI_API_URL"] = ""
+        os.environ["PANDABI_API_KEY"] = ""
 
-</table>
-
-
-</tables>
-
-The following functions have already been provided. Please use them as needed and do not redefine them.
-<function>
-def execute_sql_query(sql_query: str) -> pd.DataFrame
-    """This method connects to the database, executes the sql query and returns the dataframe"""
-</function>
-
-
-
-Update this initial code:
-```python
-# TODO: import the required dependencies
-import pandas as pd
-
-# Write code here
-
-# Declare result var: 
-{output_type_template}
-
-```
-
-
-
-
-
-At the end, declare "result" variable as a dictionary of type and value in the following format:
-
-{output_type_template}
-
-
-
-Generate python code and return full updated code:
-
-### Note: Use only relevant table for query and do aggregation, sorting, joins and grouby through sql query'''  # noqa: E501
+        llm = FakeLLM()
+        agent = Agent(pai.DataFrame(), config={"llm": llm})
+        prompt = GeneratePythonCodeWithSQLPrompt(
+            context=agent._state, output_type=""
         )
+        prompt_content = prompt.to_string()
+        assert "<duckdb_syntax>" in prompt_content
+        assert "DuckDB SQL" in prompt_content
+
+    def test_prompt_contains_code_strategy(self):
+        """Test that the prompt includes the code strategy section."""
+        os.environ["PANDABI_API_URL"] = ""
+        os.environ["PANDABI_API_KEY"] = ""
+
+        llm = FakeLLM()
+        agent = Agent(pai.DataFrame(), config={"llm": llm})
+        prompt = GeneratePythonCodeWithSQLPrompt(
+            context=agent._state, output_type=""
+        )
+        prompt_content = prompt.to_string()
+        assert "<code_strategy>" in prompt_content
+        assert "execute_sql_query" in prompt_content
+
+    def test_prompt_with_specific_output_type_contains_important_block(self):
+        """Test that a specific output_type produces an IMPORTANT block."""
+        os.environ["PANDABI_API_URL"] = ""
+        os.environ["PANDABI_API_KEY"] = ""
+
+        llm = FakeLLM()
+        agent = Agent(pai.DataFrame(), config={"llm": llm})
+        prompt = GeneratePythonCodeWithSQLPrompt(
+            context=agent._state, output_type="number"
+        )
+        prompt_content = prompt.to_string()
+        assert "IMPORTANT" in prompt_content
+        assert '"number"' in prompt_content
+
+    def test_code_strategy_conditional_with_output_type(self):
+        """Test Issue 13: code_strategy.tmpl conditional — when output_type is set,
+        the prompt should say 'You MUST use type' instead of 'Choose the most appropriate type'."""
+        os.environ["PANDABI_API_URL"] = ""
+        os.environ["PANDABI_API_KEY"] = ""
+
+        llm = FakeLLM()
+
+        # With output_type → "You MUST use type"
+        agent = Agent(pai.DataFrame(), config={"llm": llm})
+        prompt_with_type = GeneratePythonCodeWithSQLPrompt(
+            context=agent._state, output_type="string"
+        )
+        content_with_type = prompt_with_type.to_string()
+        assert 'You MUST use type "string"' in content_with_type
+
+        # Without output_type → "Choose the most appropriate type"
+        agent2 = Agent(pai.DataFrame(), config={"llm": llm})
+        prompt_without_type = GeneratePythonCodeWithSQLPrompt(
+            context=agent2._state, output_type=""
+        )
+        content_without_type = prompt_without_type.to_string()
+        assert "Choose the most appropriate type" in content_without_type

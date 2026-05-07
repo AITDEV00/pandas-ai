@@ -46,7 +46,7 @@ class LiteLLM(LLM):
 
         Returns:
             str: The type of the model."""
-        return f"litellm"
+        return "litellm"
 
     def call(self, instruction: BasePrompt, context: AgentState = None) -> str:
         """Generates a completion response based on the provided instruction.
@@ -64,21 +64,11 @@ class LiteLLM(LLM):
 
         memory = context.memory if context else None
 
-        messages = []
-
-        if memory:
-            # System message with agent description
-            if memory.agent_description:
-                messages.append({"role": "system", "content": memory.agent_description})
-
-            # Previous conversation as proper multi-turn messages
-            # Take only the last N messages (respecting memory.size limit),
-            # then exclude the final one — it's the current query already
-            # embedded in the instruction template
-            recent_msgs = memory.all()[-memory.size:]
-            for msg in recent_msgs[:-1]:
-                role = "user" if msg["is_user"] else "assistant"
-                messages.append({"role": role, "content": msg["message"]})
+        # Build the messages array using the authoritative method.
+        # This ensures: (1) system prompt is always first, (2) conversation
+        # history is rounded to complete user→assistant pairs, (3) the
+        # current query is excluded (it goes in the instruction template).
+        messages = memory.to_openai_messages_for_chat() if memory else []
 
         # The rendered instruction (table schemas + query + output format) as final user message
         user_prompt = instruction.to_string()

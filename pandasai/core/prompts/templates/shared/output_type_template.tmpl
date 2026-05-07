@@ -1,11 +1,19 @@
 {% if not output_type %}
 type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
 {% elif output_type == "number" %}
-type (must be "number"), value must int. Example: { "type": "number", "value": 125 }
+type (must be "number"), value must be int or float. Example: { "type": "number", "value": 125 }
+
+IMPORTANT: Even if the query seems to ask for a text description, you MUST return type "number" with a numeric value. For example, if the query is "how many are female?", return: { "type": "number", "value": count } — NOT { "type": "string", "value": f"There are {count} female employees." }
 {% elif output_type == "string" %}
-type (must be "string"), value must be string. Example: { "type": "string", "value": f"The highest salary is {highest_salary}." }
+type (must be "string"), value must be a formatted string. Example: { "type": "string", "value": f"The highest salary is {highest_salary}." }
+
+IMPORTANT: Even if the query seems to ask for a count or number, you MUST return type "string" with a descriptive text value. For example, if the query is "how many are female?", return: { "type": "string", "value": f"There are {count} female employees." } — NOT { "type": "number", "value": count }
 {% elif output_type == "dataframe" %}
 type (must be "dataframe"), value must be pd.DataFrame or pd.Series. Example: { "type": "dataframe", "value": pd.DataFrame({...}) }
+
+IMPORTANT: Even if the query asks for a count or summary, you MUST return type "dataframe" with the data in a DataFrame. For example, if the query is "how many are female?", return the count in a DataFrame: { "type": "dataframe", "value": pd.DataFrame({"female_count": [count]}) } — NOT { "type": "number", "value": count }
 {% elif output_type == "plot" %}
-type (must be "plot"), value must be string. Example: { "type": "plot", "value": "temp_chart.png" }
+type (must be "plot"), value must be a string file path. Example: { "type": "plot", "value": "temp_chart.png" }
+
+IMPORTANT: Even if the query asks for a number or text, you MUST return type "plot" and generate a chart. For example, if the query is "how many are female?", create a bar chart showing the count and return: { "type": "plot", "value": "temp_chart.png" } — NOT { "type": "number", "value": count }
 {% endif %}

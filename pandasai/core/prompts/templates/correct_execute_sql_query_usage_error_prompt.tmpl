@@ -22,7 +22,7 @@ Do NOT use `return`. Do NOT name the variable anything else (not `result_dict`, 
 </tables>
 
 The user asked the following question:
-{{context.memory.get_conversation()}}
+{{ context.memory.last().get('message', '') if context.memory.count() > 0 else '' }}
 
 You generated the following Python code:
 {{code}}

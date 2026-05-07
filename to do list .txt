@@ -1,17 +1,7 @@
-TO-DO LIST: PandasAI Nested Pipeline & Prompt Optimization
+to be honest I feel maybe the output type should only be 3 types,
 
-1. Improve Prompts
-   - Further refine `shared/search_strategy.tmpl` to provide more robust examples for complex nested queries.
-   - Ensure system messages and error correction templates (e.g., `correct_execute_sql_query_usage_error_prompt.tmpl`) are fully aligned with the DuckDB nested search strategy.
+snippet: which is like string, number essecially any small amount of snippet of information which fits comfortably within a models context widnow if the output is fed to another llm, so it is formatted nice information
 
-2. Ensure Succinct JSON Array Formatting
-   - Optimize the `DataframeSerializer` to ensure that the serialized `columns` JSON is compact and avoids redundant tokens.
-   - Verify that all nested struct metadata (type, semantic_type, description, samples) is correctly and concisely represented.
+artifact: which is like any amount of infomration maybe 200 rows of information from the excel of 20 selected columns or a plot generated in image format, so any large bult infomration which simply has to be in file format. can generate multiple artifacts in one turn and i think should return a link or url to get the artifact. based on how detailed the query is, maybe it asks for several different plots and a csv export or some others.
 
-3. Semantic Model Validation & Integration
-   - Fully integrate the `SemanticModelPayload` Pydantic model into the server's registration flow.
-   - Ensure the `SemanticLayerSchema` in PandasAI is strictly validated against the uploaded semantic model to prevent runtime errors.
-
-4. Smart Column Selector
-   - Implement a "pre-pass" or "semantic filter" to select only the most relevant columns based on the user's natural language query.
-   - Objective: Drastically reduce the token count in the LLM's context window by excluding irrelevant columns for a specific question.
+mixed: which is a mix of snippet and artifact comletely up to the user query, imagine user asks for an artifact but also a summary of information based on the artifcat in the same turn.

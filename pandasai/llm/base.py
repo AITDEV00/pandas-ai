@@ -33,16 +33,6 @@ class LLM:
         """
         self.api_key = api_key
 
-    def is_pandasai_llm(self) -> bool:
-        """
-        Return True if the LLM is from pandasAI.
-
-        Returns:
-            bool: True if the LLM is from pandasAI
-
-        """
-        return True
-
     @property
     def type(self) -> str:
         """
@@ -126,7 +116,24 @@ class LLM:
             prompt (str): prompt for chat method
             memory (Memory): user conversation history
         """
-        return self.get_system_prompt(memory) + prompt if memory else prompt
+        if not memory:
+            return prompt
+
+        parts = []
+
+        # Agent description as system context
+        system_prompt = self.get_system_prompt(memory)
+        if system_prompt.strip():
+            parts.append(system_prompt)
+
+        # Previous conversation (for completion models that don't have a messages API)
+        prev_conversation = memory.get_previous_conversation()
+        if prev_conversation:
+            parts.append(prev_conversation)
+
+        parts.append(prompt)
+
+        return "\n".join(parts)
 
     def get_system_prompt(self, memory: Memory) -> Any:
         """
@@ -134,14 +141,6 @@ class LLM:
         """
         system_prompt = GenerateSystemMessagePrompt(memory=memory)
         return system_prompt.to_string()
-
-    def get_messages(self, memory: Memory) -> Any:
-        """
-        Return formatted messages
-        Args:
-            memory (Memory): Get past Conversation from memory
-        """
-        return memory.get_previous_conversation()
 
     @abstractmethod
     def call(self, instruction: BasePrompt, context: AgentState = None) -> str:

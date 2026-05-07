@@ -1,9 +1,10 @@
 import re
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 
-from pandasai.exceptions import InvalidOutputValueMismatch
+from pandasai.exceptions import InvalidLLMOutputType, InvalidOutputValueMismatch
 
 from .base import BaseResponse
 from .chart import ChartResponse
@@ -13,6 +14,15 @@ from .string import StringResponse
 
 
 class ResponseParser:
+    """Parses LLM-generated result dicts into typed response objects.
+
+    Issue 9 L2: Tracks the requested output_type so _validate_response()
+    can raise InvalidLLMOutputType when the LLM generates a different type.
+    """
+
+    def __init__(self):
+        self._output_type: Optional[str] = None  # Set before each parse() call
+
     def parse(self, result: dict, last_code_executed: str = None) -> BaseResponse:
         self._validate_response(result)
         return self._generate_response(result, last_code_executed)
@@ -38,6 +48,16 @@ class ResponseParser:
             raise InvalidOutputValueMismatch(
                 'Result must be in the format of dictionary of type and value like `result = {"type": ..., "value": ... }`'
             )
+
+        # Issue 9 L2: Check if generated type matches requested type
+        if self._output_type and result["type"] != self._output_type:
+            raise InvalidLLMOutputType(
+                f"Output type mismatch: requested '{self._output_type}' "
+                f"but generated '{result['type']}'. "
+                f"The result type MUST be '{self._output_type}'. "
+                f"Reformulate the data to match the requested type."
+            )
+
         elif result["type"] == "number":
             if not isinstance(result["value"], (int, float, np.int64)):
                 raise InvalidOutputValueMismatch(

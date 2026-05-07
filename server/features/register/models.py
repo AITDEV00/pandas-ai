@@ -6,6 +6,10 @@ class PandasAIConfigPayload(BaseModel):
     llm_context_window: int = Field(250000, description="Context window of the LLM to calculate proportional budget")
     column_values_token_budget: Optional[int] = Field(None, description="Hard cap on token budget for column enrichment")
     categorical_max_unique: int = Field(50, description="Max unique values before a column is no longer considered categorical")
+    # Issue 19: Column selection pipeline config
+    column_selection_enabled: bool = Field(False, description="Enable 2-step column selection for wide tables")
+    column_selection_threshold: int = Field(30, description="Auto-enable column selection when column count >= this value")
+    auto_fill_descriptions: bool = Field(False, description="Use LLM to fill missing column descriptions after enrichment")
 
 class LLMConfigPayload(BaseModel):
     api_key: Optional[str] = None

@@ -211,6 +211,8 @@ class Agent:
                 result = self.execute_code(code)
                 # Track the code that actually executed successfully
                 self._state.last_code_executed = code
+                # Issue 9 L2: Pass output_type to ResponseParser before parsing
+                self._response_parser._output_type = self._state.output_type
                 return self._response_parser.parse(result, code)
             except Exception as e:
                 attempts += 1
@@ -257,6 +259,15 @@ class Agent:
 
         self._state.logger.log("Agent successfully trained on the data")
 
+    def set_message_history(self, num_turns: int):
+        """Set the maximum number of user turns included in conversation history.
+
+        Args:
+            num_turns: Number of previous user turns to include. Rounded up
+                to ensure complete user→assistant pairs.
+        """
+        self._state.memory.memory_size = num_turns
+
     def clear_memory(self):
         """
         Clears the memory
@@ -295,6 +306,9 @@ class Agent:
             # Execute code with retries
             result = self.execute_with_retries(code)
 
+            # Issue 8: Store assistant message for multi-turn context
+            self._store_assistant_message(result, output_type)
+
             self._state.logger.log("Response generated successfully.")
             # Generate and return the final response
             return result
@@ -322,6 +336,30 @@ class Agent:
         self._state.logger.log(f"Processing failed with error: {error_message}")
 
         return ErrorResponse(last_code_executed=code, error=error_message)
+
+    def _store_assistant_message(self, result, output_type: Optional[str] = None):
+        """Store the assistant's response in memory for multi-turn context.
+
+        Issue 8: Stores for output_type "string" and "number" — these produce
+        compact, useful context for the LLM on follow-up turns.
+
+        Does NOT store for "dataframe", "plot", or None — these types produce
+        responses that are too large or not useful as LLM context.
+        """
+        if output_type not in ("string", "number"):
+            return
+
+        response_text = str(result) if result else ""
+        working_code = self._state.last_code_executed or ""
+
+        if response_text and working_code:
+            assistant_msg = f"{response_text}\n\n---\nCode:\n{working_code}"
+        elif working_code:
+            assistant_msg = working_code
+        else:
+            return
+
+        self._state.memory.add(assistant_msg, is_user=False)
 
     @property
     def last_generated_code(self):

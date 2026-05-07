@@ -4,7 +4,7 @@ In order to better handle the instructions, this prompt module is written.
 
 import os
 import re
-from abc import ABC, abstractmethod
+
 from pathlib import Path
 from typing import Optional
 
@@ -55,9 +55,6 @@ class BasePrompt:
     def __str__(self):
         return self.to_string()
 
-    def validate(self, output: str) -> bool:
-        return isinstance(output, str)
-
     def to_json(self):
         """
         Return Json Prompt
@@ -75,12 +72,3 @@ class BasePrompt:
             "prompt": self.to_string(),
         }
 
-
-class AbstractPrompt(ABC):
-    @abstractmethod
-    def get_prompt(self):
-        pass
-
-
-# Make sure to export AbstractPrompt if using __all__
-__all__ = ["AbstractPrompt"]

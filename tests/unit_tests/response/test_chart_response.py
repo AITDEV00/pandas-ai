@@ -23,7 +23,7 @@ def chart_response(sample_base64_image):
 
 
 def test_chart_response_initialization(chart_response):
-    assert chart_response.type == "chart"
+    assert chart_response.type == "plot"  # Issue 11: Changed from "chart" to "plot"
     assert chart_response.last_code_executed == "test_code"
 
 

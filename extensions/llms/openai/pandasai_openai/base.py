@@ -98,7 +98,7 @@ class BaseOpenAI(LLM):
         return {**openai_creds, **self._default_params}
 
     @property
-    def _client_params(self) -> Dict[str, any]:
+    def _client_params(self) -> Dict[str, Any]:
         return {
             "api_key": self.api_token,
             "base_url": self.api_base,
@@ -146,9 +146,16 @@ class BaseOpenAI(LLM):
             str: LLM response.
 
         """
-        messages = memory.to_openai_messages() if memory else []
+        messages = []
 
-        # adding current prompt as latest query message
+        if memory:
+            # Build the messages array using the authoritative method.
+            # This ensures: (1) system prompt is always first, (2) conversation
+            # history is rounded to complete user→assistant pairs, (3) the
+            # current query is excluded (it goes in the instruction template).
+            messages = memory.to_openai_messages_for_chat()
+
+        # The rendered instruction (table schemas + query + output format) as final user message
         messages.append(
             {
                 "role": "user",

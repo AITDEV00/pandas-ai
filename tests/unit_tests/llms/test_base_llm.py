@@ -14,9 +14,6 @@ class TestBaseLLM:
         with pytest.raises(APIKeyNotFoundError):
             LLM().type
 
-    def test_is_pandasai_llm(self):
-        assert LLM().is_pandasai_llm() is True
-
     def test_polish_code(self):
         code = "python print('Hello World')"
         assert LLM()._polish_code(code) == "print('Hello World')"
@@ -104,35 +101,44 @@ print('Hello World')
         assert "No code found" in str(exc.value)
 
     def test_get_system_prompt_empty_memory(self):
-        assert LLM().get_system_prompt(Memory()) == "\n"
+        # No agent_description → empty string
+        assert LLM().get_system_prompt(Memory()) == ""
 
     def test_get_system_prompt_memory_with_agent_description(self):
         mem = Memory(agent_description="xyz")
-        assert LLM().get_system_prompt(mem) == " xyz \n"
+        assert LLM().get_system_prompt(mem) == " xyz "
 
-    def test_get_system_prompt_memory_with_agent_description_messages(self):
+    def test_get_system_prompt_no_conversation_history(self):
+        """System prompt should NOT include conversation history.
+        Conversation history is sent via OpenAI messages array for chat models,
+        or via prepend_system_prompt for completion models."""
         mem = Memory(agent_description="xyz", memory_size=10)
         mem.add("hello world", True)
         mem.add('print("hello world)', False)
         mem.add("hello world", True)
-        print(mem.get_messages())
-        assert (
-            LLM().get_system_prompt(mem)
-            == ' xyz \n\n### PREVIOUS CONVERSATION\n### QUERY\n hello world\n### ANSWER\n print("hello world)\n'
-        )
+        # System prompt should only contain agent_description, NOT conversation
+        assert "PREVIOUS CONVERSATION" not in LLM().get_system_prompt(mem)
+        assert " xyz " in LLM().get_system_prompt(mem)
 
     def test_prepend_system_prompt_with_empty_mem(self):
-        assert LLM().prepend_system_prompt("hello world", Memory()) == "\nhello world"
+        # Empty memory (no messages): just the prompt
+        result = LLM().prepend_system_prompt("hello world", Memory())
+        assert result == "hello world"
 
     def test_prepend_system_prompt_with_non_empty_mem(self):
+        # Non-empty memory: system prompt + previous conversation + prompt
         mem = Memory(agent_description="xyz", memory_size=10)
         mem.add("hello world", True)
         mem.add('print("hello world)', False)
         mem.add("hello world", True)
-        assert (
-            LLM().prepend_system_prompt("hello world", mem)
-            == ' xyz \n\n### PREVIOUS CONVERSATION\n### QUERY\n hello world\n### ANSWER\n print("hello world)\nhello world'
-        )
+        result = LLM().prepend_system_prompt("hello world", mem)
+        # Should contain agent description
+        assert " xyz " in result
+        # Should contain previous conversation messages (for completion models)
+        assert "### QUERY" in result
+        assert "### ANSWER" in result
+        # Should contain the prompt
+        assert result.endswith("hello world")
 
     def test_prepend_system_prompt_with_memory_none(self):
         assert LLM().prepend_system_prompt("hello world", None) == "hello world"

@@ -5,7 +5,19 @@
 <result_format>
 At the end of the generated code, you MUST declare a variable named exactly `result` as a dictionary:
 result = {"type": "<type>", "value": <value>}
-The result type should be: {{output_type}}
+
+The result type MUST be: {{output_type}}
+
+IMPORTANT: The previous code generated the WRONG output type. You MUST fix this.
+{% if output_type == "string" %}
+Do NOT return type "number". Even if the query asks "how many" or "what is the count", you MUST return type "string" with a descriptive text value. For example: result = {"type": "string", "value": f"There are {count} female employees."} — NOT result = {"type": "number", "value": count}
+{% elif output_type == "number" %}
+Do NOT return type "string". You MUST return type "number" with a numeric value. For example: result = {"type": "number", "value": count} — NOT result = {"type": "string", "value": f"The count is {count}"}
+{% elif output_type == "dataframe" %}
+Do NOT return type "number" or "string". You MUST return type "dataframe" with a DataFrame value. For example: result = {"type": "dataframe", "value": pd.DataFrame({"count": [count]})} — NOT result = {"type": "number", "value": count}
+{% elif output_type == "plot" %}
+Do NOT return type "number" or "string". You MUST return type "plot" with a chart file path. Generate a chart using matplotlib/plotly and return: result = {"type": "plot", "value": "temp_chart.png"} — NOT result = {"type": "number", "value": count}
+{% endif %}
 Do NOT use `return`. Do NOT name the variable anything else (not `result_dict`, `result_value`, `output`, etc.).
 </result_format>
 
@@ -16,7 +28,7 @@ Do NOT use `return`. Do NOT name the variable anything else (not `result_dict`, 
 </tables>
 
 The user asked the following question:
-{{context.memory.get_conversation()}}
+{{ context.memory.last().get('message', '') if context.memory.count() > 0 else '' }}
 
 You generated the following Python code:
 {{code}}
@@ -24,4 +36,4 @@ You generated the following Python code:
 However, it resulted in the following error:
 {{error}}
 
-Fix the python code above and generate the new python code.
+Fix the python code above and generate the new python code. Make sure the result type is exactly "{{output_type}}".

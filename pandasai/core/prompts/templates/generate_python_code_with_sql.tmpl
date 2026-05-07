@@ -36,6 +36,7 @@ import pandas as pd
 ```
 {% endif %}
 {% include 'shared/vectordb_docs.tmpl' with context %}
-{{ context.memory.get_last_message() }}
+Answer the following question:
+{{ context.memory.last().get('message', '') if context.memory.count() > 0 else '' }}
 
 Generate python code and return full updated code:

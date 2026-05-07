@@ -53,7 +53,7 @@ class TestResponseParser(unittest.TestCase):
         self.assertIsInstance(response, ChartResponse)
         self.assertEqual(response.value, "path/to/plot.png")
         self.assertEqual(response.last_code_executed, None)
-        self.assertEqual(response.type, "chart")
+        self.assertEqual(response.type, "plot")  # Issue 11: Changed from "chart" to "plot"
 
     def test_plot_img_show_triggered(self):
         result = {
