@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-05-08T20:08:15.022355",
+  "registration_info": {
+    "file_path": "/home/jyao/ADEO/services/ait-icarus/pandas-ai/run/full data unflattened.xlsx",
+    "conversation_id": "bd041abd-bc93-4e30-b1c3-8707e36748ee",
+    "mode": "single_reuse"
+  },
+  "total_queries": 47,
+  "total_success": 47,
+  "total_fail": 0,
+  "format_counts": {
+    "no_code_delimiter": 19,
+    "fence": 28
+  },
+  "category_stats": {
+    "column_selection_handoff": {
+      "total": 7,
+      "success": 7,
+      "fail": 0
+    },
+    "semantic_mapping_gap": {
+      "total": 7,
+      "success": 7,
+      "fail": 0
+    },
+    "struct_inner_field_blindness": {
+      "total": 7,
+      "success": 7,
+      "fail": 0
+    },
+    "column_name_collision": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    },
+    "budget_ratio_edge": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    }
+  },
+  "difficulty_stats": {
+    "hard": {
+      "total": 21,
+      "success": 21,
+      "fail": 0
+    },
+    "extreme": {
+      "total": 11,
+      "success": 11,
+      "fail": 0
+    },
+    "medium": {
+      "total": 1,
+      "success": 1,
+      "fail": 0
+    }
+  },
+  "avg_llm_calls": 2.297872340425532,
+  "max_llm_calls": 4,
+  "multi_turn_marker_exposure": 0
+}

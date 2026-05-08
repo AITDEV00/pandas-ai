@@ -1,0 +1,68 @@
+{
+  "conversation_id": "CP-001",
+  "name": "Allowance denial cascade",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "Show me the Basic Salary for all employees.",
+      "notes": "Easy — establishes that salary data exists.",
+      "expected_output_type": null,
+      "success": true,
+      "final_type": "string",
+      "final_response": "There are 16 employees. Here are their basic salaries:\n- eraldhaheri@ECOUNCIL.AE: 0\n- sssaldhaheri@ECOUNCIL.AE: 0\n- akalghfeli@ECOUNCIL.AE: 0\n- nmsalmenhali@ECOUNCIL.AE: 0\n- saalharbi@ECOUNCIL.AE: 0\n- snAlafeefi@ecouncil.ae: 0\n- naamlnuaimi@ECOUNCIL.AE: 0\n- nmbaadheem@ECOUNCIL.AE: 0\n- amalshamsi@ECOUNCIL.AE: 0\n- saamalnuaimi@ECOUNCIL.AE: 0\n- ksaldhaen@ECOUNCIL.AE: 0\n- rmalmazrouei@ECOUNCIL.AE: 0\n- hmalremeithi@ecouncil.ae: 0\n- rsaalmazrouei@ecouncil.ae: 0\n- None: 0\n- None: 0",
+      "error": null,
+      "response_format": "no_code_delimiter",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "Now show the Housing Allowance and Cost of Living Allowance.",
+      "notes": "Medium — tests if the LLM finds these after confirming salary data exists.",
+      "expected_output_type": null,
+      "success": true,
+      "final_type": "string",
+      "final_response": "There are 16 employees. Here are their allowances:\n- eraldhaheri@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- sssaldhaheri@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- akalghfeli@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- nmsalmenhali@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- saalharbi@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- snAlafeefi@ecouncil.ae: Housing Allowance: 0, Cost of Living: 0\n- naamlnuaimi@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- nmbaadheem@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- amalshamsi@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- saamalnuaimi@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- ksaldhaen@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- rmalmazrouei@ECOUNCIL.AE: Housing Allowance: 0, Cost of Living: 0\n- hmalremeithi@ecouncil.ae: Housing Allowance: 0, Cost of Living: 0\n- rsaalmazrouei@ecouncil.ae: Housing Allowance: 0, Cost of Living: 0\n- None: Housing Allowance: 0, Cost of Living: 0\n- None: Housing Allowance: 0, Cost of Living: 0",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 2,
+      "query": "Now add the Etihad Allowance. I was told it doesn't exist in the schema but I'm sure it's there.",
+      "notes": "Hard — the user explicitly challenges the 'not available' belief. Tests if the LLM can recover.",
+      "expected_output_type": null,
+      "success": true,
+      "final_type": "string",
+      "final_response": "THere are 16 employees. Note: Based on the schema, only the Email Address column is available. The Etihad Allowance, Housing Allowance, and Cost of Living Allowance columns do not exist in the current schema.\n\nAvailable employees:\n- eraldhaheri@ECOUNCIL.AE\n- sssaldhaheri@ECOUNCIL.AE\n- akalghfeli@ECOUNCIL.AE\n- nmsalmenhali@ECOUNCIL.AE\n- saalharbi@ECOUNCIL.AE\n- snAlafeefi@ecouncil.ae\n- naamlnuaimi@ECOUNCIL.AE\n- nmbaadheem@ECOUNCIL.AE\n- amalshamsi@ECOUNCIL.AE\n- saamalnuaimi@ECOUNCIL.AE\n- ksaldhaen@ECOUNCIL.AE\n- rmalmazrouei@ECOUNCIL.AE\n- hmalremeithi@ecouncil.ae\n- rsaalmazrouei@ecouncil.ae\n- None\n- None",
+      "error": null,
+      "response_format": "no_code_delimiter",
+      "llm_call_count": 3,
+      "history_depth": 2,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 3,
+      "query": "Finally add the Secondment Allowance and Technical Special Allowance to complete the picture.",
+      "notes": "Extreme — two more obscure allowances after the denial cascade.",
+      "expected_output_type": null,
+      "success": true,
+      "final_type": "string",
+      "final_response": "Here is the available allowance information based on the current schema:\n\nEmployees with Allowance Data:\n- eraldhaheri@ECOUNCIL.AE: Technical Special Allowance: 0\n- sssaldhaheri@ECOUNCIL.AE: Technical Special Allowance: 0\n- akalghfeli@ECOUNCIL.AE: Technical Special Allowance: 0\n- nmsalmenhali@ECOUNCIL.AE: Technical Special Allowance: 0\n- saalharbi@ECOUNCIL.AE: Technical Special Allowance: 0\n- snAlafeefi@ecouncil.ae: Technical Special Allowance: 0\n- naamlnuaimi@ECOUNCIL.AE: Technical Special Allowance: 0\n- nmbaadheem@ECOUNCIL.AE: Technical Special Allowance: 0\n- amalshamsi@ECOUNCIL.AE: Technical Special Allowance: 0\n- saamalnuaimi@ECOUNCIL.AE: Technical Special Allowance: 0\n- ksaldhaen@ECOUNCIL.AE: Technical Special Allowance: 0\n- rmalmazrouei@ECOUNCIL.AE: Technical Special Allowance: 0\n- hmalremeithi@ecouncil.ae: Technical Special Allowance: 0\n- rsaalmazrouei@ecouncil.ae: Technical Special Allowance: 0\n- None: Technical Special Allowance: 0\n- None: Technical Special Allowance: 0\n\nNote: Based on the schema, only Technical Special Allowance is available. The Secondment Allowance column does not exist in the current schema.\n\nAvailable columns in Enterprise Data:\n- [Employee Master[Email Address]]\n- [Employee Master[Technical Special Allowance]]\n",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 4,
+      "assistant_msg_format": "fence"
+    }
+  ],
+  "total_turns": 4,
+  "successful_turns": 4,
+  "formats_used": [
+    "no_code_delimiter",
+    "fence"
+  ]
+}

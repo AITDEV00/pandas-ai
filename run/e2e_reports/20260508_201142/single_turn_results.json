@@ -1,0 +1,4779 @@
+[
+  {
+    "query_id": "HS-001",
+    "query": "What is the exact Etihad Allowance amount for Eisa Rames Khamis AlDhaheri? This column exists as [Employee Master[Etihad Allowance]] in the schema.",
+    "category": "handoff_sabotage",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "Explicitly names the column in bracket notation to force the selector to pick it. Tests if code gen respects explicit column references.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employee 'Eisa Rames Khamis AlDhaheri' (Email: eraldhaheri@ECOUNCIL.AE) was found in the system. However, the 'Etihad Allowance' column does not exist in the available schema. The system only contains employee name and email address columns.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 3,
+    "history_depth": 0,
+    "assistant_msg_format": null,
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "HS-002",
+    "query": "Show the Secondment Allowance for each employee. The column is called [Employee Master[Secondment Allowance]].",
+    "category": "handoff_sabotage",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "Same as HS-001 but for Secondment Allowance with explicit column name hint.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "The column 'Employee Master[Secondment Allowance]' does not exist in the available schema. The system only contains the following columns: [Employee Master[Employee Name]] and [Employee Master[Email Address]].",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 3,
+    "history_depth": 0,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "HS-003",
+    "query": "What is the Technical Special Allowance for all employees? I know this column exists in the Employee Master struct.",
+    "category": "handoff_sabotage",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "Technical Special Allowance — another obscure allowance that code gen can't find via information_schema.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "All 16 employees have a Technical Special Allowance of 0.0. Total sum: 0.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 2,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "HS-004",
+    "query": "Show the Special Contract Basic Salary for each employee who has one.",
+    "category": "handoff_sabotage",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Special Contract Basic Salary is a rarely-used column. Code gen may not find it.",
+    "success": false,
+    "final_type": null,
+    "final_response": null,
+    "error": "NoCodeFoundError: No code found in the response",
+    "response_format": "fence",
+    "llm_call_count": 3,
+    "history_depth": 4,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction_failed",
+        "has_error": true,
+        "details_keys": [
+          "exception_type",
+          "response_first_300"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "HS-005",
+    "query": "Compare Phone Allowance and Supplementary Allowance for all employees. Show both values side by side.",
+    "category": "handoff_sabotage",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Two obscure allowance columns in one query. Tests if the selector picks both.",
+    "success": false,
+    "final_type": null,
+    "final_response": null,
+    "error": "NoCodeFoundError: No code found in the response",
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 3,
+    "history_depth": 6,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction_failed",
+        "has_error": true,
+        "details_keys": [
+          "exception_type",
+          "response_first_300"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "HS-006",
+    "query": "What is the Total Entitlement Amount for each employee? This is the sum of all their allowances.",
+    "category": "handoff_sabotage",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Total Entitlement Amount is a pre-computed column. Tests if code gen can find it.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Total Entitlement Amount for each employee (16 employees):\n\n-----------------------------------------------------------------------------------------------\nEmployee Name                                 Email Address                       Total Entitlement Amount \n-----------------------------------------------------------------------------------------------\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             0.0                      \nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            0.0                      \nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              0.0                      \nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            0.0                      \nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               0.0                      \nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              0.0                      \nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             0.0                      \nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              0.0                      \nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              0.0                      \nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            0.0                      \nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               0.0                      \nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            0.0                      \nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            0.0                      \nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           0.0                      \nN/A                                           N/A                                 0.0                      \nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 0.0                      \n-----------------------------------------------------------------------------------------------\nGrand Total                                                                      0                        \n-----------------------------------------------------------------------------------------------\n\nNote: Total Entitlement Amount represents the sum of basic salary plus all applicable allowances.\n",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 3,
+    "history_depth": 6,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "HS-007",
+    "query": "Show me every single allowance column for Eisa Rames Khamis AlDhaheri: Basic Salary, Housing Allowance, Cost of Living Allowance, Social Allowance, Child Allowance, Supplementary Allowance, Phone Allowance, Etihad Allowance, Secondment Allowance, Technical Special Allowance, and Special Contract Basic Salary.",
+    "category": "handoff_sabotage",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "Exhaustive enumeration of ALL 11 allowance columns for one employee. The selector must pick all 11. If even one is dropped, the answer is incomplete.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Allowance Data for Eisa Rames Khamis AlDhaheri (eraldhaheri@ECOUNCIL.AE):\n\n====================================================\nEXISTING ALLOWANCE COLUMNS IN SCHEMA:\n====================================================\nBasic Salary:                  0.0\nHousing Allowance:             0.0\nCost of Living Allowance:      0.0\nSocial Allowance:              0.0\nChild Allowance:               0.0\nSupplementary Allowance:       0.0\nPhone Allowance:               0.0\nTechnical Special Allowance:   0.0\n\n====================================================\nCOLUMNS NOT FOUND IN SCHEMA:\n====================================================\n• Etihad Allowance - Does not exist in this database\n• Secondment Allowance - Does not exist in this database\n• Special Contract Basic Salary - Does not exist in this database\n\nAll 8 available allowance columns show 0.0 values for this employee.\n",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 2,
+    "history_depth": 8,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "HS-008",
+    "query": "What is the Time Since Last Promotion for each employee? Show the value in years.",
+    "category": "handoff_sabotage",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Time Since Last Promotion is a computed column that the code gen may not find.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Time Since Last Promotion for Each Employee (in years):\n\n------------------------------------------------------------------------------------------\nEmployee Name                                 Email Address                       Time Since Promotion (years)\n------------------------------------------------------------------------------------------\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             0.61                \nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            N/A                 \nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              N/A                 \nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            N/A                 \nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               0.55                \nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              N/A                 \nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             N/A                 \nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              N/A                 \nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              N/A                 \nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            N/A                 \nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               N/A                 \nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            N/A                 \nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            N/A                 \nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           N/A                 \nN/A                                           N/A                                 N/A                 \nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 N/A                 \n------------------------------------------------------------------------------------------\nTotal Employees: 16 | Records with valid data: 2 | Records with missing data: 14\n\nNote: Time Since Last Promotion values are stored as float numbers representing years in the database.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "TC-001",
+    "query": "Show the Start Date from Employee Assignment History, the Leave Start Date from Employee Leave Details, and the Start Date from Employee Previous Employer for Afra Khalifa Shaheen Alghfeli. These are three different 'Start Date' fields from three different structs.",
+    "category": "triple_name_collision",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "Three structs share 'Start Date': Assignment History, Leave Details, Previous Employer. The LLM must UNNEST all three and keep them separate.",
+    "success": false,
+    "final_type": null,
+    "final_response": null,
+    "error": "NoCodeFoundError: No code found in the response",
+    "response_format": "fence",
+    "llm_call_count": 3,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction_failed",
+        "has_error": true,
+        "details_keys": [
+          "exception_type",
+          "response_first_300"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "TC-002",
+    "query": "Compare the End Date from Employee Assignment History with the End Date from Employee Previous Employer and the CV End Date from CV Employee Education. Show all three for each employee.",
+    "category": "triple_name_collision",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "Three structs share 'End Date': Assignment History, Previous Employer, CV Education. Must disambiguate.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "End Date Comparison for Each Employee:\n\n==============================================================================================================\nEmployee Name                                 Email Address                       Prev Employer End Date    CV Education End Date         \n==============================================================================================================\nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              2021-12-01, 2021-12-01, 2021-12-01, 2021-12-01, 2016-06-30, 2016-06-30, 2016-06-30, 2016-06-30, , , , , 2009-01-29, 2009-01-29, 2009-01-29, 2009-01-29 2006-07-31, 2004-06-30, 2010-12-31, 2014-02-28, 2006-07-31, 2004-06-30, 2010-12-31, 2014-02-28, 2006-07-31, 2004-06-30, 2010-12-31, 2014-02-28, 2006-07-31, 2004-06-30, 2010-12-31, 2014-02-28\nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              2019-08-29, 2019-08-29, ,  2010-06-30, 2016-12-31, 2010-06-30, 2016-12-31\nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            2023-02-02, 2023-02-02, 2023-02-02, 2024-01-06, 2024-01-06, 2024-01-06 2020-11-30, 2015-06-30, 2021-04-30, 2020-11-30, 2015-06-30, 2021-04-30\nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               2024-07-03, 2024-07-03, 2024-07-03, 2024-07-03, 2023-06-29, 2023-06-29, 2023-06-29, 2023-06-29 2017-12-31, 2019-12-31, 2020-12-31, 2021-12-31, 2017-12-31, 2019-12-31, 2020-12-31, 2021-12-31\nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             2025-02-03                2024-05-31                    \nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              2025-04-01                2023-05-31                    \nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            ,                         2017-12-31, 2021-12-31        \nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           2024-08-01, 2024-08-01, 2025-01-30, 2025-01-30 2015-05-31, 2021-12-31, 2015-05-31, 2021-12-31\nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               , , 2011-02-03, 2011-02-03 2007-12-31, 2017-12-31, 2007-12-31, 2017-12-31\nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            2020-12-31, 2020-12-31, 2020-12-31, 2020-12-31, 2020-12-31 2003-12-31, 2005-12-31, 2004-06-30, 2006-12-31, 2009-12-31\nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            2024-09-01                2023-05-31                    \n==============================================================================================================\n\nNote: Employee Assignment History column does not exist in this schema.\nOnly Employee Previous Employer End Date and CV Employee Education End Date are available for comparison.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 3,
+    "history_depth": 10,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "TC-003",
+    "query": "Show the Job Title from Employee Master alongside the Position Title from Employee Assignment History and the Previous Job Title from Employee Previous Employer and the CV Job Title from CV Employee Work Experience. How do they differ?",
+    "category": "triple_name_collision",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "Four different 'job title' fields across 4 structs. The most aggressive name collision test.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Job Title Comparison Across Available Sources:\n\n==================================================================================================================================\nEmployee Email                                     Master Job Title                         Assignment History             Prev Employer             CV Work Exp              \n==================================================================================================================================\neraldhaheri@ECOUNCIL.AE                            Manager                                  Column not available           Column not available      Column not available     \nsssaldhaheri@ECOUNCIL.AE                           Junior Specialist                        Column not available           Column not available      Column not available     \nakalghfeli@ECOUNCIL.AE                             Director                                 Column not available           Column not available      Column not available     \nnmsalmenhali@ECOUNCIL.AE                           Junior Specialist                        Column not available           Column not available      Column not available     \nsaalharbi@ECOUNCIL.AE                              Executive Director                       Column not available           Column not available      Column not available     \nsnAlafeefi@ecouncil.ae                             Senior Specialist                        Column not available           Column not available      Column not available     \nnaamlnuaimi@ECOUNCIL.AE                            Junior Specialist                        Column not available           Column not available      Column not available     \nnmbaadheem@ECOUNCIL.AE                             Specialist                               Column not available           Column not available      Column not available     \namalshamsi@ECOUNCIL.AE                             Senior Specialist                        Column not available           Column not available      Column not available     \nsaamalnuaimi@ECOUNCIL.AE                           Assistant Advisor                        Column not available           Column not available      Column not available     \nksaldhaen@ECOUNCIL.AE                              Senior Specialist                        Column not available           Column not available      Column not available     \nrmalmazrouei@ECOUNCIL.AE                           Specialist                               Column not available           Column not available      Column not available     \nhmalremeithi@ecouncil.ae                           Assistant Advisor                        Column not available           Column not available      Column not available     \nrsaalmazrouei@ecouncil.ae                          Specialist                               Column not available           Column not available      Column not available     \nN/A                                                Senior Officer                           Column not available           Column not available      Column not available     \nN/A                                                Senior Officer                           Column not available           Column not available      Column not available     \n==================================================================================================================================\n\nTotal Employees: 16\nEmployees with incomplete title comparison: 16\n\nAnalysis: Only Employee Master Job Title column is available in current schema.\nThe following columns do NOT exist in this database:\n  - Employee Assignment History[Position Title]\n  - Employee Previous Employer[Previous Job Title]\n  - CV Employee Work Experience[Job Title]\n\nAvailable columns: [Employee Master[Job Title]], [Employee Master[Email Address]]",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 3,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "TC-004",
+    "query": "What is the Employee Grade from Employee Master compared to the Employee Grade from Employee Assignment History? Are they always the same?",
+    "category": "triple_name_collision",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Two structs share 'Grade'. Must compare values between them.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employee Grade Comparison: Employee Master vs Employee Assignment History\n==========================================================================================\nEmployee Email                           Employee Master Grade          Assignment History Grade           \n==========================================================================================\neraldhaheri@ECOUNCIL.AE                  L.2A                           Column does not exist              \nsssaldhaheri@ECOUNCIL.AE                 L.4C                           Column does not exist              \nakalghfeli@ECOUNCIL.AE                   L.1C                           Column does not exist              \nnmsalmenhali@ECOUNCIL.AE                 L.4C                           Column does not exist              \nsaalharbi@ECOUNCIL.AE                    L.EDA                          Column does not exist              \nsnAlafeefi@ecouncil.ae                   L.3B                           Column does not exist              \nnaamlnuaimi@ECOUNCIL.AE                  L.4C                           Column does not exist              \nnmbaadheem@ECOUNCIL.AE                   L.4B                           Column does not exist              \namalshamsi@ECOUNCIL.AE                   L.3B                           Column does not exist              \nsaamalnuaimi@ECOUNCIL.AE                 L.2B                           Column does not exist              \nksaldhaen@ECOUNCIL.AE                    L.3B                           Column does not exist              \nrmalmazrouei@ECOUNCIL.AE                 L.4B                           Column does not exist              \nhmalremeithi@ecouncil.ae                 L.2C                           Column does not exist              \nrsaalmazrouei@ecouncil.ae                L.4B                           Column does not exist              \nN/A                                      L.4B                           Column does not exist              \nN/A                                      L.4C                           Column does not exist              \n==========================================================================================\n\nTotal Employees: 16\n\nAnalysis:\n  - Employee Master Grade column exists: [Employee Master[Grade]]\n  - Employee Assignment History Grade column does NOT exist in this database\n  - Cannot compare because the Assignment History grade column is missing\n\nAvailable columns in this schema:\n  - [Employee Master[Email Address]]\n  - [Employee Master[Grade]]\n\nNote: The schema does not contain Employee Assignment History struct columns.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "TC-005",
+    "query": "Show the Assignment Name from Employee Assignment History alongside the Objective Name from Employee Objectives and the Customary Name from Employee Achievements for each employee.",
+    "category": "triple_name_collision",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Three structs with 'Name' fields: Assignment Name, Objective Name, Customary Name. Tests if the LLM can distinguish between struct-specific name fields.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Assignment Name, Objective Name, and Customary Name Comparison by Employee:\n============================================================================================================================================\nEmployee Name                                      Email Address                            Assignment Name                Objective Name                 Customary Name           \n============================================================================================================================================\nEisa Rames Khamis AlDhaheri                        eraldhaheri@ECOUNCIL.AE                  Manager, Public Relations      تجهيز التقارير / العروض التقديمية أو أية أمور أخرى يتم عرضها على سموه بشكل واضح و محتوى فعال, التعاون مع الشركاء لتوفير كافة المعلومات للدعوات الخاصة بسموه و المؤتمرات و الفعاليات الخارجية, متابعة احتياجات المهام الخاصة و طاقم العمل الخاص بمكتب سموه من تأشيرات أو جوازات, أرشيف البيانات و التقارير الخاصة بسموه 2023 Annual Appraisal, 2024 Annual Appraisal\n============================================================================================================================================\n\nTotal Employees with Data: 1\n\nNote: Some employees may have multiple assignments, objectives, or achievements.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "TC-006",
+    "query": "List the CV Degree Name from CV Employee Education and the Degree from Employee Master for each employee. Are the degrees the same?",
+    "category": "triple_name_collision",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Two different 'degree' fields: CV Education vs Employee Master. Simple collision test.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "CV Degree Name vs Employee Master Degree Comparison by Employee:\n==============================================================================================================\nEmployee Name                                      Email Address                            Master Degree             CV Degree Name                 Match?    \n==============================================================================================================\nEisa Rames Khamis AlDhaheri                        eraldhaheri@ECOUNCIL.AE                  Master Degree             Not Available                  N/A       \nShamma Salem Saeed Aldhaheri                       sssaldhaheri@ECOUNCIL.AE                 Bachelor Degree           Not Available                  N/A       \nAfra Khalifa Shaheen Alghfeli                      akalghfeli@ECOUNCIL.AE                   Master Degree             Not Available                  N/A       \nNoura Mubarak Saleh Almenhali                      nmsalmenhali@ECOUNCIL.AE                 Bachelor Degree           Not Available                  N/A       \nSara Ahmed Salem Alharbi                           saalharbi@ECOUNCIL.AE                    Master Degree             Not Available                  N/A       \nSara Nadeem Hussain Alafeefi                       snAlafeefi@ecouncil.ae                   Bachelor Degree           Not Available                  N/A       \nNouf Ahmed Mohamed Alnuaimi                        naamlnuaimi@ECOUNCIL.AE                  Bachelor Degree           Not Available                  N/A       \nNouf Mohamed Abdulla Baadheem                      nmbaadheem@ECOUNCIL.AE                   Bachelor Degree           Not Available                  N/A       \nAli Mohamed Shamekh Alshamsi                       amalshamsi@ECOUNCIL.AE                   Bachelor Degree           Not Available                  N/A       \nSalem Ali Abdulla Alnuaimi                         saamalnuaimi@ECOUNCIL.AE                 Bachelor Degree           Not Available                  N/A       \nKhalifa Sameh Khalaf aldhaen                       ksaldhaen@ECOUNCIL.AE                    Master Degree             Not Available                  N/A       \nRodah Mohamed Abdulla  Almazrouei                  rmalmazrouei@ECOUNCIL.AE                 Bachelor Degree           Not Available                  N/A       \nDr.Hamda Musabah Ghanim Alremeithi                 hmalremeithi@ecouncil.ae                 N/A                       Not Available                  N/A       \nRakan Salem Abdulla Almazrouei                     rsaalmazrouei@ecouncil.ae                Bachelor Degree           Not Available                  N/A       \nN/A                                                N/A                                      N/A                       Not Available                  N/A       \nAyesha Jumaa Mubarak Al Qubaisi                    N/A                                      N/A                       Not Available                  N/A       \n==============================================================================================================\n\nTotal Employees: 15\nDegree Matches: 0\nDegree Mismatches: 0\n\nNote: CV Degree Name column does not exist in the current schema.\nOnly Employee Master Degree column is available for comparison.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 3,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "TC-007",
+    "query": "Show the CV Company Name from CV Employee Work Experience and the Previous Employer Name from Employee Previous Employer. For overlapping employers, highlight them.",
+    "category": "triple_name_collision",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Two different 'employer name' fields. Tests if the LLM can find and compare both.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "CV Company Name vs Previous Employer Name Comparison by Employee:\n======================================================================================================================================================\nEmail Address                            Employee Name                                 CV Company Names                              Previous Employers                  Overlapping?   \n======================================================================================================================================================\neraldhaheri@ECOUNCIL.AE                  Eisa Rames Khamis AlDhaheri                   (No CV Work Experience)                       The Supreme Council for National Security, Ministry of Interior NO             \nsssaldhaheri@ECOUNCIL.AE                 Shamma Salem Saeed Aldhaheri                  Domestic Students Advisory Board, NYU Abu Dhabi, The Family Business Histories Project NYUAD X Tharawat Business Forum, Society of International Affairs, NYU Abu Dhabi, Salama Bint Hamdan Al Nahyan Foundation, Community-Based Learning Office, NYU Abu Dhabi, Student Energy Abu Dhabi Investment Council        NO             \nakalghfeli@ECOUNCIL.AE                   Afra Khalifa Shaheen Alghfeli                 Nickl & Partner Architecture Company, Charitable Foundation, Nickl Academy GmbH, The Health Authority - HAAD, General Secretariat of Abu Dhabi Executive Council, German Federal Ministry of Health – BMG General Secretariat of Executive Council, Nickl & Partner, HAAD, National Health Insurance Daman NO             \nnmsalmenhali@ECOUNCIL.AE                 Noura Mubarak Saleh Almenhali                 (No CV Work Experience)                       (No Previous Employer)              NO             \nsaalharbi@ECOUNCIL.AE                    Sara Ahmed Salem Alharbi                      [DEPARTMENT OF COMMUNITY DEVELOPMENT (DCD)], [YAHSAT], [AL YAH SATELLITE COMMUNICATION COMPANY (YAHSAT)] [Department of Community Development], [Yahsat] YES            \nsnAlafeefi@ecouncil.ae                   Sara Nadeem Hussain Alafeefi                  Ernest and Young, PricewaterhouseCoopers      (No Previous Employer)              NO             \nnaamlnuaimi@ECOUNCIL.AE                  Nouf Ahmed Mohamed Alnuaimi                   [Flaved Bakery], [Arts and Humanities Department], [Office of Community-Based Learning (CBL)], [Academic Enrichment Program (AEP) Ambassadors] [Flaved Bakery]                     YES            \nnmbaadheem@ECOUNCIL.AE                   Nouf Mohamed Abdulla Baadheem                 [Strategy& (Part of the PwC network)], [Abu Dhabi Executive Office] [Strategy& (Part of the PwC network)] YES            \namalshamsi@ECOUNCIL.AE                   Ali Mohamed Shamekh Alshamsi                  [Crif Gulf], [Shamal Military Solutions], [Modon Properties] [Crif Gulf], [Shamal Military Solutions] YES            \nsaamalnuaimi@ECOUNCIL.AE                 Salem Ali Abdulla Alnuaimi                    [Abu Dhabi Department of Economic Development], [Abu Dhabi Council for Economic Development], [Department of Economic Development Abu Dhabi] [Abu Dhabi Council for Economic Development] YES            \nksaldhaen@ECOUNCIL.AE                    Khalifa Sameh Khalaf aldhaen                  Strata Manufacturing PJSC (A Mubadala Company), Abu Dhabi Waste Management Company – Tadweer Strata Manufacturing PJSC, Khalifa Sameh Khalaf aldhaen NO             \nrmalmazrouei@ECOUNCIL.AE                 Rodah Mohamed Abdulla  Almazrouei             PureHealth, National Health Insurance Company - Daman, Abu Dhabi Center for Sheltering and Humanitarian Care Daman                               NO             \nhmalremeithi@ecouncil.ae                 Dr.Hamda Musabah Ghanim Alremeithi            SEHA - AHS, Abu Dhabi public health center, SEHA - Tawam Hospital, AHS- Zayed higher organization center for PODs Department of health - Abu Dhabi, Abu Dhabi Health Services Co. NO             \nrsaalmazrouei@ecouncil.ae                Rakan Salem Abdulla Almazrouei                [ADNOC Offshore], [Efficio MENA]              [ADNOC Offshore], [Efficio MENA]    YES            \nN/A                                      N/A                                           (No CV Work Experience)                       (No Previous Employer)              NO             \nN/A                                      Ayesha Jumaa Mubarak Al Qubaisi               (No CV Work Experience)                       (No Previous Employer)              NO             \n======================================================================================================================================================\n\nSummary: 16 employees compared | 6 have overlapping employers | 10 have no overlap\n\nNote: \"Overlapping\" means the company name in CV Work Experience matches a Previous Employer name.\nCase variations (e.g., \"YAHSAT\" vs \"Yahsat\") are treated as matches due to case-insensitive comparison.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-001",
+    "query": "What is the Basic Salary for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "easy",
+    "expected_output_type": "string",
+    "notes": "Baseline — Basic Salary is the most common allowance column. Should always work.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Basic Salary for All Employees:\n\n===============================================================================================\nEmployee Name                                 Email Address                       Basic Salary             \n===============================================================================================\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             0.0                      \nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            0.0                      \nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              0.0                      \nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            0.0                      \nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               0.0                      \nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              0.0                      \nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             0.0                      \nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              0.0                      \nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              0.0                      \nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            0.0                      \nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               0.0                      \nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            0.0                      \nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            0.0                      \nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           0.0                      \nN/A                                           N/A                                 0.0                      \nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 0.0                      \n===============================================================================================\nTotal Employees: 16 | Total Basic Salary Pool: 0.0\n\nNote: All employees show 0.0 Basic Salary. This may indicate the salary data is stored elsewhere or allowances compensate the total compensation.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-002",
+    "query": "What is the Housing Allowance for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "easy",
+    "expected_output_type": "string",
+    "notes": "Housing Allowance — common column, should work.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Housing Allowance for All Employees:\n\n===============================================================================================\nEmployee Name                                 Email Address                       Housing Allowance        \n===============================================================================================\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             0.0                      \nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            0.0                      \nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              0.0                      \nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            0.0                      \nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               0.0                      \nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              0.0                      \nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             0.0                      \nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              0.0                      \nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              0.0                      \nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            0.0                      \nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               0.0                      \nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            0.0                      \nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            0.0                      \nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           0.0                      \nN/A                                           N/A                                 0.0                      \nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 0.0                      \n===============================================================================================\nTotal Employees: 16 | Total Housing Allowance Pool: 0.0\n\nNote: All employees show 0.0 Housing Allowance. This may indicate housing benefits are provided differently (e.g., as accommodation-in-kind or separate reimbursement).",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-003",
+    "query": "What is the Cost of Living Allowance for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Cost of Living Allowance — slightly less common name pattern.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Cost of Living Allowance for All Employees:\n\n===============================================================================================\nEmail Address                            Cost of Living Allowance \n===============================================================================================\neraldhaheri@ECOUNCIL.AE                  0.0                      \nsssaldhaheri@ECOUNCIL.AE                 0.0                      \nakalghfeli@ECOUNCIL.AE                   0.0                      \nnmsalmenhali@ECOUNCIL.AE                 0.0                      \nsaalharbi@ECOUNCIL.AE                    0.0                      \nsnAlafeefi@ecouncil.ae                   0.0                      \nnaamlnuaimi@ECOUNCIL.AE                  0.0                      \nnmbaadheem@ECOUNCIL.AE                   0.0                      \namalshamsi@ECOUNCIL.AE                   0.0                      \nsaamalnuaimi@ECOUNCIL.AE                 0.0                      \nksaldhaen@ECOUNCIL.AE                    0.0                      \nrmalmazrouei@ECOUNCIL.AE                 0.0                      \nhmalremeithi@ecouncil.ae                 0.0                      \nrsaalmazrouei@ecouncil.ae                0.0                      \nN/A                                      0.0                      \nN/A                                      0.0                      \n===============================================================================================\nTotal Employees: 16 | Total Cost of Living Allowance Pool: 0.0\n\nNote: All employees show 0.0 Cost of Living Allowance. This may indicate COL allowances are provided differently or not applicable.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 3,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-004",
+    "query": "What is the Social Allowance for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Social Allowance — should work based on v2 CH-003 success.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Social Allowance for All Employees:\n\n===============================================================================================\nEmployee Name                                 Email Address                       Social Allowance         \n===============================================================================================\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             0.0                      \nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            0.0                      \nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              0.0                      \nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            0.0                      \nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               0.0                      \nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              0.0                      \nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             0.0                      \nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              0.0                      \nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              0.0                      \nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            0.0                      \nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               0.0                      \nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            0.0                      \nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            0.0                      \nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           0.0                      \nN/A                                           N/A                                 0.0                      \nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 0.0                      \n===============================================================================================\nTotal Employees: 16 | Total Social Allowance Pool: 0.0\n\nNote: All employees show 0.0 Social Allowance. This may indicate the Social Allowance data is not populated or this is a government-mandated allowance for nationals that may be managed separately.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-005",
+    "query": "What is the Child Allowance for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Child Allowance — should work based on v2 CH-003 success.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Child Allowance for All Employees:\n\n===============================================================================================\nEmployee Name                                 Email Address                       Child Allowance          \n===============================================================================================\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             0.0                      \nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            0.0                      \nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              0.0                      \nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            0.0                      \nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               0.0                      \nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              0.0                      \nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             0.0                      \nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              0.0                      \nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              0.0                      \nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            0.0                      \nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               0.0                      \nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            0.0                      \nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            0.0                      \nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           0.0                      \nN/A                                           N/A                                 0.0                      \nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 0.0                      \n===============================================================================================\nTotal Employees: 16 | Total Child Allowance Pool: 0.0\n\nNote: All employees show 0.0 Child Allowance. This may indicate the data is not populated or these employees do not have eligible children.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-006",
+    "query": "What is the Supplementary Allowance for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Supplementary Allowance — should work based on v2 CH-006 success.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Supplementary Allowance for All Employees:\n\n===============================================================================================\nEmployee Name                                 Email Address                       Supplementary Allowance       \n===============================================================================================\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             0.0                           \nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            0.0                           \nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              0.0                           \nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            0.0                           \nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               0.0                           \nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              0.0                           \nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             0.0                           \nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              0.0                           \nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              0.0                           \nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            0.0                           \nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               0.0                           \nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            0.0                           \nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            0.0                           \nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           0.0                           \nN/A                                           N/A                                 0.0                           \nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 0.0                           \n===============================================================================================\nTotal Employees: 16 | Total Supplementary Allowance Pool: 0.0\n\nNote: All employees show 0.0 Supplementary Allowance. This may indicate the Supplementary Allowance data is not populated or these employees do not qualify for this allowance.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-007",
+    "query": "What is the Phone Allowance for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Phone Allowance — should work based on v2 CH-006 success.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Phone Allowance for All Employees:\n\n====================================================================================================\nEmployee Name                                      Email Address                                 Phone Allowance     \n====================================================================================================\nEisa Rames Khamis AlDhaheri                        eraldhaheri@ECOUNCIL.AE                       0.0                 \nShamma Salem Saeed Aldhaheri                       sssaldhaheri@ECOUNCIL.AE                      0.0                 \nAfra Khalifa Shaheen Alghfeli                      akalghfeli@ECOUNCIL.AE                        0.0                 \nNoura Mubarak Saleh Almenhali                      nmsalmenhali@ECOUNCIL.AE                      0.0                 \nSara Ahmed Salem Alharbi                           saalharbi@ECOUNCIL.AE                         0.0                 \nSara Nadeem Hussain Alafeefi                       snAlafeefi@ecouncil.ae                        0.0                 \nNouf Ahmed Mohamed Alnuaimi                        naamlnuaimi@ECOUNCIL.AE                       0.0                 \nNouf Mohamed Abdulla Baadheem                      nmbaadheem@ECOUNCIL.AE                        0.0                 \nAli Mohamed Shamekh Alshamsi                       amalshamsi@ECOUNCIL.AE                        0.0                 \nSalem Ali Abdulla Alnuaimi                         saamalnuaimi@ECOUNCIL.AE                      0.0                 \nKhalifa Sameh Khalaf aldhaen                       ksaldhaen@ECOUNCIL.AE                         0.0                 \nRodah Mohamed Abdulla  Almazrouei                  rmalmazrouei@ECOUNCIL.AE                      0.0                 \nDr.Hamda Musabah Ghanim Alremeithi                 hmalremeithi@ecouncil.ae                      0.0                 \nRakan Salem Abdulla Almazrouei                     rsaalmazrouei@ecouncil.ae                     0.0                 \nN/A                                                N/A                                           0.0                 \nAyesha Jumaa Mubarak Al Qubaisi                    N/A                                           0.0                 \n====================================================================================================\nTotal Employees: 16 | Total Phone Allowance Pool: 0.0\n\nNote: All employees show 0.0 Phone Allowance. This may indicate the Phone Allowance data is not populated or these employees do not qualify for this allowance.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-008",
+    "query": "What is the Etihad Allowance for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Etihad Allowance — the most consistently failing column across v1 and v2.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Etihad Allowance for All Employees:\n\n====================================================================================================\n====================================================================================================\nColumn Information:\n====================================================================================================\nAvailable columns in enterprise_data table: 2\n\nAll columns: [Employee Master[Employee Name]], [Employee Master[Email Address]]\n\nNote: \"Etihad Allowance\" column is NOT found in the current schema.\nOnly \"[Employee Master[Employee Name]]\" and \"[Employee Master[Email Address]]\" are available.\nThis may indicate that Etihad Allowance data is stored elsewhere or does not exist in this dataset.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 3,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-009",
+    "query": "What is the Secondment Allowance for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Secondment Allowance — consistently failing since v1.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Secondment Allowance for All Employees:\n\n==============================================================================================================\n==============================================================================================================\nColumn Information:\n==============================================================================================================\nAvailable columns in enterprise_data table: 1\n\nAll columns: [Employee Master[Email Address]]\n\nNote: \"Secondment Allowance\" column is NOT found in the current schema.\nThis may indicate that Secondment Allowance data is stored elsewhere or does not exist in this dataset.\n\nAvailable allowance-related columns (if any):\n  None found",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-010",
+    "query": "What is the Technical Special Allowance for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Technical Special Allowance — not tested individually before.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Technical Special Allowance for All Employees:\n\n====================================================================================================\nEmployee Name                                 Email Address                       Technical Special Allowance   \n====================================================================================================\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             0.0                           \nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            0.0                           \nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              0.0                           \nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            0.0                           \nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               0.0                           \nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              0.0                           \nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             0.0                           \nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              0.0                           \nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              0.0                           \nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            0.0                           \nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               0.0                           \nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            0.0                           \nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            0.0                           \nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           0.0                           \nN/A                                           N/A                                 0.0                           \nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 0.0                           \n====================================================================================================\nTotal Employees: 16 | Total Technical Special Allowance Pool: 0.00\n\nNote: All employees show 0.0 Technical Special Allowance. This may indicate that no employees currently hold positions requiring technical specialization allowances.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "AM-011",
+    "query": "What is the Special Contract Basic Salary for all employees?",
+    "category": "allowance_matrix",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Special Contract Basic Salary — failed in v2 CH-005.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Special Contract Basic Salary for All Employees:\n\n==============================================================================================================\n==============================================================================================================\nColumn Information:\n==============================================================================================================\nAvailable columns in enterprise_data table: 3\n\nAll columns: [Employee Master[Employee Name]], [Employee Master[Email Address]], [Employee Master[Basic Salary]]\n\nNote: \"Special Contract Basic Salary\" column is NOT found in the current schema.\nThis may indicate that Special Contract Basic Salary data is stored elsewhere or does not exist in this dataset.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "MJ-001",
+    "query": "For each employee, show their most recent assignment title from Assignment History, their most recent leave type from Leave Details, and their highest competency rating from Competencies Rating. Include all three in one table.",
+    "category": "multi_struct_join",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "Requires UNNESTing 3 struct arrays and joining results. Tests if column selector picks all 3 structs.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employee: Assignment, Leave, and Competency Summary\n\n============================================================================================================================================\nEmployee Name                                 Email Address                       Most Recent Assignment                   Most Recent Leave         Highest Rating\n============================================================================================================================================\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             Manager, Public Relations                N/A                       5 (Facilitates Collaboration and Influence)\nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            Junior Specialist, Business Environment and Investment Affairs N/A                       N/A (N/A)\nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              Director, Health Department              N/A                       5 (Facilitates Collaboration and Influence)\nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            Junior Specialist, Community Affairs     N/A                       5 (Facilitates Collaboration and Influence)\nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               Executive Director, Wellbeing Sector     N/A                       N/A (N/A)\nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              Senior Specialist, Health                N/A                       N/A (N/A)\nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             Junior Specialist, Tourism               N/A                       N/A (N/A)\nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              Specialist, Special Intervention         N/A                       N/A (N/A)\nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              Senior Specialist, Agenda Management     N/A                       N/A (N/A)\nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            Assistant Advisor, Economic Analysis     N/A                       3 (Leading Change)\nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               Senior Specialist, Energy                N/A                       N/A (N/A)\nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            Specialist, Special Intervention         N/A                       N/A (N/A)\nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            Assistant Advisor, Health                N/A                       N/A (N/A)\nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           Specialist, Community Affairs            N/A                       N/A (N/A)\nN/A                                           N/A                                 N/A                                      N/A                       N/A (N/A)\nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 N/A                                      N/A                       N/A (N/A)\n============================================================================================================================================\nTotal Employees: 16",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 4,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "MJ-002",
+    "query": "Show employees who have both previous employer records AND assignment history records. For those employees, compare the end date from their last previous employer with the start date from their first assignment.",
+    "category": "multi_struct_join",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "Cross-struct date comparison. Requires UNNESTing 2 struct arrays and joining on employee.",
+    "success": true,
+    "final_type": "error",
+    "final_response": "Unfortunately, I was not able to get your answer. Please try again.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 5,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "MJ-003",
+    "query": "For each employee, count: number of competency ratings, number of leave records, number of objectives, and number of previous employers. Show all four counts in one table.",
+    "category": "multi_struct_join",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "4 struct arrays, each counted. Tests if the selector includes all 4 struct columns.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employee Count Summary: Competencies, Leave, Objectives, and Previous Employers\n\n============================================================================================================================================\nEmployee Name                                 Email Address                       Competencies      Leave Objectives Prev. Employers\n============================================================================================================================================\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE                       10          0          4               4\nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE                       0          0          0               1\nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE                        10          0          0               4\nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE                       8          0          0               0\nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE                          0          0          0               2\nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae                         0          0          0               0\nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE                        0          0          0               1\nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE                         0          0          0               1\nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE                         0          0          0               2\nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE                       8          0          0               1\nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE                          0          0          0               2\nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE                       0          0          0               1\nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae                       0          0          0               2\nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae                      0          0          0               2\nN/A                                           N/A                                            0          0          0               0\nAyesha Jumaa Mubarak Al Qubaisi               N/A                                            0         66          4               0\n============================================================================================================================================\nTotal Employees: 16\n\nSummary Statistics:\n- Employees with Competency Ratings: 4\n- Employees with Leave Records: 1\n- Employees with Objectives: 2\n- Employees with Previous Employers: 12",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 2,
+    "history_depth": 10,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "MJ-004",
+    "query": "Show the CV education degree alongside the Employee Qualification degree for employees who have both. Are the degrees the same?",
+    "category": "multi_struct_join",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Two education-related struct arrays. Tests disambiguation between CV Education and Employee Qualification.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "CV Degree vs Employee Qualification Degree Comparison\n\n======================================================================================================================================================\nEmployee Name                                 Email Address                       CV Degree            Qualification Degree                                    Match?\n======================================================================================================================================================\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             Master Degree        Bachelor of Mass Communication and Media (Public Relations), Master of Business Administration ✓ Yes\nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            Bachelor Degree      Bachelor of Arts                                        ✓ Yes\nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              Master Degree        Applied Sciences in Health Information Management, Higher Diploma in Health Information Management, MBA in International Hospital and Healthcare Management ✗ No\nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            Bachelor Degree      Interntional Studies Concentration in Political Economy and Development ✗ No\nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               Master Degree        Master of Business Administration                       ✓ Yes\nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              Bachelor Degree      Bachelor of Science in Biotechnology                    ✓ Yes\nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             Bachelor Degree      Interactive Media                                       ✗ No\nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              Bachelor Degree      Applied Psychology                                      ✗ No\nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              Bachelor Degree      International Studies                                   ✗ No\nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            Bachelor Degree      Bachelor of Science - Economics                         ✓ Yes\nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               Master Degree        Mechanical Engineering, Project and Enterprise Managment ✗ No\nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            Bachelor Degree      International Studies - International Relations         ✗ No\nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            N/A                  Healthcare management, Medicine and Surgery             ✗ No\nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           Bachelor Degree      PETROLEUM ENGINEERING                                   ✗ No\nN/A                                           N/A                                 N/A                  N/A                                                     ✗ No\nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 N/A                  N/A                                                     ✗ No\n======================================================================================================================================================\nTotal Employees: 16\n\nSummary:\n- Employees with Matching Degrees: 5\n- Employees with Non-Matching Degrees: 11\n\nNote: Some qualifications may contain multiple degrees or specialized titles that differ from the CV summary degree.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 5,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "MJ-005",
+    "query": "For each employee, list their CV work experience job titles alongside their assignment history position titles. Show them side by side in chronological order.",
+    "category": "multi_struct_join",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "Two work-related struct arrays with date ordering. Tests cross-struct chronological joining.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "CV Work Experience vs Assignment History Job Titles Comparison\n\n======================================================================================================================================================\nEmployee Name                                 Email Address                       CV Work Experience (Job Titles)                    Assignment History (Position Titles)\n======================================================================================================================================================\nEisa Rames Khamis AlDhaheri                   eraldhaheri@ECOUNCIL.AE             [Not Available]                                    [Not Available]\nShamma Salem Saeed Aldhaheri                  sssaldhaheri@ECOUNCIL.AE            Co-Chair, Research Assistant, Treasurer, Consultancy Intern, Local Educational Officer, Director of Finance for the 2023 Summit Organizing Team [Not Available]\nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              Quality Officer, Coordinator & Judicial Inspector, Head of Quality & Excellent and Acting Head of Customer Services Center, Senior Specialist at the Strategy & Policy Division, Head of Social Policy & Research Section, Senior Projects Manager, 2-months work placement, Acting Head of Health Systems Section, CEO & Founder, CEO, consultant in healthcare facility design and management [Not Available]\nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            [Not Available]                                    [Not Available]\nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               MENA Region and International Accounts Business Development Officer, MENA Region and International Accounts Country Manager, Strategy and Business Development Associate, Strategy and Business Development Manager, Strategy and Business Development Associate Vice President (AVP), Strategic Planning and Performance Management Division Manager (Director) [Not Available]\nSara Nadeem Hussain Alafeefi                  snAlafeefi@ecouncil.ae              Assistant Manager, Manager                         [Not Available]\nNouf Ahmed Mohamed Alnuaimi                   naamlnuaimi@ECOUNCIL.AE             Mentor, Research Assistant, Research Assistant, Local Education Officer, Founder and owner [Not Available]\nNouf Mohamed Abdulla Baadheem                 nmbaadheem@ECOUNCIL.AE              Intern, Business Analyst, Associate Consultant     [Not Available]\nAli Mohamed Shamekh Alshamsi                  amalshamsi@ECOUNCIL.AE              SENIOR EVALUATOR, ACCOUNTS MANAGER, ANALYST        [Not Available]\nSalem Ali Abdulla Alnuaimi                    saamalnuaimi@ECOUNCIL.AE            Economic Researcher, Secondment at Abu Dhabi Department of Economic Development, Project Manager, Acting Director – Economic Policy Planning Division, Team Leader / Acting Director of Economic Intelligence, Acting Director of Economic Planning & Performance, Head of Economic Modelling Section [Not Available]\nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               Junior Tooling Engineer, Tooling Engineer, Project Manager, Lead Tooling Engineer (Acting), Senior Specialist PMO [Not Available]\nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            PROJECTS AND EVENTS SPECIALIST - INTERNSHIP, PROVIDER RELATIONS NETWORK OPERATIONS OFFICER, HEALTH INSURANCE SOLUTIONS OFFICER, PROJECT SPECIALIST, EXECUTIVE OFFICE [Not Available]\nDr.Hamda Musabah Ghanim Alremeithi            hmalremeithi@ecouncil.ae            Medical Intern, Medical Resident - GP, Family medicine specialist, Family medicine specialist, Personal genetic protection Specialist, Acting Section head, Screening section [Not Available]\nRakan Salem Abdulla Almazrouei                rsaalmazrouei@ecouncil.ae           Drilling Site Leader, Business Analyst             [Not Available]\nN/A                                           N/A                                 [Not Available]                                    [Not Available]\nAyesha Jumaa Mubarak Al Qubaisi               N/A                                 [Not Available]                                    [Not Available]\n======================================================================================================================================================\nTotal Employees: 16\n\nNote: Assignment History column is NOT found in the current table schema. Only CV Work Experience data is available for comparison.\n\nSummary:\n- Employees with CV Work Experience: 12\n- Employees with Assignment History: 0 (Column not available in schema)",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 3,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "MJ-006",
+    "query": "Build a complete career timeline for Eisa Rames Khamis AlDhaheri using: Previous Employer records, Assignment History, and CV Work Experience. Sort everything by date.",
+    "category": "multi_struct_join",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "3 struct arrays + Employee Master for one employee. The most complex join test.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Eisa Rames Khamis AlDhaheri - Complete Career Timeline\n\n======================================================================================================================================================\nTimeline Entry                                     Type                      Job Title                           Company/Organization                Start Date      End Date       \n======================================================================================================================================================\n2007-01-01 to 2012-01-01                           Previous Employer         Officier                            Ministry of Interior                2007-01-01      2012-01-01     \n2012-01-01 to 2017-01-01                           Previous Employer         Correspondence Officer              Ministry of Interior                2012-01-01      2017-01-01     \n2017-02-01 to 2018-02-01                           Previous Employer         Officer - Office of the Deputy National Security Advisor The Supreme Council for National Security 2017-02-01      2018-02-01     \n2018-01-01 to 2020-01-01                           Previous Employer         Head of Export Unit - Office of the Deputy National Security Advisor The Supreme Council for National Security 2018-01-01      2020-01-01     \n2023-05-09 to                                      Assignment History        Manager, Public Relations           ECOUNCIL (Current)                  2023-05-09                     \n======================================================================================================================================================\nTotal Career Events: 5\n\nDate Range Covered: 2007-01-01 to 2020-01-01",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "MJ-007",
+    "query": "For employees who have both Employee Achievements and CV Achievements and Awards, show both sets of achievements. How do they differ?",
+    "category": "multi_struct_join",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Two achievement-related struct arrays. Tests disambiguation between Employee Achievements and CV Achievements.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employee Achievements vs CV Achievements and Awards Comparison\n\n======================================================================================================================================================\nEmployee Name                                 Email Address                       Employee Achievements                                   CV Achievements and Awards\n======================================================================================================================================================\nAfra Khalifa Shaheen Alghfeli                 akalghfeli@ECOUNCIL.AE              None Available                                          None Available\nNoura Mubarak Saleh Almenhali                 nmsalmenhali@ECOUNCIL.AE            None Available                                          None Available\nSara Ahmed Salem Alharbi                      saalharbi@ECOUNCIL.AE               None Available                                          None Available\nKhalifa Sameh Khalaf aldhaen                  ksaldhaen@ECOUNCIL.AE               None Available                                          None Available\nRodah Mohamed Abdulla  Almazrouei             rmalmazrouei@ECOUNCIL.AE            None Available                                          None Available\n======================================================================================================================================================\nTotal Employees with Both: 5 | Employees with Only Employee Achievements: 0 | Employees with Only CV Achievements: 0\n\nSummary of Differences:\n- Employee Achievements focus on performance management (Appraisal years, Manager comments, Employee comments)\n- CV Achievements focus on awards, certificates, and professional accomplishments (Titles, Descriptions, Issue dates)\n- These serve different purposes: Employee Achievements are internal HR performance records; CV Achievements are professional resume content\n- Employee Achievements are typically annual appraisals; CV Achievements span career history\n- Employee Achievements are confidential internal records; CV Achievements are for public/professional use",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 5,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "NT-001",
+    "query": "Which employees have a ZERO Etihad Allowance?",
+    "category": "negation_trap",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Asking for zero values of a column that the code gen may think doesn't exist. Should return all employees (since all have 0 Etihad Allowance).",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employees with ZERO Etihad Allowance:\n\n====================================================================================================\nColumn Information:\n====================================================================================================\nAvailable columns in enterprise_data table: 2\n\nAll columns: [Employee Master[Employee Name]], [Employee Master[Email Address]]\n\nNote: \"Etihad Allowance\" column is NOT found in the current schema.\nThe Etihad Allowance data may be stored elsewhere or does not exist in this dataset.\n\nAvailable columns:\n  - [Employee Master[Employee Name]]\n  - [Employee Master[Email Address]]",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "NT-002",
+    "query": "Which employees have NO Secondment Allowance?",
+    "category": "negation_trap",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Similar to NT-001 but with 'NO' instead of 'ZERO'. The LLM may interpret 'NO Secondment Allowance' as 'the column does not exist' rather than 'the value is 0'.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employees with NO Secondment Allowance:\n\n==============================================================================================================\nColumn Information:\n==============================================================================================================\nAvailable columns in enterprise_data table: 2\n\nAll columns: [Employee Master[Employee Name]], [Employee Master[Email Address]]\n\nNote: \"Secondment Allowance\" column is NOT found in the current schema.\nThis may indicate that Secondment Allowance data is stored elsewhere or does not exist in this dataset.\n\nTo find employees with NO Secondment Allowance, the column must exist in the schema.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "NT-003",
+    "query": "Show employees who do NOT have any leave records.",
+    "category": "negation_trap",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Negation + struct array. Employees with empty Leave Details array.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employees with NO Leave Records:\n\n====================================================================================================\nEmployee Name                                      Employee Number\n====================================================================================================\nAfra Khalifa Shaheen Alghfeli                      1314\nAli Mohamed Shamekh Alshamsi                       1421\nDr.Hamda Musabah Ghanim Alremeithi                 1395\nEisa Rames Khamis AlDhaheri                        1269\nKhalifa Sameh Khalaf aldhaen                       1336\nNouf Ahmed Mohamed Alnuaimi                        1402\nNouf Mohamed Abdulla Baadheem                      1403\nNoura Mubarak Saleh Almenhali                      1318\nRakan Salem Abdulla Almazrouei                     1443\nRodah Mohamed Abdulla  Almazrouei                  1362\nSalem Ali Abdulla Alnuaimi                         1334\nSara Ahmed Salem Alharbi                           1316\nSara Nadeem Hussain Alafeefi                       1378\nShamma Salem Saeed Aldhaheri                       1369\nN/A                                                1264\n====================================================================================================\nTotal Employees with NO Leave Records: 15\n\nNote: These employees have no leave history in the system.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "NT-004",
+    "query": "Which employees have never been promoted? Show those with no Last Promotion Date.",
+    "category": "negation_trap",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Negation + NULL check. Should find employees with NULL Last Promotion Date.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employees with NO Last Promotion Date (Never Promoted):\n\n====================================================================================================\nEmployee Name                                      Employee Number\n====================================================================================================\nAfra Khalifa Shaheen Alghfeli                      1314\nAli Mohamed Shamekh Alshamsi                       1421\nAyesha Jumaa Mubarak Al Qubaisi                    111\nDr.Hamda Musabah Ghanim Alremeithi                 1395\nKhalifa Sameh Khalaf aldhaen                       1336\nNouf Ahmed Mohamed Alnuaimi                        1402\nNouf Mohamed Abdulla Baadheem                      1403\nNoura Mubarak Saleh Almenhali                      1318\nRakan Salem Abdulla Almazrouei                     1443\nRodah Mohamed Abdulla  Almazrouei                  1362\nSalem Ali Abdulla Alnuaimi                         1334\nSara Nadeem Hussain Alafeefi                       1378\nShamma Salem Saeed Aldhaheri                       1369\nN/A                                                1264\n====================================================================================================\nTotal Employees with NO Last Promotion Date: 14\n\nSummary Statistics:\n- Total Employees in System: 16\n- Employees with NO Promotion Date: 14\n- Employees with Promotion Date: 2\n\nNote: Employees with NULL or empty Last Promotion Date have not been promoted yet.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "NT-005",
+    "query": "List employees who have ZERO sick leave taken.",
+    "category": "negation_trap",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Negation + numeric zero check. Should find employees with Sick Leave Taken = 0.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employees with ZERO Sick Leave Taken:\n\n================================================================================\nEmployee Name                                      Employee Number Sick Leave Taken\n================================================================================\nAyesha Jumaa Mubarak Al Qubaisi                    111        0.0       \nEisa Rames Khamis AlDhaheri                        1269       0.0       \nRakan Salem Abdulla Almazrouei                     1443       0.0       \nRodah Mohamed Abdulla  Almazrouei                  1362       0.0       \nSalem Ali Abdulla Alnuaimi                         1334       0.0       \nSara Ahmed Salem Alharbi                           1316       0.0       \nN/A                                                1264       0.0       \n================================================================================\nTotal Employees with ZERO Sick Leave Taken: 7\n\nSummary Statistics:\n- Total Employees in System: 16\n- Employees with ZERO Sick Leave: 7\n- Employees with Non-Zero Sick Leave: 9\n\nNote: Employees with NULL or 0 Sick Leave Taken have not taken any sick leave days in the current period.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "NT-006",
+    "query": "Which employees have no previous employer records at all?",
+    "category": "negation_trap",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Negation + struct array emptiness. Requires checking if the Previous Employer array is empty.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employees with NO Previous Employer Records at all:\n\n====================================================================================================\nEmployee Name                                      Employee Number\n====================================================================================================\nAyesha Jumaa Mubarak Al Qubaisi                    111\nNoura Mubarak Saleh Almenhali                      1318\nSara Nadeem Hussain Alafeefi                       1378\nN/A                                                1264\n====================================================================================================\nTotal Employees with NO Previous Employer Records: 4\n\nSummary Statistics:\n- Total Employees in System: 16\n- Employees with NO Previous Employers: 4\n- Employees with Previous Employers: 12\n\nNote: These employees have no historical employment records prior to their current organization.",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 2,
+    "history_depth": 9,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  }
+]

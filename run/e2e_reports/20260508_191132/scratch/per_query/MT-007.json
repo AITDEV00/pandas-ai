@@ -1,0 +1,53 @@
+{
+  "conversation_id": "MT-007",
+  "name": "Education & qualifications",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "What is the most common degree among employees?",
+      "notes": "GROUP BY degree, COUNT, ORDER BY DESC",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "The most common degree is Bachelor Degree with 9 employees.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "Which employees have a Master's degree or higher?",
+      "notes": "Filter by degree containing Master or PhD",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "There are 4 employee(s) with a Master's degree or higher:\n- Afra Khalifa Shaheen Alghfeli (Master Degree)\n- Eisa Rames Khamis AlDhaheri (Master Degree)\n- Khalifa Sameh Khalaf aldhaen (Master Degree)\n- Sara Ahmed Salem Alharbi (Master Degree)",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 2,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 2,
+      "query": "What qualifications do they hold? List the qualification titles.",
+      "notes": "Unnest Employee Qualification struct for those employees",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "**Afra Khalifa Shaheen Alghfeli** (Master Degree):\n  - Applied Sciences in Health Information Management\n  - Higher Diploma in Health Information Management\n  - MBA in International Hospital and Healthcare Management\n\n**Eisa Rames Khamis AlDhaheri** (Master Degree):\n  - Bachelor of Mass Communication and Media (Public Relations)\n  - Master of Business Administration\n\n**Khalifa Sameh Khalaf aldhaen** (Master Degree):\n  - Mechanical Engineering\n  - Project and Enterprise Managment\n\n**Sara Ahmed Salem Alharbi** (Master Degree):\n  - Master of Business Administration",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 4,
+      "assistant_msg_format": "fence"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "fence"
+  ]
+}

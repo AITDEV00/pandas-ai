@@ -1,0 +1,53 @@
+{
+  "conversation_id": "MT-002",
+  "name": "Sector comparison",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "List all the sectors and how many employees in each.",
+      "notes": "GROUP BY sector — establishes sector context",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Sectors and Employee Count:\n- Wellbeing Sector: 8 employees\n- None: 4 employees\n- Economic Affairs Sector: 3 employees\n- Infrastructure and Sustainability Sector: 1 employees",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "Which sector has the highest average salary?",
+      "notes": "Follow-up aggregation on sectors from previous turn",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Sectors and Average Salary:\n- Economic Affairs Sector: 0.00\n- Wellbeing Sector: 0.00\n- Infrastructure and Sustainability Sector: 0.00\n- None: 0.00\n\nThe sector with the highest average salary is: Economic Affairs Sector with an average of 0.00",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 2,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 2,
+      "query": "Who are the employees in that sector?",
+      "notes": "Pronoun 'that sector' — tests context carry-over",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Employees in the Sector with Highest Average Salary:\n\nSector: None\nAverage Salary: 0.00\n\nEmployees:\nNo employees found in this sector.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 4,
+      "assistant_msg_format": "fence"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "fence"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "conversation_id": "MT-006",
+  "name": "Career progression",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "Which employees have been promoted recently?",
+      "notes": "Check last_promotion_date — some have it, some don't",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "2 employee(s) have been promoted recently. The most recent promotion was on 2025-05-22 for Sara Ahmed Salem Alharbi.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "What was the reason for their promotion?",
+      "notes": "Follow-up: last_promotion_reason",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Promotion reasons for 2 employee(s):\nSara Ahmed Salem Alharbi (Promoted on 2025-05-22): Financial Increase\nEisa Rames Khamis AlDhaheri (Promoted on 2025-05-01): Financial Increase",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 2,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 2,
+      "query": "How long has it been since the last promotion for each promoted employee?",
+      "notes": "time_since_last_promotion column",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Time since last promotion for each promoted employee:\nSara Ahmed Salem Alharbi (Promoted on 2025-05-22): 0.55 months since last promotion\nEisa Rames Khamis AlDhaheri (Promoted on 2025-05-01): 0.61 months since last promotion",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 4,
+      "assistant_msg_format": "fence"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "fence"
+  ]
+}

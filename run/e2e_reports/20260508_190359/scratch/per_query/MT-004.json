@@ -1,0 +1,53 @@
+{
+  "conversation_id": "MT-004",
+  "name": "Salary & compensation",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "What is the average total entitlement amount?",
+      "notes": "Simple AVG",
+      "expected_output_type": "number",
+      "success": true,
+      "final_type": "number",
+      "final_response": "0.0",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "How does it differ between male and female employees?",
+      "notes": "Follow-up: GROUP BY gender comparison",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Average entitlement by gender: Male employees have an average of 0.00 (n=6) and Female employees have an average of 0.00 (n=10), with equal being no data available.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 2,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 2,
+      "query": "Which employee has the highest total entitlement?",
+      "notes": "ORDER BY DESC LIMIT 1",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "The employee with the highest total entitlement is Eisa Rames Khamis AlDhaheri with 0.00.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 4,
+      "assistant_msg_format": "fence"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "fence"
+  ]
+}

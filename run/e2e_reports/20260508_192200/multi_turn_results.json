@@ -1,0 +1,367 @@
+[
+  {
+    "conversation_id": "AMT-001",
+    "name": "Allowance deep dive",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "What is the total entitlement amount for each employee?",
+        "notes": "Simple opener — LLM selects obvious columns",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Total Entitlement Amount for Each Employee:\n\n- Eisa Rames Khamis AlDhaheri: 0.00 AED\n- Shamma Salem Saeed Aldhaheri: 0.00 AED\n- Afra Khalifa Shaheen Alghfeli: 0.00 AED\n- Noura Mubarak Saleh Almenhali: 0.00 AED\n- Sara Ahmed Salem Alharbi: 0.00 AED\n- Sara Nadeem Hussain Alafeefi: 0.00 AED\n- Nouf Ahmed Mohamed Alnuaimi: 0.00 AED\n- Nouf Mohamed Abdulla Baadheem: 0.00 AED\n- Ali Mohamed Shamekh Alshamsi: 0.00 AED\n- Salem Ali Abdulla Alnuaimi: 0.00 AED\n- Khalifa Sameh Khalaf aldhaen: 0.00 AED\n- Rodah Mohamed Abdulla  Almazrouei: 0.00 AED\n- Dr.Hamda Musabah Ghanim Alremeithi: 0.00 AED\n- Rakan Salem Abdulla Almazrouei: 0.00 AED\n- None: 0.00 AED\n- Ayesha Jumaa Mubarak Al Qubaisi: 0.00 AED",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "Now break down that total into each individual allowance component: Basic Salary, Housing, Cost of Living, Child, Social, Phone, Supplementary, Etihad, Secondment, and Technical Special.",
+        "notes": "Follow-up requires ALL 10 allowance columns — column selection on follow-up may not include them all",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Individual Allowance Components Breakdown:\n\neraldhaheri@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nsssaldhaheri@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nakalghfeli@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nnmsalmenhali@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nsaalharbi@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nsnAlafeefi@ecouncil.ae:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nnaamlnuaimi@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nnmbaadheem@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\namalshamsi@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nsaamalnuaimi@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nksaldhaen@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nrmalmazrouei@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nhmalremeithi@ecouncil.ae:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nrsaalmazrouei@ecouncil.ae:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nNone:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nNone:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "Which employees have a non-zero Etihad Allowance or Secondment Allowance?",
+        "notes": "Targets the most obscure allowances — column selection likely omitted these in earlier turns",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "The requested allowance columns do not exist in the current dataset.\nAvailable columns:\n\"[Employee Master[Employee Name]]\", \"[Employee Master[Email Address]]\"",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 3,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 3,
+    "successful_turns": 3,
+    "formats_used": [
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "AMT-002",
+    "name": "Career timeline reconstruction",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "Who are the most senior employees by ADEO experience?",
+        "notes": "Simple opener",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "ADEO experience data is not available in this dataset. Found 16 employee records with available columns: Employee Name and Email Address. Sample names: Eisa Rames Khamis AlDhaheri, Shamma Salem Saeed Aldhaheri, Afra Khalifa Shaheen Alghfeli.",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "For those senior employees, what previous employers did they have before joining ADEO?",
+        "notes": "Follow-up needs Employee Previous Employer struct",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Previous employer data is not available in this dataset. Found 16 employee records with available columns: Employee Name, Job Title, and Email Address. Sample employees: Eisa Rames Khamis AlDhaheri, Shamma Salem Saeed Aldhaheri, Afra Khalifa Shaheen Alghfeli, Noura Mubarak Saleh Almenhali, Sara Ahmed Salem Alharbi.",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "What about their assignment history at ADEO? List all their past positions and durations.",
+        "notes": "Needs Employee Assignment History struct — a third struct the LLM may not have selected",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "============================================================\nADEO Assignment History Report\nTotal Employees with Assignment History: 16\nTotal Assignment Records: 26\n============================================================\n\nAfra Khalifa Shaheen Alghfeli:\n----------------------------------------\n  Position: Director, Health Operations\n  Assignment: Director\n  Grade: 1C\n  Period: 2024-02-06 to 2024-03-06\n  Duration: 0 Years, 1 Months\n  -----------------------------------\n  Position: Director, Health Department\n  Assignment: Director, Health Department\n  Grade: 1C\n  Period: 2024-03-07 to \n  Duration: \n  -----------------------------------\n\nAli Mohamed Shamekh Alshamsi:\n----------------------------------------\n  Position: Senior Specialist, Agenda Management\n  Assignment: Senior Specialist, Agenda Management\n  Grade: 3B\n  Period: 2025-04-08 to \n  Duration: \n  -----------------------------------\n\nDr.Hamda Musabah Ghanim Alremeithi:\n----------------------------------------\n  Position: Assistant Advisor, Health\n  Assignment: Assistant Advisor\n  Grade: 2C\n  Period: 2025-01-07 to 2025-07-31\n  Duration: 0 Years, 6 Months\n  -----------------------------------\n  Position: Assistant Advisor, Health\n  Assignment: Assistant Advisor, Health\n  Grade: 2C\n  Period: 2025-08-01 to \n  Duration: \n  -----------------------------------\n\nEisa Rames Khamis AlDhaheri:\n----------------------------------------\n  Position: Manager, Public Relations\n  Assignment: Manager, Public Relations\n  Grade: 2A\n  Period: 2023-05-09 to \n  Duration: \n  -----------------------------------\n\nKhalifa Sameh Khalaf aldhaen:\n----------------------------------------\n  Position: Senior Specialist, Energy\n  Assignment: Senior Specialist\n  Grade: 3B\n  Period: 2024-07-09 to 2025-07-31\n  Duration: 1 Years, 0 Months\n  -----------------------------------\n  Position: Senior Specialist, Energy\n  Assignment: Senior Specialist, Energy\n  Grade: 3B\n  Period: 2025-08-01 to \n  Duration: \n  -----------------------------------\n\nNouf Ahmed Mohamed Alnuaimi:\n----------------------------------------\n  Position: Junior Specialist, Tourism\n  Assignment: Junior Specialist, Tourism\n  Grade: 4C\n  Period: 2025-02-04 to \n  Duration: \n  -----------------------------------\n\nNouf Mohamed Abdulla Baadheem:\n----------------------------------------\n  Position: Specialist, Special Projects\n  Assignment: Specialist\n  Grade: 4B\n  Period: 2025-04-08 to 2025-05-31\n  Duration: 0 Years, 1 Months\n  -----------------------------------\n  Position: Specialist, Special Intervention\n  Assignment: Specialist\n  Grade: 4B\n  Period: 2025-06-01 to 2025-05-31\n  Duration: 0 Years, -1 Months\n  -----------------------------------\n  Position: Specialist, Special Intervention\n  Assignment: Specialist, Special Intervention\n  Grade: 4B\n  Period: 2025-06-01 to \n  Duration: \n  -----------------------------------\n\nNoura Mubarak Saleh Almenhali:\n----------------------------------------\n  Position: Junior Specialist, Community Affairs\n  Assignment: E1318\n  Grade: 4C\n  Period: 2024-04-16 to 2025-07-31\n  Duration: 1 Years, 3 Months\n  -----------------------------------\n  Position: Junior Specialist, Community Affairs\n  Assignment: Junior Specialist, Community Affairs\n  Grade: 4C\n  Period: 2025-08-01 to \n  Duration: \n  -----------------------------------\n\nRakan Salem Abdulla Almazrouei:\n----------------------------------------\n  Position: Specialist, Community Affairs\n  Assignment: Specialist, Community Affairs\n  Grade: 4B\n  Period: 2025-08-26 to \n  Duration: \n  -----------------------------------\n\nRodah Mohamed Abdulla  Almazrouei:\n----------------------------------------\n  Position: Specialist, Special Projects\n  Assignment: Specialist\n  Grade: 4B\n  Period: 2024-09-03 to 2025-07-31\n  Duration: 0 Years, 10 Months\n  -----------------------------------\n  Position: Specialist, Special Projects\n  Assignment: Specialist, Special Projects\n  Grade: 4B\n  Period: 2025-08-01 to 2025-08-31\n  Duration: 0 Years, 0 Months\n  -----------------------------------\n  Position: Specialist, Special Intervention\n  Assignment: Specialist, Special Intervention\n  Grade: 4B\n  Period: 2025-09-01 to \n  Duration: \n  -----------------------------------\n\nSalem Ali Abdulla Alnuaimi:\n----------------------------------------\n  Position: Assistant Advisor, Economic Analysis\n  Assignment: Assistant Advisor\n  Grade: 2B\n  Period: 2024-06-25 to 2025-09-21\n  Duration: 1 Years, 3 Months\n  -----------------------------------\n  Position: Assistant Advisor, Economic Analysis\n  Assignment: Assistant Advisor, Economic Analysis\n  Grade: 2B\n  Period: 2025-09-22 to \n  Duration: \n  -----------------------------------\n\nSara Ahmed Salem Alharbi:\n----------------------------------------\n  Position: Executive Director, Wellbeing Sector\n  Assignment: Executive Director\n  Grade: EDA\n  Period: 2024-02-19 to 2025-05-21\n  Duration: 1 Years, 3 Months\n  -----------------------------------\n  Position: Executive Director, Wellbeing Sector\n  Assignment: Executive Director, Wellbeing Sector\n  Grade: EDA\n  Period: 2025-05-22 to \n  Duration: \n  -----------------------------------\n\nSara Nadeem Hussain Alafeefi:\n----------------------------------------\n  Position: Senior Specialist, Health\n  Assignment: Senior Specialist\n  Grade: 3B\n  Period: 2024-11-26 to 2025-07-31\n  Duration: 0 Years, 8 Months\n  -----------------------------------\n  Position: Senior Specialist, Health\n  Assignment: Senior Specialist, Health\n  Grade: 3B\n  Period: 2025-08-01 to \n  Duration: \n  -----------------------------------\n\nShamma Salem Saeed Aldhaheri:\n----------------------------------------\n  Position: Junior Specialist, Business Environment and Investment Affairs\n  Assignment: Junior Specialist\n  Grade: 4C\n  Period: 2024-10-01 to 2025-09-21\n  Duration: 0 Years, 11 Months\n  -----------------------------------\n  Position: Junior Specialist, Business Environment and Investment Affairs\n  Assignment: Junior Specialist, Business Environment and Investment Affairs\n  Grade: 4C\n  Period: 2025-09-22 to \n  Duration: \n  -----------------------------------\n\n============================================================",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 3,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 3,
+        "query": "Do any of their previous employer dates overlap with their ADEO assignment history?",
+        "notes": "Cross-struct date comparison — requires columns from both previous employer and assignment history",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "======================================================================\nPREVIOUS EMPLOYER DATES vs ADEO ASSIGNMENT HISTORY OVERLAP REPORT\n======================================================================\nTotal Employees in Dataset: 15\nTotal Previous Employer Records Available: 23\n\nNOTE: Assignment History data is NOT available in this dataset.\nThe table schema only contains:\n  - Employee Master (Employee Name, Employee Number)\n  - Employee Previous Employer (with dates)\n  - NO Assignment History column exists in this schema\n\n======================================================================\nPREVIOUS EMPLOYER DATA AVAILABLE:\n======================================================================\n\nEmployees with Previous Employer Records: 12\n----------------------------------------------------------------------\n\nAfra Khalifa Shaheen Alghfeli:\n  Previous Employer Count: 4\n    - HAAD: 2005-04-23 to 2009-01-29\n    - General Secretariat of Executive Council: 2009-05-31 to 2016-06-30\n    - Nickl & Partner: 2017-11-01 to 2021-12-01\n    - National Health Insurance Daman: 2023-05-01 to \n\nAli Mohamed Shamekh Alshamsi:\n  Previous Employer Count: 2\n    - Crif Gulf: 2017-12-04 to 2019-08-29\n    - Shamal Military Solutions: 2021-07-04 to \n\nDr.Hamda Musabah Ghanim Alremeithi:\n  Previous Employer Count: 2\n    - Abu Dhabi Health Services Co.: 2016-10-19 to 2023-02-02\n    - Department of health - Abu Dhabi: 2023-02-09 to 2024-01-06\n\nEisa Rames Khamis AlDhaheri:\n  Previous Employer Count: 4\n    - Ministry of Interior: 2007-01-01 to 2012-01-01\n    - Ministry of Interior: 2012-01-01 to 2017-01-01\n    - The Supreme Council for National Security: 2017-02-01 to 2018-02-01\n    - The Supreme Council for National Security: 2018-01-01 to 2020-01-01\n\nKhalifa Sameh Khalaf aldhaen:\n  Previous Employer Count: 2\n    - Strata Manufacturing PJSC: 2017-06-01 to 2023-06-29\n    - Khalifa Sameh Khalaf aldhaen: 2023-07-24 to 2024-07-03\n\nNouf Ahmed Mohamed Alnuaimi:\n  Previous Employer Count: 1\n    - Flaved Bakery: 2024-03-30 to 2025-02-03\n\nNouf Mohamed Abdulla Baadheem:\n  Previous Employer Count: 1\n    - Strategy& (Part of the PwC network): 2023-10-02 to 2025-04-01\n\nRakan Salem Abdulla Almazrouei:\n  Previous Employer Count: 2\n    - ADNOC Offshore: 2022-04-01 to 2024-08-01\n    - Efficio MENA: 2024-08-01 to 2025-01-30\n\nRodah Mohamed Abdulla  Almazrouei:\n  Previous Employer Count: 1\n    - Daman: 2021-11-24 to \n\nSalem Ali Abdulla Alnuaimi:\n  Previous Employer Count: 1\n    - Abu Dhabi Council for Economic Development: 2013-11-04 to 2020-12-31\n\nSara Ahmed Salem Alharbi:\n  Previous Employer Count: 2\n    - Yahsat: 2008-04-13 to 2011-02-03\n    - Department of Community Development: 2019-04-14 to \n\nShamma Salem Saeed Aldhaheri:\n  Previous Employer Count: 1\n    - Abu Dhabi Investment Council: 2024-06-02 to 2024-09-01\n\n======================================================================\nCONCLUSION:\n======================================================================\nCannot check for overlap with ADEO Assignment History because\nthat column does NOT exist in the current dataset schema.\n\nTo perform overlap analysis, the dataset would need to include\nEmployee Assignment History column with start/end dates.\n======================================================================",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 3,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 4,
+    "successful_turns": 4,
+    "formats_used": [
+      "no_code_delimiter",
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "AMT-003",
+    "name": "Leave entitlement trap",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "How many leave days has each employee taken in total?",
+        "notes": "Simple leave aggregation",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "The database contains 16 employees (Eisa Rames Khamis AlDhaheri through Ali Mohamed Shamekh Alshamsi based on sample data), but there is NO leave days data available in this schema. The only columns available are Employee Name and Employee Number.",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "What is their leave entitlement for each type?",
+        "notes": "Needs Entitlement Leaves struct — column selection may not include entitlement columns since the first query only needed taken days",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "All 16 employees have the same leave entitlements: 0.0 days of Annual Leave, 30.0 days of Non-Mandatory Leave, and 30.0 days of Wellbeing Leave.",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "Calculate the utilization rate: approved days divided by entitlement days for each leave type.",
+        "notes": "Requires both approved AND entitlement columns — the LLM must have selected both in previous turns",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Leave Utilization Rates (16 employees):\n\nAnnual Leave: nan% average utilization\nNon-Mandatory Leave: 40.0% average utilization\nWellbeing Leave: 80.0% average utilization",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 3,
+    "successful_turns": 3,
+    "formats_used": [
+      "no_code_delimiter",
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "AMT-004",
+    "name": "Competency-qualification correlation",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "What are the average competency ratings by department?",
+        "notes": "Simple competency aggregation",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Average competency ratings by department: Not available in this dataset.\n\nThe enterprise_data table contains only the following columns: Department, Email Address, and Age.\n\nAvailable department information:\nEC and Committees Affairs Department (1 employees, avg age 32.0), Special Intervention Department (2 employees, avg age 25.5), Environment and Energy Department (1 employees, avg age 31.0), Business Environment and Investment Affairs Department (1 employees, avg age 23.0), Tourism and Culture Department (3 employees, avg age 29.7), Health Department (3 employees, avg age 36.3), Community Affairs and Education Department (2 employees, avg age 25.5), Economic Analysis Department (1 employees, avg age 40.0)",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 4,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "What is the highest degree held by employees in each department?",
+        "notes": "Needs degree column — may not be selected if column selection focused on competency columns",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Highest degree held by employees in each department:\n\n  - Business Environment and Investment Affairs Department: Bachelor Degree\n  - Community Affairs and Education Department: Bachelor Degree\n  - EC and Committees Affairs Department: Bachelor Degree\n  - Economic Analysis Department: Bachelor Degree\n  - Environment and Energy Department: Master Degree\n  - Health Department: Master Degree\n  - Special Intervention Department: Bachelor Degree\n  - Tourism and Culture Department: Bachelor Degree",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "Is there a correlation between education level and competency ratings? Compare employees with Master's vs Bachelor's degrees.",
+        "notes": "Cross-references degree AND competency ratings — both must be available",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Correlation between education level and competency ratings: NOT AVAILABLE\n\nReason: The enterprise_data table does NOT contain competency rating columns.\nThe dataset only has these columns:\n  • [Employee Master[Email Address]] - Employee email address (ID column)\n  • [Employee Master[Degree]] - Academic degree level (categorical)\n\nEducation level distribution in the dataset:\n--------------------------------------------------\n  • Bachelor Degree: 9 employees (69.2%)\n  • Master Degree: 4 employees (30.8%)\n\nTotal employees with degree information: 13\n\nTo analyze competency ratings by education level, you would need:\n  1. Add competency rating data to the enterprise_data table, OR\n  2. Join with a separate competency/rating table on Email Address",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 3,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 3,
+    "successful_turns": 3,
+    "formats_used": [
+      "no_code_delimiter",
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "AMT-005",
+    "name": "Struct absence discovery",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "List all employees and their current job titles.",
+        "notes": "Simple Employee Master query",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "There are 16 employees:\n• Eisa Rames Khamis AlDhaheri - Manager\n• Shamma Salem Saeed Aldhaheri - Junior Specialist\n• Afra Khalifa Shaheen Alghfeli - Director\n• Noura Mubarak Saleh Almenhali - Junior Specialist\n• Sara Ahmed Salem Alharbi - Executive Director\n• Sara Nadeem Hussain Alafeefi - Senior Specialist\n• Nouf Ahmed Mohamed Alnuaimi - Junior Specialist\n• Nouf Mohamed Abdulla Baadheem - Specialist\n• Ali Mohamed Shamekh Alshamsi - Senior Specialist\n• Salem Ali Abdulla Alnuaimi - Assistant Advisor\n• Khalifa Sameh Khalaf aldhaen - Senior Specialist\n• Rodah Mohamed Abdulla  Almazrouei - Specialist\n• Dr.Hamda Musabah Ghanim Alremeithi - Assistant Advisor\n• Rakan Salem Abdulla Almazrouei - Specialist\n• None - Senior Officer\n• Ayesha Jumaa Mubarak Al Qubaisi - Senior Officer",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "Which of these employees have no leave records?",
+        "notes": "Absence check — column selection may not include leave struct since we're checking for its absence",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Total 15 employees have no leave records:\n• Eisa Rames Khamis AlDhaheri\n• Shamma Salem Saeed Aldhaheri\n• Afra Khalifa Shaheen Alghfeli\n• Noura Mubarak Saleh Almenhali\n• Sara Ahmed Salem Alharbi\n• Sara Nadeem Hussain Alafeefi\n• Nouf Ahmed Mohamed Alnuaimi\n• Nouf Mohamed Abdulla Baadheem\n• Ali Mohamed Shamekh Alshamsi\n• Salem Ali Abdulla Alnuaimi\n• Khalifa Sameh Khalaf aldhaen\n• Rodah Mohamed Abdulla  Almazrouei\n• Dr.Hamda Musabah Ghanim Alremeithi\n• Rakan Salem Abdulla Almazrouei\n• None",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "And which ones have no competency ratings?",
+        "notes": "Another absence check on a different struct",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Total 12 employees have no competency ratings:\n• Shamma Salem Saeed Aldhaheri\n• Sara Ahmed Salem Alharbi\n• Sara Nadeem Hussain Alafeefi\n• Nouf Ahmed Mohamed Alnuaimi\n• Nouf Mohamed Abdulla Baadheem\n• Ali Mohamed Shamekh Alshamsi\n• Khalifa Sameh Khalaf aldhaen\n• Rodah Mohamed Abdulla  Almazrouei\n• Dr.Hamda Musabah Ghanim Alremeithi\n• Rakan Salem Abdulla Almazrouei\n• None\n• Ayesha Jumaa Mubarak Al Qubaisi",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 2,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 3,
+        "query": "Are there any employees with neither leave records nor competency ratings?",
+        "notes": "Double absence — requires both structs to be available despite no positive data",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "16 employees have neither leave records nor competency ratings:\n• Eisa Rames Khamis AlDhaheri\n• Shamma Salem Saeed Aldhaheri\n• Afra Khalifa Shaheen Alghfeli\n• Noura Mubarak Saleh Almenhali\n• Sara Ahmed Salem Alharbi\n• Sara Nadeem Hussain Alafeefi\n• Nouf Ahmed Mohamed Alnuaimi\n• Nouf Mohamed Abdulla Baadheem\n• Ali Mohamed Shamekh Alshamsi\n• Salem Ali Abdulla Alnuaimi\n• Khalifa Sameh Khalaf aldhaen\n• Rodah Mohamed Abdulla  Almazrouei\n• Dr.Hamda Musabah Ghanim Alremeithi\n• Rakan Salem Abdulla Almazrouei\n• None\n• Ayesha Jumaa Mubarak Al Qubaisi",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 4,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 4,
+    "successful_turns": 4,
+    "formats_used": [
+      "no_code_delimiter",
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "AMT-006",
+    "name": "Salary component audit",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "What is the average total entitlement amount?",
+        "notes": "Simple number query",
+        "expected_output_type": "number",
+        "success": true,
+        "final_type": "number",
+        "final_response": "0.0",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "What are the individual components that make up that total? List each allowance type and its average.",
+        "notes": "Needs ALL allowance columns — column selection likely only included Total Entitlement for the first query",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Individual Allowance Components (Average Values):\n--------------------------------------------------\n  Basic Salary: 0.00\n  Supplementary Allowance: 0.00\n  Social Allowance: 0.00\n  Housing Allowance: 0.00\n  Cost of Living Allowance: 0.00\n  Child Allowance: 0.00\n  Technical Special Allowance: 0.00\n  Phone Allowance: 0.00",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "For employees with a Special Contract Basic Salary, how does it differ from the regular Basic Salary?",
+        "notes": "Needs the most obscure salary column — Special Contract Basic Salary",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Based on the available data schema, there is no \"Special Contract Basic Salary\" column or field. The database only contains \"[Employee Master[Basic Salary]]\" (flat column) with all employees currently showing 0.00 AED. To identify contract type differences, you would need additional columns like \"Contract Type\" or \"Special Contract Indicator\" in the Employee Master table.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 3,
+        "query": "Calculate a corrected total entitlement by summing all individual allowance components. Does it match the stored Total Entitlement Amount?",
+        "notes": "Requires ALL 10 allowance columns for verification — if any were omitted by column selection, the sum will be wrong",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Yes, the sum of all individual allowance components matches the stored Total Entitlement Amount for all employees.",
+        "error": null,
+        "response_format": "no_code_delimiter",
+        "llm_call_count": 2,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 4,
+    "successful_turns": 4,
+    "formats_used": [
+      "no_code_delimiter",
+      "fence"
+    ]
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "conversation_id": "MT-003",
+  "name": "Leave analysis",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "How many employees have taken leave?",
+      "notes": "Simple count with struct check",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "There are 1 employees who have taken leave.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "What are the different leave types available?",
+      "notes": "Follow-up: DISTINCT leave types from struct",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "The different leave types available are: Wellbeing, Non-Mandatory Leave, Remote Work, Training Leave.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 2,
+      "assistant_msg_format": "marker"
+    },
+    {
+      "turn_index": 2,
+      "query": "Which employee has taken the most wellbeing leave days?",
+      "notes": "Specific struct aggregation — requires filtering by leave type and summing",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "The employee with the most wellbeing leave days is Ayesha Jumaa Mubarak Al Qubaisi with 51.0 days.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 4,
+      "assistant_msg_format": "marker"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "fence"
+  ]
+}

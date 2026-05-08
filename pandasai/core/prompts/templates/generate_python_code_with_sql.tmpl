@@ -7,6 +7,7 @@ At the end of the generated code, you MUST declare a variable named exactly `res
 result = {"type": "<type>", "value": <value>}
 {% include 'shared/output_type_template.tmpl' with context %}
 Do NOT use `return`. Do NOT name the variable anything else (not `result_dict`, `result_value`, `output`, etc.).
+Do NOT include preview text, result tables, or explanations before or after the code. Return ONLY the code.
 </result_format>
 
 {% include 'shared/code_strategy.tmpl' with context %}
@@ -39,4 +40,7 @@ import pandas as pd
 Answer the following question:
 {{ context.memory.last().get('message', '') if context.memory.count() > 0 else '' }}
 
-Generate python code and return full updated code:
+Generate python code and return full updated code wrapped in triple backticks:
+```python
+# your code here
+```

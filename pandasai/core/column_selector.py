@@ -65,6 +65,63 @@ class ColumnSelector:
         """
         result: Dict[str, Optional[List[str]]] = {}
 
+        # Pre-compute: which parents have actual data in the DataFrame?
+        # A bracket-style name like "[Employee Master[Etihad Allowance]]" could
+        # be either:
+        #   (a) a flat column that uses bracket notation for naming
+        #   (b) a struct inner field whose parent has data in df.columns
+        #   (c) a phantom column — in the schema but with NO data at all
+        #
+        # A parent is considered a "real struct parent" if:
+        #   1. It's declared as list[struct] in the schema, OR
+        #   2. It has list[struct] bracket-style children in df.columns
+        #   3. It has combined bracket-style children in df.columns where
+        #      the schema column name is embedded as an inner field
+        #
+        # If a bracket-style schema column's parent is NOT a real struct parent
+        # and the column itself is NOT in df.columns (directly or as an inner
+        # field of a combined column), it's a phantom column.
+        df_column_set = set(df.columns) if hasattr(df, 'columns') else set()
+        struct_parent_names: set[str] = set()
+        for col in df.schema.columns:
+            if col.type == "list[struct]" and not col.name.startswith("["):
+                struct_parent_names.add(col.name)
+            elif col.type == "list[struct]" and col.name.startswith("["):
+                p = extract_struct_parent(col.name)
+                if p:
+                    struct_parent_names.add(p)
+        # Also add parents that have list[struct] bracket-style children in
+        # df.columns (covers the "combined column" layout where the parent
+        # isn't declared as list[struct] in the schema but the DataFrame has
+        # combined bracket-style columns that ARE list[struct]).
+        for col_name in df.columns:
+            if col_name.startswith("[") and "]" in col_name:
+                schema_col = next(
+                    (c for c in df.schema.columns if c.name == col_name), None
+                )
+                if schema_col and schema_col.type == "list[struct]":
+                    p = extract_struct_parent(col_name)
+                    if p:
+                        struct_parent_names.add(p)
+
+        # Build a set of bracket-style column names that have corresponding
+        # data in df.columns (either directly or as inner fields of combined
+        # columns).  This is used to distinguish real columns from phantoms.
+        # For example:
+        #   "[Employee Leave Details[Leave Type]]" → NOT in df.columns directly,
+        #   but IS an inner field of the combined column "[Employee Leave Details[Leave Type][Leave Duration (Days)]...]"
+        #   "[Employee Master[Etihad Allowance]]" → NOT in df.columns directly,
+        #   and NOT an inner field of any combined column → phantom
+        real_bracket_col_names: set[str] = set()
+        for col_name in df.columns:
+            if col_name.startswith("[") and "]" in col_name:
+                # Decompose combined column names into individual field names
+                decomposed = decompose_squashed_name(col_name)
+                for field_name in decomposed:
+                    real_bracket_col_names.add(field_name)
+                # Also add the combined column name itself
+                real_bracket_col_names.add(col_name)
+
         for name in names:
             matches = get_matching_schema_columns(name, df.schema)
             if not matches:
@@ -79,22 +136,45 @@ class ColumnSelector:
 
             for matched_col in matches:
                 if matched_col.name.startswith("[") and "]" in matched_col.name:
+                    # ── KEY FIX ──────────────────────────────────────────
+                    # If the matched column name exists directly in df.columns,
+                    # it is a FLAT column that uses bracket notation for naming
+                    # (e.g. "[Employee Master[Employee Name]]").  Treat it
+                    # as a flat column, NOT as a struct inner field.
+                    # ──────────────────────────────────────────────────────
+                    if matched_col.name in df_column_set:
+                        result[matched_col.name] = None
+                        logger.debug("match: LLM=%r → schema=%r → FLAT (in df.columns)", name, matched_col.name)
+                        continue
+
                     parent = extract_struct_parent(matched_col.name)
-                    # Decompose squashed schema column names into individual
-                    # field names that match the samples dict keys.
-                    # e.g. "[Parent[Field1][Field2][Field3]]" →
-                    #   ["[Parent[Field1]]", "[Parent[Field2]]", "[Parent[Field3]]"]
-                    # This ensures inner_fields entries match samples dict keys
-                    # like "[Parent[Field1]]" rather than the full squashed name.
-                    decomposed = decompose_squashed_name(matched_col.name)
-                    logger.debug("match: LLM=%r → schema=%r → parent=%r, decomposed=%s", name, matched_col.name, parent, decomposed)
-                    if parent:
+
+                    # Check if this column has corresponding data in the
+                    # DataFrame (either as an inner field of a combined
+                    # column, or as a direct bracket-style column).
+                    has_real_data = matched_col.name in real_bracket_col_names
+
+                    # If the parent IS a real struct parent (declared
+                    # list[struct] or has list[struct] children in df.columns),
+                    # OR if the column has real data via combined columns,
+                    # treat this as a struct inner field.
+                    if parent and (parent in struct_parent_names or has_real_data):
+                        # Standard struct inner field handling
+                        decomposed = decompose_squashed_name(matched_col.name)
+                        logger.debug("match: LLM=%r → schema=%r → parent=%r, decomposed=%s", name, matched_col.name, parent, decomposed)
                         if parent not in result:
                             result[parent] = []
                         if result[parent] is not None:
                             for field_name in decomposed:
                                 if field_name not in result[parent]:
                                     result[parent].append(field_name)
+                    elif parent:
+                        # Parent is NOT a real struct parent and the column
+                        # itself is NOT in df.columns — this is a phantom
+                        # column from the semantic model.  Treat as flat
+                        # column so build_trimmed_dataframe can warn & skip.
+                        result[matched_col.name] = None
+                        logger.debug("match: LLM=%r → schema=%r → PHANTOM (parent %r has no data)", name, matched_col.name, parent)
                     else:
                         # Bracket name but no parent — keep as-is
                         result[matched_col.name] = None
@@ -130,6 +210,9 @@ class ColumnSelector:
         logger.debug("ensure_essential_columns input: %s", matched)
         essential_added = []
 
+        # Build a set of actual DataFrame column names to filter out phantoms.
+        df_col_set = set(df.columns) if hasattr(df, 'columns') else set()
+
         # Build a lookup: parent_name → parent SchemaColumn (for samples access)
         parent_schema_lookup = {}
         for col in df.schema.columns:
@@ -144,9 +227,12 @@ class ColumnSelector:
             else:
                 parent = None
 
-            # --- Flat columns: add if essential ---
+            # --- Flat columns: add if essential AND not phantom ---
             if not parent:
                 if col.name not in matched:
+                    # Skip phantom columns (in schema but not in df.columns)
+                    if col.name not in df_col_set:
+                        continue
                     is_essential = (
                         col.semantic_type == "id_like"
                         or col.name.lower() in query.lower()
@@ -276,15 +362,26 @@ class ColumnSelector:
         logger.debug("build_trimmed: kept_col_names=%s", kept_col_names)
         logger.debug("build_trimmed: existing_flat_cols=%s", existing_flat_cols)
 
-        # For struct parent names not found in df.columns, find the bracket-style
-        # DataFrame columns that belong to that parent.
-        #
-        # Two possible layouts in df.columns:
-        #   A) Separate columns per inner field:
-        #        "[Parent[Field1]]", "[Parent[Field2]]", ...
-        #   B) One combined column with all inner fields:
-        #        "[Parent[Field1][Field2][Field3]]"
-        struct_parent_names = [c for c in kept_col_names if c not in df.columns]
+        # Separate phantom columns (in schema but not in df.columns, value=None)
+        # from actual struct parent columns (value is a list of inner fields).
+        # Phantom columns occur when the semantic model declares columns that
+        # don't exist in the actual data — they should be skipped with a warning.
+        phantom_cols = []
+        struct_parent_names = []
+        for c in kept_col_names:
+            if c in df.columns:
+                continue  # already in existing_flat_cols
+            if matched[c] is None:
+                # Flat column that doesn't exist in df — it's a phantom column
+                phantom_cols.append(c)
+                logger.warning(
+                    "build_trimmed: column %r selected but not in DataFrame — "
+                    "phantom column from semantic model, skipping", c
+                )
+            else:
+                # Has inner fields — treat as struct parent
+                struct_parent_names.append(c)
+        logger.debug("build_trimmed: phantom_cols=%s", phantom_cols)
         logger.debug("build_trimmed: struct_parent_names=%s", struct_parent_names)
         struct_df_cols = []
         for parent in struct_parent_names:
@@ -332,6 +429,10 @@ class ColumnSelector:
             kept_schema_names = set()
 
             for col_name, inner_fields in matched.items():
+                # Skip phantom columns (in schema but not in df.columns)
+                if col_name in phantom_cols:
+                    continue
+
                 if col_name in {c.name for c in df.schema.columns}:
                     # Parent name is in schema — keep it
                     kept_schema_names.add(col_name)
@@ -432,7 +533,17 @@ class ColumnSelector:
     # ------------------------------------------------------------------
 
     def _build_prompt(self, query: str) -> BasePrompt:
-        """Build the column selection prompt with flat/struct column split."""
+        """Build the column selection prompt with flat/struct column split.
+
+        Filters out **phantom columns** — schema columns that don't exist in the
+        actual DataFrame — so the LLM never selects columns that can't be queried.
+
+        A schema column is considered "real" (not phantom) if:
+          1. Its name exists directly in df.columns, OR
+          2. It's an inner field of a combined column in df.columns
+             (e.g. "[Employee Leave Details[Leave Type]]" is an inner field of
+             the combined column "[Employee Leave Details[Leave Type][Leave Duration (Days)]...]")
+        """
         flat_columns = []
         struct_columns = []
         table_name = "data"
@@ -442,11 +553,48 @@ class ColumnSelector:
             if table_name == "data":
                 table_name = getattr(df.schema, "name", "data") if df.schema else "data"
                 table_desc = getattr(df.schema, "description", "") if df.schema else ""
+
+            # Build a set of real column names from df.columns.
+            # Include both direct column names and decomposed inner field names
+            # from combined columns.
+            df_col_set = set(df.columns) if hasattr(df, 'columns') else set()
+            real_col_names: set[str] = set(df_col_set)
+            from pandasai.helpers.semantic_matching import decompose_squashed_name
+            for col_name in df_col_set:
+                if col_name.startswith("[") and "]" in col_name:
+                    decomposed = decompose_squashed_name(col_name)
+                    for field_name in decomposed:
+                        real_col_names.add(field_name)
+
+            phantom_count = 0
+
             for col in df.schema.columns:
+                is_real = col.name in real_col_names
                 if col.type == "list[struct]":
-                    struct_columns.append(col)
+                    if is_real:
+                        struct_columns.append(col)
+                    else:
+                        phantom_count += 1
+                        logger.debug(
+                            "_build_prompt: skipping phantom struct column %r "
+                            "(not in df.columns)", col.name
+                        )
                 else:
-                    flat_columns.append(col)
+                    if is_real:
+                        flat_columns.append(col)
+                    else:
+                        phantom_count += 1
+                        logger.debug(
+                            "_build_prompt: skipping phantom flat column %r "
+                            "(not in df.columns)", col.name
+                        )
+
+            if phantom_count > 0:
+                logger.info(
+                    "_build_prompt: filtered %d phantom column(s) from "
+                    "column selection prompt (schema has columns not in data)",
+                    phantom_count,
+                )
 
         from pandasai.core.prompts.select_columns import SelectColumnsPrompt
 

@@ -1,0 +1,53 @@
+{
+  "conversation_id": "AMT-001",
+  "name": "Allowance deep dive",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "What is the total entitlement amount for each employee?",
+      "notes": "Simple opener — LLM selects obvious columns",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Total Entitlement Amount for Each Employee:\n\n- Eisa Rames Khamis AlDhaheri: 0.00 AED\n- Shamma Salem Saeed Aldhaheri: 0.00 AED\n- Afra Khalifa Shaheen Alghfeli: 0.00 AED\n- Noura Mubarak Saleh Almenhali: 0.00 AED\n- Sara Ahmed Salem Alharbi: 0.00 AED\n- Sara Nadeem Hussain Alafeefi: 0.00 AED\n- Nouf Ahmed Mohamed Alnuaimi: 0.00 AED\n- Nouf Mohamed Abdulla Baadheem: 0.00 AED\n- Ali Mohamed Shamekh Alshamsi: 0.00 AED\n- Salem Ali Abdulla Alnuaimi: 0.00 AED\n- Khalifa Sameh Khalaf aldhaen: 0.00 AED\n- Rodah Mohamed Abdulla  Almazrouei: 0.00 AED\n- Dr.Hamda Musabah Ghanim Alremeithi: 0.00 AED\n- Rakan Salem Abdulla Almazrouei: 0.00 AED\n- None: 0.00 AED\n- Ayesha Jumaa Mubarak Al Qubaisi: 0.00 AED",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "Now break down that total into each individual allowance component: Basic Salary, Housing, Cost of Living, Child, Social, Phone, Supplementary, Etihad, Secondment, and Technical Special.",
+      "notes": "Follow-up requires ALL 10 allowance columns — column selection on follow-up may not include them all",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Individual Allowance Components Breakdown:\n\neraldhaheri@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nsssaldhaheri@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nakalghfeli@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nnmsalmenhali@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nsaalharbi@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nsnAlafeefi@ecouncil.ae:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nnaamlnuaimi@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nnmbaadheem@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\namalshamsi@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nsaamalnuaimi@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nksaldhaen@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nrmalmazrouei@ECOUNCIL.AE:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nhmalremeithi@ecouncil.ae:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nrsaalmazrouei@ecouncil.ae:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nNone:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED\n\nNone:\n  - Basic Salary: 0.00 AED\n  - Housing Allowance: 0.00 AED\n  - Cost of Living Allowance: 0.00 AED\n  - Child Allowance: 0.00 AED\n  - Social Allowance: 0.00 AED\n  - Phone Allowance: 0.00 AED\n  - Supplementary Allowance: 0.00 AED\n  - Technical Special Allowance: 0.00 AED\n  - Total Entitlement Amount: 0.00 AED",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 2,
+      "query": "Which employees have a non-zero Etihad Allowance or Secondment Allowance?",
+      "notes": "Targets the most obscure allowances — column selection likely omitted these in earlier turns",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "The requested allowance columns do not exist in the current dataset.\nAvailable columns:\n\"[Employee Master[Employee Name]]\", \"[Employee Master[Email Address]]\"",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 3,
+      "history_depth": 2,
+      "assistant_msg_format": "fence"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "fence"
+  ]
+}

@@ -389,9 +389,9 @@ class Agent:
         working_code = self._state.last_code_executed or ""
 
         if response_text and working_code:
-            assistant_msg = f"{response_text}\n\n---\nCode:\n{working_code}"
+            assistant_msg = f"{response_text}\n\n```python\n{working_code}\n```"
         elif working_code:
-            assistant_msg = working_code
+            assistant_msg = f"```python\n{working_code}\n```"
         else:
             return
 

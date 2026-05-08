@@ -1,0 +1,68 @@
+{
+  "conversation_id": "AMT-005",
+  "name": "Struct absence discovery",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "List all employees and their current job titles.",
+      "notes": "Simple Employee Master query",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "There are 16 employees:\n• Eisa Rames Khamis AlDhaheri - Manager\n• Shamma Salem Saeed Aldhaheri - Junior Specialist\n• Afra Khalifa Shaheen Alghfeli - Director\n• Noura Mubarak Saleh Almenhali - Junior Specialist\n• Sara Ahmed Salem Alharbi - Executive Director\n• Sara Nadeem Hussain Alafeefi - Senior Specialist\n• Nouf Ahmed Mohamed Alnuaimi - Junior Specialist\n• Nouf Mohamed Abdulla Baadheem - Specialist\n• Ali Mohamed Shamekh Alshamsi - Senior Specialist\n• Salem Ali Abdulla Alnuaimi - Assistant Advisor\n• Khalifa Sameh Khalaf aldhaen - Senior Specialist\n• Rodah Mohamed Abdulla  Almazrouei - Specialist\n• Dr.Hamda Musabah Ghanim Alremeithi - Assistant Advisor\n• Rakan Salem Abdulla Almazrouei - Specialist\n• None - Senior Officer\n• Ayesha Jumaa Mubarak Al Qubaisi - Senior Officer",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "Which of these employees have no leave records?",
+      "notes": "Absence check — column selection may not include leave struct since we're checking for its absence",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Total 15 employees have no leave records:\n• Eisa Rames Khamis AlDhaheri\n• Shamma Salem Saeed Aldhaheri\n• Afra Khalifa Shaheen Alghfeli\n• Noura Mubarak Saleh Almenhali\n• Sara Ahmed Salem Alharbi\n• Sara Nadeem Hussain Alafeefi\n• Nouf Ahmed Mohamed Alnuaimi\n• Nouf Mohamed Abdulla Baadheem\n• Ali Mohamed Shamekh Alshamsi\n• Salem Ali Abdulla Alnuaimi\n• Khalifa Sameh Khalaf aldhaen\n• Rodah Mohamed Abdulla  Almazrouei\n• Dr.Hamda Musabah Ghanim Alremeithi\n• Rakan Salem Abdulla Almazrouei\n• None",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 2,
+      "query": "And which ones have no competency ratings?",
+      "notes": "Another absence check on a different struct",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Total 12 employees have no competency ratings:\n• Shamma Salem Saeed Aldhaheri\n• Sara Ahmed Salem Alharbi\n• Sara Nadeem Hussain Alafeefi\n• Nouf Ahmed Mohamed Alnuaimi\n• Nouf Mohamed Abdulla Baadheem\n• Ali Mohamed Shamekh Alshamsi\n• Khalifa Sameh Khalaf aldhaen\n• Rodah Mohamed Abdulla  Almazrouei\n• Dr.Hamda Musabah Ghanim Alremeithi\n• Rakan Salem Abdulla Almazrouei\n• None\n• Ayesha Jumaa Mubarak Al Qubaisi",
+      "error": null,
+      "response_format": "no_code_delimiter",
+      "llm_call_count": 2,
+      "history_depth": 2,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 3,
+      "query": "Are there any employees with neither leave records nor competency ratings?",
+      "notes": "Double absence — requires both structs to be available despite no positive data",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "16 employees have neither leave records nor competency ratings:\n• Eisa Rames Khamis AlDhaheri\n• Shamma Salem Saeed Aldhaheri\n• Afra Khalifa Shaheen Alghfeli\n• Noura Mubarak Saleh Almenhali\n• Sara Ahmed Salem Alharbi\n• Sara Nadeem Hussain Alafeefi\n• Nouf Ahmed Mohamed Alnuaimi\n• Nouf Mohamed Abdulla Baadheem\n• Ali Mohamed Shamekh Alshamsi\n• Salem Ali Abdulla Alnuaimi\n• Khalifa Sameh Khalaf aldhaen\n• Rodah Mohamed Abdulla  Almazrouei\n• Dr.Hamda Musabah Ghanim Alremeithi\n• Rakan Salem Abdulla Almazrouei\n• None\n• Ayesha Jumaa Mubarak Al Qubaisi",
+      "error": null,
+      "response_format": "no_code_delimiter",
+      "llm_call_count": 4,
+      "history_depth": 4,
+      "assistant_msg_format": "fence"
+    }
+  ],
+  "total_turns": 4,
+  "successful_turns": 4,
+  "formats_used": [
+    "no_code_delimiter",
+    "fence"
+  ]
+}

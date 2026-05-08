@@ -1,0 +1,53 @@
+{
+  "conversation_id": "MT-002",
+  "name": "Sector comparison",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "List all the sectors and how many employees in each.",
+      "notes": "GROUP BY sector — establishes sector context",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Sector employee distribution:\n----------------------------------------\n  - Wellbeing Sector: 8 employees\n  - Economic Affairs Sector: 3 employees\n  - Infrastructure and Sustainability Sector: 1 employees\n----------------------------------------\n  Total: 12 employees across 3 sectors",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "Which sector has the highest average salary?",
+      "notes": "Follow-up aggregation on sectors from previous turn",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "The sector with the highest average salary is Economic Affairs Sector with an average of $0.00.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 2,
+      "assistant_msg_format": "marker"
+    },
+    {
+      "turn_index": 2,
+      "query": "Who are the employees in that sector?",
+      "notes": "Pronoun 'that sector' — tests context carry-over",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Employees in Economic Affairs Sector (highest average salary):\n--------------------------------------------------\n  - Shamma Salem Saeed Aldhaheri (Junior Specialist) - Business Environment and Investment Affairs Department\n  - Nouf Ahmed Mohamed Alnuaimi (Junior Specialist) - Tourism and Culture Department\n  - Salem Ali Abdulla Alnuaimi (Assistant Advisor) - Economic Analysis Department\n--------------------------------------------------\nTotal: 3 employee(s) in this sector",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 4,
+      "assistant_msg_format": "marker"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "fence"
+  ]
+}

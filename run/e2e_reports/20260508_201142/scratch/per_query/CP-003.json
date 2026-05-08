@@ -1,0 +1,54 @@
+{
+  "conversation_id": "CP-003",
+  "name": "Grade comparison trap",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "What is the Employee Grade for each employee?",
+      "notes": "Easy — Employee Master Grade.",
+      "expected_output_type": null,
+      "success": true,
+      "final_type": "string",
+      "final_response": "Employee: Eisa Rames Khamis AlDhaheri - Grade: L.2A\nEmployee: Shamma Salem Saeed Aldhaheri - Grade: L.4C\nEmployee: Afra Khalifa Shaheen Alghfeli - Grade: L.1C\nEmployee: Noura Mubarak Saleh Almenhali - Grade: L.4C\nEmployee: Sara Ahmed Salem Alharbi - Grade: L.EDA\nEmployee: Sara Nadeem Hussain Alafeefi - Grade: L.3B\nEmployee: Nouf Ahmed Mohamed Alnuaimi - Grade: L.4C\nEmployee: Nouf Mohamed Abdulla Baadheem - Grade: L.4B\nEmployee: Ali Mohamed Shamekh Alshamsi - Grade: L.3B\nEmployee: Salem Ali Abdulla Alnuaimi - Grade: L.2B\nEmployee: Khalifa Sameh Khalaf aldhaen - Grade: L.3B\nEmployee: Rodah Mohamed Abdulla  Almazrouei - Grade: L.4B\nEmployee: Dr.Hamda Musabah Ghanim Alremeithi - Grade: L.2C\nEmployee: Rakan Salem Abdulla Almazrouei - Grade: L.4B\nEmployee: None - Grade: L.4B\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi - Grade: L.4C",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "Now show the Grade from the Assignment History struct. I want to compare it with the Employee Master Grade.",
+      "notes": "Hard — must UNNEST Assignment History to find the Grade field inside it.",
+      "expected_output_type": null,
+      "success": true,
+      "final_type": "string",
+      "final_response": "Available Employee Data:\nEmail: eraldhaheri@ECOUNCIL.AE | Grade: L.2A\nEmail: sssaldhaheri@ECOUNCIL.AE | Grade: L.4C\nEmail: akalghfeli@ECOUNCIL.AE | Grade: L.1C\nEmail: nmsalmenhali@ECOUNCIL.AE | Grade: L.4C\nEmail: saalharbi@ECOUNCIL.AE | Grade: L.EDA\nEmail: snAlafeefi@ecouncil.ae | Grade: L.3B\nEmail: naamlnuaimi@ECOUNCIL.AE | Grade: L.4C\nEmail: nmbaadheem@ECOUNCIL.AE | Grade: L.4B\nEmail: amalshamsi@ECOUNCIL.AE | Grade: L.3B\nEmail: saamalnuaimi@ECOUNCIL.AE | Grade: L.2B\nEmail: ksaldhaen@ECOUNCIL.AE | Grade: L.3B\nEmail: rmalmazrouei@ECOUNCIL.AE | Grade: L.4B\nEmail: hmalremeithi@ecouncil.ae | Grade: L.2C\nEmail: rsaalmazrouei@ecouncil.ae | Grade: L.4B\nEmail: None | Grade: L.4B\nEmail: None | Grade: L.4C\n\nNote: The Assignment History struct was not found in this table. Only Employee Master columns (Email Address, Grade) are available.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 3,
+      "history_depth": 0,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 2,
+      "query": "For employees where the grades differ between Employee Master and Assignment History, show both values.",
+      "notes": "Extreme — cross-struct comparison with filtering.",
+      "expected_output_type": null,
+      "success": true,
+      "final_type": "string",
+      "final_response": "Grade Comparison Results:\n\nEmployee: Eisa Rames Khamis AlDhaheri (Email: eraldhaheri@ECOUNCIL.AE)\n  Employee Master Grade: L.2A\n  Assignment History Grade: Not Available in this table\n\nEmployee: Shamma Salem Saeed Aldhaheri (Email: sssaldhaheri@ECOUNCIL.AE)\n  Employee Master Grade: L.4C\n  Assignment History Grade: Not Available in this table\n\nEmployee: Afra Khalifa Shaheen Alghfeli (Email: akalghfeli@ECOUNCIL.AE)\n  Employee Master Grade: L.1C\n  Assignment History Grade: Not Available in this table\n\nEmployee: Noura Mubarak Saleh Almenhali (Email: nmsalmenhali@ECOUNCIL.AE)\n  Employee Master Grade: L.4C\n  Assignment History Grade: Not Available in this table\n\nEmployee: Sara Ahmed Salem Alharbi (Email: saalharbi@ECOUNCIL.AE)\n  Employee Master Grade: L.EDA\n  Assignment History Grade: Not Available in this table\n\nEmployee: Sara Nadeem Hussain Alafeefi (Email: snAlafeefi@ecouncil.ae)\n  Employee Master Grade: L.3B\n  Assignment History Grade: Not Available in this table\n\nEmployee: Nouf Ahmed Mohamed Alnuaimi (Email: naamlnuaimi@ECOUNCIL.AE)\n  Employee Master Grade: L.4C\n  Assignment History Grade: Not Available in this table\n\nEmployee: Nouf Mohamed Abdulla Baadheem (Email: nmbaadheem@ECOUNCIL.AE)\n  Employee Master Grade: L.4B\n  Assignment History Grade: Not Available in this table\n\nEmployee: Ali Mohamed Shamekh Alshamsi (Email: amalshamsi@ECOUNCIL.AE)\n  Employee Master Grade: L.3B\n  Assignment History Grade: Not Available in this table\n\nEmployee: Salem Ali Abdulla Alnuaimi (Email: saamalnuaimi@ECOUNCIL.AE)\n  Employee Master Grade: L.2B\n  Assignment History Grade: Not Available in this table\n\nEmployee: Khalifa Sameh Khalaf aldhaen (Email: ksaldhaen@ECOUNCIL.AE)\n  Employee Master Grade: L.3B\n  Assignment History Grade: Not Available in this table\n\nEmployee: Rodah Mohamed Abdulla  Almazrouei (Email: rmalmazrouei@ECOUNCIL.AE)\n  Employee Master Grade: L.4B\n  Assignment History Grade: Not Available in this table\n\nEmployee: Dr.Hamda Musabah Ghanim Alremeithi (Email: hmalremeithi@ecouncil.ae)\n  Employee Master Grade: L.2C\n  Assignment History Grade: Not Available in this table\n\nEmployee: Rakan Salem Abdulla Almazrouei (Email: rsaalmazrouei@ecouncil.ae)\n  Employee Master Grade: L.4B\n  Assignment History Grade: Not Available in this table\n\nEmployee: None (Email: None)\n  Employee Master Grade: L.4B\n  Assignment History Grade: Not Available in this table\n\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi (Email: None)\n  Employee Master Grade: L.4C\n  Assignment History Grade: Not Available in this table",
+      "error": null,
+      "response_format": "no_code_delimiter",
+      "llm_call_count": 2,
+      "history_depth": 2,
+      "assistant_msg_format": "fence"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "no_code_delimiter",
+    "fence"
+  ]
+}

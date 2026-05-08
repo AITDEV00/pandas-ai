@@ -1,0 +1,454 @@
+[
+  {
+    "conversation_id": "MT-001",
+    "name": "Ayesha drill-down",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "Find the employee named Ayesha.",
+        "notes": "Simple lookup — establishes context",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Found employee: Ayesha Jumaa Mubarak Al Qubaisi (Employee #111) - Senior Officer in Tourism and Culture Department. Nationality: Emirati, Gender: Female, Age: 32, Marital Status: None. Email: None.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "What is her job title and department?",
+        "notes": "Follow-up uses pronoun 'her' — tests anaphora resolution",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Ayesha's job title is Senior Officer and she works in the Tourism and Culture Department department.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "What percentage by different leave types did she take?",
+        "notes": "Complex struct query with pronoun — exact production scenario",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Leave breakdown for Ayesha Jumaa Mubarak Al Qubaisi (#111): Non-Mandatory Leave: 22.6% (36 days), Remote Work: 35.8% (57 days), Training Leave: 9.4% (15 days), Wellbeing: 32.1% (51 days). Total: 159 days.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 3,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 3,
+    "successful_turns": 3,
+    "formats_used": [
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "MT-002",
+    "name": "Sector comparison",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "List all the sectors and how many employees in each.",
+        "notes": "GROUP BY sector — establishes sector context",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Sectors and Employee Count:\n- Wellbeing Sector: 8 employees\n- None: 4 employees\n- Economic Affairs Sector: 3 employees\n- Infrastructure and Sustainability Sector: 1 employees",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "Which sector has the highest average salary?",
+        "notes": "Follow-up aggregation on sectors from previous turn",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Sectors and Average Salary:\n- Economic Affairs Sector: 0.00\n- Wellbeing Sector: 0.00\n- Infrastructure and Sustainability Sector: 0.00\n- None: 0.00\n\nThe sector with the highest average salary is: Economic Affairs Sector with an average of 0.00",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "Who are the employees in that sector?",
+        "notes": "Pronoun 'that sector' — tests context carry-over",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Employees in the Sector with Highest Average Salary:\n\nSector: None\nAverage Salary: 0.00\n\nEmployees:\nNo employees found in this sector.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 3,
+    "successful_turns": 3,
+    "formats_used": [
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "MT-003",
+    "name": "Leave analysis",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "How many employees have taken leave?",
+        "notes": "Simple count with struct check",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "There are 1 employees who have taken leave.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "What are the different leave types available?",
+        "notes": "Follow-up: DISTINCT leave types from struct",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "There are 4 different leave types available: Non-Mandatory Leave, Remote Work, Training Leave, Wellbeing.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "Which employee has taken the most wellbeing leave days?",
+        "notes": "Specific struct aggregation — requires filtering by leave type and summing",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Ayesha Jumaa Mubarak Al Qubaisi has taken the most wellbeing leave days: 51.0 days.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 3,
+    "successful_turns": 3,
+    "formats_used": [
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "MT-004",
+    "name": "Salary & compensation",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "What is the average total entitlement amount?",
+        "notes": "Simple AVG",
+        "expected_output_type": "number",
+        "success": true,
+        "final_type": "number",
+        "final_response": "0.0",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "How does it differ between male and female employees?",
+        "notes": "Follow-up: GROUP BY gender comparison",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Male employees have an average entitlement of 0.00 while female employees have an average of 0.00, a difference of 0.00.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "Which employee has the highest total entitlement?",
+        "notes": "ORDER BY DESC LIMIT 1",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "No employees with non-zero total entitlement found.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 3,
+    "successful_turns": 3,
+    "formats_used": [
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "MT-005",
+    "name": "Competency analysis",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "What competencies are evaluated for employees?",
+        "notes": "DISTINCT competency names from struct",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "The following competencies are evaluated for employees: Critical Thinking and Data-Driven Decision Making, Digital Savviness, Facilitates Collaboration and Influence, Fostering Well-Being and Coaching, Intrapreneurship, Leading Change, Learning Agility, Public Service Excellence, Results-Driven Outcomes, Strategic and Visionary Foresight.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "For the competency 'Digital Savviness', what is the average employee rating?",
+        "notes": "Filter struct by competency name, AVG rating",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "For the competency 'Digital Savviness', the average employee rating is 4.00.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "Are there any employees where the supervisor rated them lower than they rated themselves for Digital Savviness?",
+        "notes": "Complex struct comparison — tests LLM's ability to compare nested fields",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Yes, 1 employee(s) were rated lower by their supervisor than themselves for Digital Savviness: Afra Khalifa Shaheen Alghfeli.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 3,
+    "successful_turns": 3,
+    "formats_used": [
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "MT-006",
+    "name": "Career progression",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "Which employees have been promoted recently?",
+        "notes": "Check last_promotion_date — some have it, some don't",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "2 employee(s) have been promoted recently. The most recent promotion was on 2025-05-22 for Sara Ahmed Salem Alharbi.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "What was the reason for their promotion?",
+        "notes": "Follow-up: last_promotion_reason",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Promotion reasons for 2 employee(s):\nSara Ahmed Salem Alharbi (Promoted on 2025-05-22): Financial Increase\nEisa Rames Khamis AlDhaheri (Promoted on 2025-05-01): Financial Increase",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "How long has it been since the last promotion for each promoted employee?",
+        "notes": "time_since_last_promotion column",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "Time since last promotion for each promoted employee:\nSara Ahmed Salem Alharbi (Promoted on 2025-05-22): 0.55 months since last promotion\nEisa Rames Khamis AlDhaheri (Promoted on 2025-05-01): 0.61 months since last promotion",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 3,
+    "successful_turns": 3,
+    "formats_used": [
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "MT-007",
+    "name": "Education & qualifications",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "What is the most common degree among employees?",
+        "notes": "GROUP BY degree, COUNT, ORDER BY DESC",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "The most common degree is Bachelor Degree with 9 employees.",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "Which employees have a Master's degree or higher?",
+        "notes": "Filter by degree containing Master or PhD",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "There are 4 employee(s) with a Master's degree or higher:\n- Afra Khalifa Shaheen Alghfeli (Master Degree)\n- Eisa Rames Khamis AlDhaheri (Master Degree)\n- Khalifa Sameh Khalaf aldhaen (Master Degree)\n- Sara Ahmed Salem Alharbi (Master Degree)",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "What qualifications do they hold? List the qualification titles.",
+        "notes": "Unnest Employee Qualification struct for those employees",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "**Afra Khalifa Shaheen Alghfeli** (Master Degree):\n  - Applied Sciences in Health Information Management\n  - Higher Diploma in Health Information Management\n  - MBA in International Hospital and Healthcare Management\n\n**Eisa Rames Khamis AlDhaheri** (Master Degree):\n  - Bachelor of Mass Communication and Media (Public Relations)\n  - Master of Business Administration\n\n**Khalifa Sameh Khalaf aldhaen** (Master Degree):\n  - Mechanical Engineering\n  - Project and Enterprise Managment\n\n**Sara Ahmed Salem Alharbi** (Master Degree):\n  - Master of Business Administration",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 3,
+    "successful_turns": 3,
+    "formats_used": [
+      "fence"
+    ]
+  },
+  {
+    "conversation_id": "MT-008",
+    "name": "Long conversation stress test",
+    "turns": [
+      {
+        "turn_index": 0,
+        "query": "Give me an overview of the organization's workforce.",
+        "notes": "Open-ended — builds broad context",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "============================================================\nORGANIZATION WORKFORCE OVERVIEW\n============================================================\n\n📊 TOTAL ACTIVE EMPLOYEES: 16\n\n👥 GENDER DISTRIBUTION:\n   • Male: 6 (37.5%)\n   • Female: 10 (62.5%)\n\n🎂 AGE STATISTICS:\n   • Minimum Age: 23.0 years\n   • Maximum Age: 45.0 years\n   • Average Age: 31.3 years (rounded: 31.0 years)\n\n🌍 NATIONALITY BREAKDOWN:\n   • Emirati: 16 employees\n\n🏢 DIVISION DISTRIBUTION:\n   • Operational Affairs Division: 15 employees\n   • Chairman: 1 employees\n\n🏛️ SECTOR DISTRIBUTION:\n   • Economic Affairs Sector: 3 employees\n   • Infrastructure and Sustainability Sector: 1 employees\n   • Wellbeing Sector: 8 employees\n\n📋 DEPARTMENT BREAKDOWN:\n   • EC and Committees Affairs Department: 1 employees\n   • Special Intervention Department: 2 employees\n   • Environment and Energy Department: 1 employees\n   • Community Affairs and Education Department: 2 employees\n   • Health Department: 3 employees\n   • Economic Analysis Department: 1 employees\n   • Business Environment and Investment Affairs Department: 1 employees\n   • Tourism and Culture Department: 3 employees\n\n💼 JOB TITLE DISTRIBUTION:\n   • Director: 1 employees\n   • Executive Director: 1 employees\n   • Senior Specialist: 3 employees\n   • Specialist: 3 employees\n   • Senior Officer: 2 employees\n   • Manager: 1 employees\n   • Junior Specialist: 3 employees\n   • Assistant Advisor: 2 employees\n\n📈 GRADE DISTRIBUTION:\n   • L.2B: 1 employees\n   • L.2C: 1 employees\n   • L.4C: 4 employees\n   • L.2A: 1 employees\n   • L.EDA: 1 employees\n   • L.1C: 1 employees\n   • L.4B: 4 employees\n   • L.3B: 3 employees\n\n💑 MARITAL STATUS:\n   • None: 2 employees\n   • Married: 5 employees\n   • Single: 9 employees\n\n============================================================\nSUMMARY\n============================================================\n• The organization employs 16 active staff members\n• Age range: 23.0 - 45.0 years (average: 31.3)\n• All employees are Emirati nationals\n• Main division: Operational Affairs Division\n• Workforce spans across 8 departments\n============================================================",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 0,
+        "assistant_msg_format": null
+      },
+      {
+        "turn_index": 1,
+        "query": "How is the gender distribution?",
+        "notes": "Follow-up on context",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "============================================================\nGENDER DISTRIBUTION\n============================================================\n\n📊 TOTAL ACTIVE EMPLOYEES: 16\n\n👥 BREAKDOWN BY GENDER:\n   • Male: 6 (37.5%)\n   • Female: 10 (62.5%)\n\n============================================================\nSUMMARY\n============================================================\n• The organization employs 16 active staff members\n• Female employees: 10 (62.5%)\n• Male employees: 6 (37.5%)\n============================================================",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 2,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 2,
+        "query": "What about the age distribution?",
+        "notes": "Another follow-up",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "============================================================\nAGE DISTRIBUTION\n============================================================\n\n📊 TOTAL ACTIVE EMPLOYEES: 16\n\n🎂 AGE STATISTICS:\n   • Minimum Age: 23.0 years\n   • Maximum Age: 45.0 years\n   • Average Age: 31.3 years\n   • Rounded Average Age: 31.0 years\n\n📈 AGE BREAKDOWN BY SPECIFIC AGES:\n   • 23 years: 3 employee(s) (18.8%)\n   • 25 years: 1 employee(s) (6.2%)\n   • 26 years: 1 employee(s) (6.2%)\n   • 28 years: 1 employee(s) (6.2%)\n   • 29 years: 1 employee(s) (6.2%)\n   • 31 years: 1 employee(s) (6.2%)\n   • 32 years: 2 employee(s) (12.5%)\n   • 34 years: 1 employee(s) (6.2%)\n   • 35 years: 2 employee(s) (12.5%)\n   • 40 years: 2 employee(s) (12.5%)\n   • 45 years: 1 employee(s) (6.2%)\n\n============================================================\nSUMMARY\n============================================================\n• The organization employs 16 active staff members\n• Age range: 23 - 45 years\n• Average age: 31.3 years (approximately 31 years)\n• Young professionals (<30 years): 7 employees (43.8%)\n• Mid-career professionals (30-39 years): 6 employees (37.5%)\n• Senior professionals (40+ years): 3 employees (18.8%)\n============================================================",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 4,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 3,
+        "query": "Which department has the most employees?",
+        "notes": "Shift to department focus",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "============================================================\nDEPARTMENT WITH MOST EMPLOYEES\n============================================================\n\n🏢 DEPARTMENT BREAKDOWN:\n   • Tourism and Culture Department: 3 employees (18.8%)\n   • Health Department: 3 employees (18.8%)\n   • Community Affairs and Education Department: 2 employees (12.5%)\n   • Special Intervention Department: 2 employees (12.5%)\n   • Environment and Energy Department: 1 employees (6.2%)\n   • Economic Analysis Department: 1 employees (6.2%)\n   • Business Environment and Investment Affairs Department: 1 employees (6.2%)\n   • EC and Committees Affairs Department: 1 employees (6.2%)\n\n============================================================\nSUMMARY\n============================================================\n\n🏆 TOP DEPARTMENT: Tourism and Culture Department\n📊 Employees: 3\n📈 Percentage of workforce: 18.8%\n============================================================",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 1,
+        "history_depth": 6,
+        "assistant_msg_format": "fence"
+      },
+      {
+        "turn_index": 4,
+        "query": "Who is the highest paid employee in that department?",
+        "notes": "Pronoun 'that department' — tests long-range anaphora",
+        "expected_output_type": "string",
+        "success": true,
+        "final_type": "string",
+        "final_response": "======================================================================\nHIGHEST PAID EMPLOYEE IN Tourism and Culture Department\n======================================================================\n\n🏢 DEPARTMENT OVERVIEW:\n   • Top Department: Tourism and Culture Department\n   • Total Employees in Department: 3\n   • Percentage of Workforce: 18.8%\n\n💰 HIGHEST PAID EMPLOYEE:\n   • Name: Nouf Ahmed Mohamed Alnuaimi\n   • Job Title: Junior Specialist\n   • Grade: L.4C\n   • Age: 23 years\n   • Gender: Female\n   • Basic Salary: 0.00\n   • Total Entitlement Amount: 0.00\n\n======================================================================\nSUMMARY\n======================================================================\n• Tourism and Culture Department has 3 employee(s)\n• The highest paid employee is Nouf Ahmed Mohamed Alnuaimi (Junior Specialist)\n• Total Entitlement Amount: 0.00\n======================================================================",
+        "error": null,
+        "response_format": "fence",
+        "llm_call_count": 2,
+        "history_depth": 8,
+        "assistant_msg_format": "fence"
+      }
+    ],
+    "total_turns": 5,
+    "successful_turns": 5,
+    "formats_used": [
+      "fence"
+    ]
+  }
+]

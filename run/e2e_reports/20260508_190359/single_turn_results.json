@@ -1,0 +1,2778 @@
+[
+  {
+    "query_id": "SS-001",
+    "query": "How many employees are there?",
+    "category": "count",
+    "difficulty": "trivial",
+    "expected_output_type": "number",
+    "notes": "Simple COUNT(*) on the table",
+    "success": true,
+    "final_type": "string",
+    "final_response": "There are 16 employees in the database.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 0,
+    "assistant_msg_format": null,
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SS-002",
+    "query": "How many female employees are there?",
+    "category": "count_filter",
+    "difficulty": "trivial",
+    "expected_output_type": "number",
+    "notes": "COUNT with WHERE gender = Female",
+    "success": true,
+    "final_type": "string",
+    "final_response": "There are 10 female employees in the database.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 2,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SS-003",
+    "query": "How many male employees are there?",
+    "category": "count_filter",
+    "difficulty": "trivial",
+    "expected_output_type": "number",
+    "notes": "COUNT with WHERE gender = Male",
+    "success": true,
+    "final_type": "string",
+    "final_response": "There are 6 male employees in the database.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 4,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SS-004",
+    "query": "What is Ayesha's job title?",
+    "category": "lookup",
+    "difficulty": "easy",
+    "expected_output_type": "string",
+    "notes": "Simple WHERE name LIKE '%Ayesha%'",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Ayesha's job title is Senior Officer.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 6,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SS-005",
+    "query": "Which department does Afra work in?",
+    "category": "lookup",
+    "difficulty": "easy",
+    "expected_output_type": "string",
+    "notes": "WHERE name LIKE '%Afra%' → department",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Afra works in the Health Department department.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 8,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SS-006",
+    "query": "What is the nationality of all employees?",
+    "category": "lookup",
+    "difficulty": "trivial",
+    "expected_output_type": "string",
+    "notes": "All are Emirati — simple DISTINCT",
+    "success": true,
+    "final_type": "string",
+    "final_response": "The nationalities of all employees are: Emirati.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 10,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SS-007",
+    "query": "What is the average age of all employees?",
+    "category": "aggregation",
+    "difficulty": "easy",
+    "expected_output_type": "number",
+    "notes": "AVG(age)",
+    "success": true,
+    "final_type": "string",
+    "final_response": "The average age of all employees is 31.31.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 12,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SS-008",
+    "query": "What is the total basic salary paid across all employees?",
+    "category": "aggregation",
+    "difficulty": "easy",
+    "expected_output_type": "number",
+    "notes": "SUM(basic_salary)",
+    "success": true,
+    "final_type": "string",
+    "final_response": "The total basic salary paid across all employees is 0.0.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 14,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SS-009",
+    "query": "List all the sectors in the organization.",
+    "category": "distinct",
+    "difficulty": "easy",
+    "expected_output_type": "string",
+    "notes": "DISTINCT sector",
+    "success": true,
+    "final_type": "string",
+    "final_response": "The sectors in the organization are: Economic Affairs Sector, Infrastructure and Sustainability Sector, Wellbeing Sector.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 16,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SS-010",
+    "query": "Who is the supervisor of Noura?",
+    "category": "lookup",
+    "difficulty": "easy",
+    "expected_output_type": "string",
+    "notes": "WHERE name LIKE '%Noura%' → supervisor_name",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Found supervisors for Noura employees in the database.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 18,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-001",
+    "query": "How many employees are in each sector? Give me a breakdown.",
+    "category": "grouped_count",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "GROUP BY sector, COUNT(*)",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employee breakdown by sector:\nWellbeing Sector: 8 employees\nEconomic Affairs Sector: 3 employees\nInfrastructure and Sustainability Sector: 1 employees",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-002",
+    "query": "What is the average basic salary by gender?",
+    "category": "grouped_aggregation",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "GROUP BY gender, AVG(salary)",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Average basic salary by gender:\nFemale: 0.0\nMale: 0.0",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-003",
+    "query": "How many employees work in each department?",
+    "category": "grouped_count",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "GROUP BY department, COUNT(*)",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employee breakdown by department:\nTourism and Culture Department: 3 employees\nHealth Department: 3 employees\nSpecial Intervention Department: 2 employees\nCommunity Affairs and Education Department: 2 employees\nEnvironment and Energy Department: 1 employees\nBusiness Environment and Investment Affairs Department: 1 employees\nEC and Committees Affairs Department: 1 employees\nEconomic Analysis Department: 1 employees",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-004",
+    "query": "what is the percentage by different leave types did ayesha take?",
+    "category": "struct_query",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Requires unnesting Leave Details struct, filtering by name, then computing percentages per leave type. This is the exact production query that caused NoCodeFoundError.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Ayesha's leave type breakdown:\nRemote Work: 0.0%\nTraining Leave: 0.0%\nWellbeing: 0.0%\nNon-Mandatory Leave: 0.0%",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-005",
+    "query": "What are the different leave types taken by employees and how many days for each type?",
+    "category": "struct_query",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Unnest Leave Details, GROUP BY leave_type, SUM(duration)",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Different leave types taken by employees:\nRemote Work: 57.0 days\nWellbeing: 51.0 days\nNon-Mandatory Leave: 36.0 days\nTraining Leave: 15.0 days",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-006",
+    "query": "List all competencies where the supervisor rating is higher than the employee rating for Sara Alharbi.",
+    "category": "struct_query",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Unnest Competencies Rating struct, compare ratings",
+    "success": true,
+    "final_type": "error",
+    "final_response": "Unfortunately, I was not able to get your answer. Please try again.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 4,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-007",
+    "query": "Which female employees are in the Wellbeing Sector and have a basic salary above 30000?",
+    "category": "multi_filter",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "WHERE gender=Female AND sector=Wellbeing AND salary>30000",
+    "success": true,
+    "final_type": "string",
+    "final_response": "No female employees found in Wellbeing Sector with basic salary above 30,000.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 19,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-008",
+    "query": "Find employees who have a PhD degree and work in the Operational Affairs Division.",
+    "category": "multi_filter",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "WHERE degree contains PhD AND division=Operational Affairs",
+    "success": true,
+    "final_type": "string",
+    "final_response": "No employees with PhD degree found in Operational Affairs Division.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-009",
+    "query": "What is the ratio of male to female employees?",
+    "category": "computed",
+    "difficulty": "easy",
+    "expected_output_type": "string",
+    "notes": "Two COUNT queries + ratio computation in Python",
+    "success": true,
+    "final_type": "string",
+    "final_response": "There are 6 male employees and 10 female employees, giving a male to female ratio of 6:10.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-010",
+    "query": "What percentage of the total entitlement amount is the basic salary for each employee?",
+    "category": "computed",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "basic_salary / total_entitlement * 100 per employee",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Basic Salary as percentage of Total Entitlement Amount:\nEisa Rames Khamis AlDhaheri: 0%\nShamma Salem Saeed Aldhaheri: 0%\nAfra Khalifa Shaheen Alghfeli: 0%\nNoura Mubarak Saleh Almenhali: 0%\nSara Ahmed Salem Alharbi: 0%\nSara Nadeem Hussain Alafeefi: 0%\nNouf Ahmed Mohamed Alnuaimi: 0%\nNouf Mohamed Abdulla Baadheem: 0%\nAli Mohamed Shamekh Alshamsi: 0%\nSalem Ali Abdulla Alnuaimi: 0%\nKhalifa Sameh Khalaf aldhaen: 0%\nRodah Mohamed Abdulla  Almazrouei: 0%\nDr.Hamda Musabah Ghanim Alremeithi: 0%\nRakan Salem Abdulla Almazrouei: 0%\nAyesha Jumaa Mubarak Al Qubaisi: 0%",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-011",
+    "query": "How many total leave days has each employee taken? Show the top 5.",
+    "category": "struct_aggregation",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Unnest Leave Details, SUM(duration) per employee, ORDER BY DESC, LIMIT 5",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Top 5 employees by total leave days taken:\nAyesha Jumaa Mubarak Al Qubaisi: 159.0 days",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-012",
+    "query": "Are there any denied leave requests? If so, who and what type?",
+    "category": "struct_filter",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Unnest Leave Details, WHERE approval_status != Approved",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Denied leave requests found:\nAyesha Jumaa Mubarak Al Qubaisi: Wellbeing",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction_failed",
+        "has_error": true,
+        "details_keys": [
+          "exception_type",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-013",
+    "query": "Which employees have both CV achievements and previous employer records?",
+    "category": "cross_struct",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Requires checking two different struct columns are non-empty",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Employees with both CV achievements and previous employer records:\nKhalifa Sameh Khalaf aldhaen\nNouf Ahmed Mohamed Alnuaimi\nRakan Salem Abdulla Almazrouei",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-014",
+    "query": "What is the average ADEO experience (in years) for employees in each sector?",
+    "category": "grouped_aggregation",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "GROUP BY sector, AVG(adeo_experience)",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Average ADEO experience by sector:\nEconomic Affairs Sector: No data\nWellbeing Sector: No data\nInfrastructure and Sustainability Sector: No data",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 3,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-015",
+    "query": "Who are the most experienced employees in the organization?",
+    "category": "ambiguous",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Ambiguous: experience by years? by assignments? Tests LLM interpretation",
+    "success": true,
+    "final_type": "string",
+    "final_response": "The most experienced employees in the organization:\nShamma Salem Saeed Aldhaheri: 0 years total experience (max: 0 years on )\nSara Ahmed Salem Alharbi: 0 years total experience (max: 0 years on )\nKhalifa Sameh Khalaf aldhaen: 0 years total experience (max: 0 years on )\nNouf Mohamed Abdulla Baadheem: 0 years total experience (max: 0 years on )\nSara Nadeem Hussain Alafeefi: 0 years total experience (max: 0 years on )\nAfra Khalifa Shaheen Alghfeli: 0 years total experience (max: 0 years on )\nRodah Mohamed Abdulla  Almazrouei: 0 years total experience (max: 0 years on )\nNoura Mubarak Saleh Almenhali: 0 years total experience (max: 0 years on )\nSalem Ali Abdulla Alnuaimi: 0 years total experience (max: 0 years on )\nDr.Hamda Musabah Ghanim Alremeithi: 0 years total experience (max: 0 years on )",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "SC-016",
+    "query": "Show me a summary of the employee data.",
+    "category": "ambiguous",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Very open-ended — tests how LLM handles vague queries",
+    "success": true,
+    "final_type": "string",
+    "final_response": "\n==================================================\nTOTAL EMPLOYEES: 15\n==================================================\n\nGENDER DISTRIBUTION:\n  Female: 10 (66.7%)\n  Male: 5 (33.3%)\n\nSECTOR DISTRIBUTION:\n  Wellbeing Sector: 7 (46.7%)\n  Economic Affairs Sector: 3 (20.0%)\n  Infrastructure and Sustainability Sector: 1 (6.7%)\n\nDIVISION DISTRIBUTION:\n  Operational Affairs Division: 14 (93.3%)\n  Chairman: 1 (6.7%)\n\nAVERAGE AGE: 31.1 years\nAGE RANGE: 23 - 45 years\n\nGRADE DISTRIBUTION:\n  L.4C: 4 (26.7%)\n  L.3B: 3 (20.0%)\n  L.4B: 3 (20.0%)\n  L.2A: 1 (6.7%)\n  L.1C: 1 (6.7%)\n  L.EDA: 1 (6.7%)\n  L.2B: 1 (6.7%)\n  L.2C: 1 (6.7%)\n\nDEGREE DISTRIBUTION:\n  Bachelor Degree: 9 (60.0%)\n  Master Degree: 4 (26.7%)\n\nJOB TITLE DISTRIBUTION (Top 5):\n  Junior Specialist: 3 (20.0%)\n  Senior Specialist: 3 (20.0%)\n  Specialist: 3 (20.0%)\n  Assistant Advisor: 2 (13.3%)\n  Manager: 1 (6.7%)\n\n==================================================\nEMPLOYEE NAMES (All):\n==================================================\n  - Eisa Rames Khamis AlDhaheri\n  - Shamma Salem Saeed Aldhaheri\n  - Afra Khalifa Shaheen Alghfeli\n  - Noura Mubarak Saleh Almenhali\n  - Sara Ahmed Salem Alharbi\n  - Sara Nadeem Hussain Alafeefi\n  - Nouf Ahmed Mohamed Alnuaimi\n  - Nouf Mohamed Abdulla Baadheem\n  - Ali Mohamed Shamekh Alshamsi\n  - Salem Ali Abdulla Alnuaimi\n  - Khalifa Sameh Khalaf aldhaen\n  - Rodah Mohamed Abdulla  Almazrouei\n  - Dr.Hamda Musabah Ghanim Alremeithi\n  - Rakan Salem Abdulla Almazrouei\n  - Ayesha Jumaa Mubarak Al Qubaisi",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "EC-001",
+    "query": "How many employees named John are there?",
+    "category": "no_result",
+    "difficulty": "easy",
+    "expected_output_type": "string",
+    "notes": "No employee named John — tests graceful handling of empty results",
+    "success": true,
+    "final_type": "string",
+    "final_response": "There are 0 employees named John.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "EC-002",
+    "query": "What is the salary of employee number 99999?",
+    "category": "no_result",
+    "difficulty": "easy",
+    "expected_output_type": "string",
+    "notes": "Non-existent employee number — tests error handling",
+    "success": true,
+    "final_type": "string",
+    "final_response": "No employee found with Employee Number 99999.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "EC-003",
+    "query": "Show me all the data in the table.",
+    "category": "full_scan",
+    "difficulty": "easy",
+    "expected_output_type": "string",
+    "notes": "SELECT * — may hit token limits, tests truncation",
+    "success": true,
+    "final_type": "string",
+    "final_response": "======================================================================\nCOMPLETE EMPLOYEE DATA - ENTERPRISE DATA TABLE\n======================================================================\n\nTotal Employees: 15\n\n----------------------------------------------------------------------\nEMPLOYEE #1\n----------------------------------------------------------------------\nName: Eisa Rames Khamis AlDhaheri\nArabic Name: عيسى رامس خميس الظاهري\nEmployee Number: 1269\nEmail: eraldhaheri@ECOUNCIL.AE\nPassport Number: AA0623273\nGender: Male\nNationality: Emirati\nAge: 35\nGrade: L.2A\nEmployee Grade: 2A\nJob Title: Manager\nPosition Title: Manager, Public Relations\nDivision: Chairman\nSector: None\nDepartment: None\nOrganization Unit: Chairman Protocol Office\nOffice Name: Chairman Protocol Office\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Married\nNumber of Children: 0\nEducation: Master Degree - Master of Business Administration\nEducational Institute: Abu Dhabi School of Management\nGraduation Date: 2022-11-24T04:00:00\nDate of Joining: 2023-05-09T00:00:00\nSupervisor Name: Ali Khaleifa Ali Alshamsi\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 32143.0\n\n----------------------------------------------------------------------\nEMPLOYEE #2\n----------------------------------------------------------------------\nName: Shamma Salem Saeed Aldhaheri\nArabic Name: شما سالم سعيد الظاهري\nEmployee Number: 1369\nEmail: sssaldhaheri@ECOUNCIL.AE\nPassport Number: AA046978\nGender: Female\nNationality: Emirati\nAge: 23\nGrade: L.4C\nEmployee Grade: 4C\nJob Title: Junior Specialist\nPosition Title: Junior Specialist, Business Environment and Investment Affairs\nDivision: Operational Affairs Division\nSector: Economic Affairs Sector\nDepartment: Business Environment and Investment Affairs Department\nOrganization Unit: Business Environment and Investment Affairs Department\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Single\nNumber of Children: 0\nEducation: Bachelor Degree - Bachelor of Arts\nEducational Institute: NYU Abu Dhabi\nGraduation Date: 2023-05-24T04:00:00\nDate of Joining: 2024-10-01T00:00:00\nSupervisor Name: Eisa Rames Khamis AlDhaheri\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 18342.0\n\n----------------------------------------------------------------------\nEMPLOYEE #3\n----------------------------------------------------------------------\nName: Afra Khalifa Shaheen Alghfeli\nArabic Name: عفراء خليفه شاهين الغفلي\nEmployee Number: 1314\nEmail: akalghfeli@ECOUNCIL.AE\nPassport Number: None\nGender: Female\nNationality: Emirati\nAge: 45\nGrade: L.1C\nEmployee Grade: 1C\nJob Title: Director\nPosition Title: Director, Health Department\nDivision: Operational Affairs Division\nSector: Wellbeing Sector\nDepartment: Health Department\nOrganization Unit: Health Department\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Married\nNumber of Children: 0\nEducation: Master Degree - MBA in International Hospital and Healthcare Management\nEducational Institute: Frankfurt School of Finance & Management\nGraduation Date: 2008-10-30T04:00:00\nDate of Joining: 2024-02-06T00:00:00\nSupervisor Name: Rodah Mohamed Abdulla Almazrouei\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 54969.0\n\n----------------------------------------------------------------------\nEMPLOYEE #4\n----------------------------------------------------------------------\nName: Noura Mubarak Saleh Almenhali\nArabic Name: نوره مبارك صالح المنهالي\nEmployee Number: 1318\nEmail: nmsalmenhali@ECOUNCIL.AE\nPassport Number: None\nGender: Female\nNationality: Emirati\nAge: 23\nGrade: L.4C\nEmployee Grade: 4C\nJob Title: Junior Specialist\nPosition Title: Junior Specialist, Community Affairs\nDivision: Operational Affairs Division\nSector: Wellbeing Sector\nDepartment: Community Affairs and Education Department\nOrganization Unit: Community Affairs Section\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Single\nNumber of Children: 0\nEducation: Bachelor Degree - Interntional Studies Concentration in Political Economy and Development\nEducational Institute: Zayed University\nGraduation Date: 2023-07-03T04:00:00\nDate of Joining: 2024-04-16T00:00:00\nSupervisor Name: Rodah Mohamed Abdulla Almazrouei\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: nan\n\n----------------------------------------------------------------------\nEMPLOYEE #5\n----------------------------------------------------------------------\nName: Sara Ahmed Salem Alharbi\nArabic Name: ساره احمد سالم الحربي\nEmployee Number: 1316\nEmail: saalharbi@ECOUNCIL.AE\nPassport Number: ZGPC63705\nGender: Female\nNationality: Emirati\nAge: 40\nGrade: L.EDA\nEmployee Grade: EDA\nJob Title: Executive Director\nPosition Title: Executive Director, Wellbeing Sector\nDivision: Operational Affairs Division\nSector: Wellbeing Sector\nDepartment: None\nOrganization Unit: Wellbeing Sector\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Married\nNumber of Children: 0\nEducation: Master Degree - Master of Business Administration\nEducational Institute: London Business School\nGraduation Date: 2017-07-01T04:00:00\nDate of Joining: 2024-02-19T00:00:00\nSupervisor Name: Afra Khalifa Shaheen Alghfeli\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 29942.0\n\n----------------------------------------------------------------------\nEMPLOYEE #6\n----------------------------------------------------------------------\nName: Sara Nadeem Hussain Alafeefi\nArabic Name: ساره نديم حسين العفيفي\nEmployee Number: 1378\nEmail: snAlafeefi@ecouncil.ae\nPassport Number: None\nGender: Female\nNationality: Emirati\nAge: 29\nGrade: L.3B\nEmployee Grade: 3B\nJob Title: Senior Specialist\nPosition Title: Senior Specialist, Health\nDivision: Operational Affairs Division\nSector: Wellbeing Sector\nDepartment: Health Department\nOrganization Unit: Health Department\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Single\nNumber of Children: 0\nEducation: Bachelor Degree - Bachelor of Science in Biotechnology\nEducational Institute: University of Sharjah, UAE\nGraduation Date: 2018-01-09T04:00:00\nDate of Joining: 2024-11-26T00:00:00\nSupervisor Name: Afra Khalifa Shaheen Alghfeli\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 4358.0\n\n----------------------------------------------------------------------\nEMPLOYEE #7\n----------------------------------------------------------------------\nName: Nouf Ahmed Mohamed Alnuaimi\nArabic Name: نوف احمد محمد النعيمي\nEmployee Number: 1402\nEmail: naamlnuaimi@ECOUNCIL.AE\nPassport Number: None\nGender: Female\nNationality: Emirati\nAge: 23\nGrade: L.4C\nEmployee Grade: 4C\nJob Title: Junior Specialist\nPosition Title: Junior Specialist, Tourism\nDivision: Operational Affairs Division\nSector: Economic Affairs Sector\nDepartment: Tourism and Culture Department\nOrganization Unit: Tourism Section\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Single\nNumber of Children: 0\nEducation: Bachelor Degree - Interactive Media\nEducational Institute: New York University, Abu Dhabi\nGraduation Date: 2024-06-01T04:00:00\nDate of Joining: 2025-02-04T00:00:00\nSupervisor Name: Noura Mubarak Saleh Almenhali\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 34479.0\n\n----------------------------------------------------------------------\nEMPLOYEE #8\n----------------------------------------------------------------------\nName: Nouf Mohamed Abdulla Baadheem\nArabic Name: نوف محمد عبدالله باعظيم\nEmployee Number: 1403\nEmail: nmbaadheem@ECOUNCIL.AE\nPassport Number: None\nGender: Female\nNationality: Emirati\nAge: 26\nGrade: L.4B\nEmployee Grade: 4B\nJob Title: Specialist\nPosition Title: Specialist, Special Intervention\nDivision: Operational Affairs Division\nSector: None\nDepartment: Special Intervention Department\nOrganization Unit: Special Intervention Department\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Single\nNumber of Children: 0\nEducation: Bachelor Degree - Applied Psychology\nEducational Institute: Zayed University – Abu Dhabi\nGraduation Date: 2023-05-23T04:00:00\nDate of Joining: 2025-04-08T00:00:00\nSupervisor Name: Noura Mubarak Saleh Almenhali\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: nan\n\n----------------------------------------------------------------------\nEMPLOYEE #9\n----------------------------------------------------------------------\nName: Ali Mohamed Shamekh Alshamsi\nArabic Name: على محمد شامخ الشامسي\nEmployee Number: 1421\nEmail: amalshamsi@ECOUNCIL.AE\nPassport Number: KHYP60788\nGender: Male\nNationality: Emirati\nAge: 32\nGrade: L.3B\nEmployee Grade: 3B\nJob Title: Senior Specialist\nPosition Title: Senior Specialist, Agenda Management\nDivision: Operational Affairs Division\nSector: None\nDepartment: EC and Committees Affairs Department\nOrganization Unit: Agenda Management Section\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Single\nNumber of Children: 0\nEducation: Bachelor Degree - International Studies\nEducational Institute: Zayed University\nGraduation Date: 2016-12-15T04:00:00\nDate of Joining: 2025-04-08T00:00:00\nSupervisor Name: Noura Mubarak Saleh Almenhali\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 17797.0\n\n----------------------------------------------------------------------\nEMPLOYEE #10\n----------------------------------------------------------------------\nName: Salem Ali Abdulla Alnuaimi\nArabic Name: سالم على عبدالله النعيمي\nEmployee Number: 1334\nEmail: saamalnuaimi@ECOUNCIL.AE\nPassport Number: AA0095550\nGender: Male\nNationality: Emirati\nAge: 40\nGrade: L.2B\nEmployee Grade: 2B\nJob Title: Assistant Advisor\nPosition Title: Assistant Advisor, Economic Analysis\nDivision: Operational Affairs Division\nSector: Economic Affairs Sector\nDepartment: Economic Analysis Department\nOrganization Unit: Economic Analysis Department\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Single\nNumber of Children: 0\nEducation: Bachelor Degree - Bachelor of Science - Economics\nEducational Institute: University of London Queen Marry and Westfield College\nGraduation Date: 2009-07-09T04:00:00\nDate of Joining: 2024-06-25T00:00:00\nSupervisor Name: Nouf Mohamed Abdulla Baadheem\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 1507.0\n\n----------------------------------------------------------------------\nEMPLOYEE #11\n----------------------------------------------------------------------\nName: Khalifa Sameh Khalaf aldhaen\nArabic Name: خليفه سامح خلف الضاعن\nEmployee Number: 1336\nEmail: ksaldhaen@ECOUNCIL.AE\nPassport Number: None\nGender: Male\nNationality: Emirati\nAge: 31\nGrade: L.3B\nEmployee Grade: 3B\nJob Title: Senior Specialist\nPosition Title: Senior Specialist, Energy\nDivision: Operational Affairs Division\nSector: Infrastructure and Sustainability Sector\nDepartment: Environment and Energy Department\nOrganization Unit: Energy Section\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Married\nNumber of Children: 0\nEducation: Master Degree - Project and Enterprise Managment\nEducational Institute: University College London\nGraduation Date: 2021-12-01T04:00:00\nDate of Joining: 2024-07-09T00:00:00\nSupervisor Name: Dr.Hamda Musabah Ghanim Alremeithi\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 82409.0\n\n----------------------------------------------------------------------\nEMPLOYEE #12\n----------------------------------------------------------------------\nName: Rodah Mohamed Abdulla  Almazrouei\nArabic Name: روضه محمد عبدالله المزروعي\nEmployee Number: 1362\nEmail: rmalmazrouei@ECOUNCIL.AE\nPassport Number: None\nGender: Female\nNationality: Emirati\nAge: 25\nGrade: L.4B\nEmployee Grade: 4B\nJob Title: Specialist\nPosition Title: Specialist, Special Intervention\nDivision: Operational Affairs Division\nSector: None\nDepartment: Special Intervention Department\nOrganization Unit: Special Intervention Department\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Single\nNumber of Children: 0\nEducation: Bachelor Degree - International Studies - International Relations\nEducational Institute: Zayed University\nGraduation Date: 2021-05-24T04:00:00\nDate of Joining: 2024-09-03T00:00:00\nSupervisor Name: Dr.Hamda Musabah Ghanim Alremeithi\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 32996.0\n\n----------------------------------------------------------------------\nEMPLOYEE #13\n----------------------------------------------------------------------\nName: Dr.Hamda Musabah Ghanim Alremeithi\nArabic Name: د.حمده مصبح غانم الرميثي\nEmployee Number: 1395\nEmail: hmalremeithi@ecouncil.ae\nPassport Number: AA0436720\nGender: Female\nNationality: Emirati\nAge: 35\nGrade: L.2C\nEmployee Grade: 2C\nJob Title: Assistant Advisor\nPosition Title: Assistant Advisor, Health\nDivision: Operational Affairs Division\nSector: Wellbeing Sector\nDepartment: Health Department\nOrganization Unit: Health Department\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Married\nNumber of Children: 0\nEducation: None - None\nEducational Institute: None\nGraduation Date: None\nDate of Joining: 2025-01-07T00:00:00\nSupervisor Name: Dr.Hamda Musabah Ghanim Alremeithi\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: 92887.0\n\n----------------------------------------------------------------------\nEMPLOYEE #14\n----------------------------------------------------------------------\nName: Rakan Salem Abdulla Almazrouei\nArabic Name: راكان سالم عبد الل المزروعي\nEmployee Number: 1443\nEmail: rsaalmazrouei@ecouncil.ae\nPassport Number: None\nGender: Male\nNationality: Emirati\nAge: 28\nGrade: L.4B\nEmployee Grade: 4B\nJob Title: Specialist\nPosition Title: Specialist, Community Affairs\nDivision: Operational Affairs Division\nSector: Wellbeing Sector\nDepartment: Community Affairs and Education Department\nOrganization Unit: Community Affairs Section\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: Single\nNumber of Children: 0\nEducation: Bachelor Degree - PETROLEUM ENGINEERING\nEducational Institute: UNIVERSITY OF KANSAS LAWRENCE, KS\nGraduation Date: 2021-08-19T04:00:00\nDate of Joining: 2025-08-26T00:00:00\nSupervisor Name: Rakan Salem Abdulla Almazrouei\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: nan\n\n----------------------------------------------------------------------\nEMPLOYEE #15\n----------------------------------------------------------------------\nName: Ayesha Jumaa Mubarak Al Qubaisi\nArabic Name: None\nEmployee Number: 111\nEmail: None\nPassport Number: None\nGender: Female\nNationality: Emirati\nAge: 32\nGrade: L.4C\nEmployee Grade: 4C\nJob Title: Senior Officer\nPosition Title: Specialist, Community Affairs\nDivision: Operational Affairs Division\nSector: Wellbeing Sector\nDepartment: Tourism and Culture Department\nOrganization Unit: Special Intervention Department\nOffice Name: None\nPerson Type: Permanent Employee - ADEO\nAssignment Status: ACTIVE\nMarital Status: None\nNumber of Children: 0\nEducation: None - None\nEducational Institute: None\nGraduation Date: None\nDate of Joining: 2024-09-03T00:00:00\nSupervisor Name: Rakan Salem Abdulla Almazrouei\nBasic Salary: 0\nTotal Entitlement Amount: 0\nFamily Book Number: nan\n\n======================================================================\nEND OF TABLE DATA\n======================================================================",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "EC-004",
+    "query": "Calculate the median salary and explain what median means.",
+    "category": "explanation",
+    "difficulty": "medium",
+    "expected_output_type": "string",
+    "notes": "Tests if LLM adds explanatory text before/after code — potential NoCodeFoundError trigger",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Median Salary Analysis:\n\nThe median salary for employees in the organization is: 0.0 AED\n\n\nThe median is a measure of central tendency that represents the middle value in a sorted dataset. \nUnlike the average (mean), the median is not affected by extreme values or outliers.\n\nHow to calculate the median:\n1. Sort all salary values in ascending order\n2. If there's an odd number of values, the median is the middle value\n3. If there's an even number of values, the median is the average of the two middle values\n\nWhy use median instead of average:\n- The median is more robust to outliers (e.g., extremely high or low salaries)\n- It gives a better representation of a \"typical\" employee salary in skewed distributions\n- In this dataset with all salaries at 0, the median also reflects that most employees have no salary recorded\n\n\nNote: In this specific dataset, all salary values appear to be 0, which suggests this may be \nsample/test data or salaries are stored in a different field. The median provides a more \nreliable measure than the mean when the data distribution is skewed or contains outliers.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 1,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "EC-005",
+    "query": "What is 2+2?",
+    "category": "off_topic",
+    "difficulty": "trivial",
+    "expected_output_type": "string",
+    "notes": "Off-topic query — tests if LLM stays in data context or goes off-rails",
+    "success": true,
+    "final_type": "string",
+    "final_response": "2 + 2 = 4",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 3,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  },
+  {
+    "query_id": "EC-006",
+    "query": "Compare the total leave days taken vs. the leave entitlement for each employee.",
+    "category": "cross_struct_comparison",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "Requires comparing struct data (leave details) with flat columns (entitlement leaves)",
+    "success": true,
+    "final_type": "string",
+    "final_response": "================================================================================\nLEAVE DAYS TAKEN VS. LEAVE ENTITLEMENT COMPARISON\n================================================================================\n\nEmployee: Eisa Rames Khamis AlDhaheri\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Shamma Salem Saeed Aldhaheri\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Afra Khalifa Shaheen Alghfeli\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Noura Mubarak Saleh Almenhali\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Sara Ahmed Salem Alharbi\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Sara Nadeem Hussain Alafeefi\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Nouf Ahmed Mohamed Alnuaimi\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Nouf Mohamed Abdulla Baadheem\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Ali Mohamed Shamekh Alshamsi\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Salem Ali Abdulla Alnuaimi\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Khalifa Sameh Khalaf aldhaen\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Rodah Mohamed Abdulla  Almazrouei\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Dr.Hamda Musabah Ghanim Alremeithi\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Rakan Salem Abdulla Almazrouei\n------------------------------------------------------------\n  Wellbeing Leave:  0.0/0.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    0.0/0.0 days taken (Remaining: 0.0)\n  Total Entitlement: 0.0 days\n  Total Taken:       0.0 days\n  Total Remaining:   0.0 days\n  Status: ✅ All entitlements utilized\n\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n------------------------------------------------------------\n  Wellbeing Leave:  49.0/30.0 days taken (Remaining: 0.0)\n  Non-Mandatory:    36.0/30.0 days taken (Remaining: 0.0)\n  Total Entitlement: 60.0 days\n  Total Taken:       157.0 days\n  Total Remaining:   -97.0 days\n  Status: ⚠️ OVER-TAKEN by 97.0 days\n\n================================================================================\nSUMMARY: 15 employees analyzed\n================================================================================",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 20,
+    "assistant_msg_format": "fence",
+    "steps_summary": [
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  }
+]

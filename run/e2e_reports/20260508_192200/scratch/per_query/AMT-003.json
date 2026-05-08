@@ -1,0 +1,54 @@
+{
+  "conversation_id": "AMT-003",
+  "name": "Leave entitlement trap",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "How many leave days has each employee taken in total?",
+      "notes": "Simple leave aggregation",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "The database contains 16 employees (Eisa Rames Khamis AlDhaheri through Ali Mohamed Shamekh Alshamsi based on sample data), but there is NO leave days data available in this schema. The only columns available are Employee Name and Employee Number.",
+      "error": null,
+      "response_format": "no_code_delimiter",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "What is their leave entitlement for each type?",
+      "notes": "Needs Entitlement Leaves struct — column selection may not include entitlement columns since the first query only needed taken days",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "All 16 employees have the same leave entitlements: 0.0 days of Annual Leave, 30.0 days of Non-Mandatory Leave, and 30.0 days of Wellbeing Leave.",
+      "error": null,
+      "response_format": "no_code_delimiter",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 2,
+      "query": "Calculate the utilization rate: approved days divided by entitlement days for each leave type.",
+      "notes": "Requires both approved AND entitlement columns — the LLM must have selected both in previous turns",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Leave Utilization Rates (16 employees):\n\nAnnual Leave: nan% average utilization\nNon-Mandatory Leave: 40.0% average utilization\nWellbeing Leave: 80.0% average utilization",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 2,
+      "assistant_msg_format": "fence"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "no_code_delimiter",
+    "fence"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "conversation_id": "RT-003",
+  "name": "Leave to competency pivot",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "How many employees have taken sick leave?",
+      "notes": "Easy — Sick Leave Taken is a flat column.",
+      "expected_output_type": null,
+      "success": true,
+      "final_type": "string",
+      "final_response": "There are 9 employees who have taken sick leave.",
+      "error": null,
+      "response_format": "no_code_delimiter",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "What are the detailed leave records? Show leave type, duration, and dates.",
+      "notes": "Hard — requires UNNEST on Employee Leave Details struct.",
+      "expected_output_type": null,
+      "success": true,
+      "final_type": "string",
+      "final_response": "Total leave records found: 66\n\n- Leave Type: Remote Work, Duration: 1 days, Start: 2025-05-16, End: 2025-05-16\n- Leave Type: Training Leave, Duration: 5 days, Start: 2025-05-05, End: 2025-05-09\n- Leave Type: Wellbeing, Duration: 5 days, Start: 2025-04-28, End: 2025-05-02\n- Leave Type: Non-Mandatory Leave, Duration: 2 days, Start: 2025-04-22, End: 2025-04-23\n- Leave Type: Remote Work, Duration: 4 days, Start: 2025-03-17, End: 2025-03-20\n- Leave Type: Remote Work, Duration: 10 days, Start: 2025-03-03, End: 2025-03-14\n- Leave Type: Wellbeing, Duration: 1 days, Start: 2025-02-20, End: 2025-02-20\n- Leave Type: Non-Mandatory Leave, Duration: 3 days, Start: 2025-02-17, End: 2025-02-19\n- Leave Type: Non-Mandatory Leave, Duration: 1 days, Start: 2025-02-03, End: 2025-02-03\n- Leave Type: Wellbeing, Duration: 6 days, Start: 2025-01-20, End: 2025-01-27\n... and 56 more records",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 0,
+      "assistant_msg_format": "fence"
+    },
+    {
+      "turn_index": 2,
+      "query": "For those employees, what are their competency ratings?",
+      "notes": "Hard — requires switching to a different struct (Competencies Rating).",
+      "expected_output_type": null,
+      "success": true,
+      "final_type": "string",
+      "final_response": "Email: akalghfeli@ECOUNCIL.AE - Competency Details:\n  • Facilitates Collaboration and Influence | Employee: 5 (Role Model) | Supervisor: 4 (Champion)\n  • Leading Change | Employee: 5 (Role Model) | Supervisor: 3 (Solid Performer)\n  • Learning Agility | Employee: 5 (Role Model) | Supervisor: 4 (Champion)\n  • Intrapreneurship | Employee: 5 (Role Model) | Supervisor: 4 (Champion)\n  • Strategic and Visionary Foresight | Employee: 5 (Role Model) | Supervisor: 4 (Champion)\n  • Results-Driven Outcomes | Employee: 5 (Role Model) | Supervisor: 4 (Champion)\n  • Critical Thinking and Data-Driven Decision Making | Employee: 4 (Champion) | Supervisor: 4 (Champion)\n  • Digital Savviness | Employee: 5 (Role Model) | Supervisor: 4 (Champion)\n  • Fostering Well-Being and Coaching | Employee: 5 (Role Model) | Supervisor: 4 (Champion)\n  • Public Service Excellence | Employee: 5 (Role Model) | Supervisor: 3 (Solid Performer)\nEmail: amalshamsi@ECOUNCIL.AE - No competency ratings recorded.\nEmail: hmalremeithi@ecouncil.ae - No competency ratings recorded.\nEmail: ksaldhaen@ECOUNCIL.AE - No competency ratings recorded.\nEmail: naamlnuaimi@ECOUNCIL.AE - No competency ratings recorded.\nEmail: nmbaadheem@ECOUNCIL.AE - No competency ratings recorded.\nEmail: nmsalmenhali@ECOUNCIL.AE - Competency Details:\n  • Facilitates Collaboration and Influence | Employee: 5 (Role Model) | Supervisor: 4 (Champion)\n  • Critical Thinking and Data-Driven Decision Making | Employee: 4 (Champion) | Supervisor: 4 (Champion)\n  • Digital Savviness | Employee: 3 (Solid Performer) | Supervisor: 3 (Solid Performer)\n  • Intrapreneurship | Employee: 5 (Role Model) | Supervisor: 4 (Champion)\n  • Learning Agility | Employee: 5 (Role Model) | Supervisor: 5 (Role Model)\n  • Public Service Excellence | Employee: 5 (Role Model) | Supervisor: 4 (Champion)\n  • Results-Driven Outcomes | Employee: 4 (Champion) | Supervisor: 4 (Champion)\n  • Leading Change | Employee: 5 (Role Model) | Supervisor: 3 (Solid Performer)\nEmail: snAlafeefi@ecouncil.ae - No competency ratings recorded.\nEmail: sssaldhaheri@ECOUNCIL.AE - No competency ratings recorded.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 2,
+      "history_depth": 2,
+      "assistant_msg_format": "fence"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "fence",
+    "no_code_delimiter"
+  ]
+}

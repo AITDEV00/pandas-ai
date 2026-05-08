@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-05-08T19:46:46.552909",
+  "registration_info": {
+    "file_path": "/home/jyao/ADEO/services/ait-icarus/pandas-ai/run/full data unflattened.xlsx",
+    "conversation_id": "33da0e4c-ad5e-4af8-aaf6-49df843289d0",
+    "mode": "single_reuse"
+  },
+  "total_queries": 76,
+  "total_success": 76,
+  "total_fail": 0,
+  "format_counts": {
+    "fence": 41,
+    "no_code_delimiter": 35
+  },
+  "category_stats": {
+    "column_omission": {
+      "total": 7,
+      "success": 7,
+      "fail": 0
+    },
+    "cross_struct_deep": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    },
+    "ambiguous_ref": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    },
+    "implicit_dep": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    },
+    "multi_struct_unnest": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    },
+    "negation_edge": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    },
+    "compound_aggregation": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    },
+    "temporal_cross": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    },
+    "extreme_single": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    }
+  },
+  "difficulty_stats": {
+    "hard": {
+      "total": 18,
+      "success": 18,
+      "fail": 0
+    },
+    "medium": {
+      "total": 3,
+      "success": 3,
+      "fail": 0
+    },
+    "extreme": {
+      "total": 34,
+      "success": 34,
+      "fail": 0
+    }
+  },
+  "avg_llm_calls": 2.6578947368421053,
+  "max_llm_calls": 5,
+  "multi_turn_marker_exposure": 0
+}

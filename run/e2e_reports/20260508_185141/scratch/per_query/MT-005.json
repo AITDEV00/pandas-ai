@@ -1,0 +1,53 @@
+{
+  "conversation_id": "MT-005",
+  "name": "Competency analysis",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "What competencies are evaluated for employees?",
+      "notes": "DISTINCT competency names from struct",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "There are 10 competencies evaluated for employees: Critical Thinking and Data-Driven Decision Making, Digital Savviness, Facilitates Collaboration and Influence, Fostering Well-Being and Coaching, Intrapreneurship, Leading Change, Learning Agility, Public Service Excellence, Results-Driven Outcomes, Strategic and Visionary Foresight.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "For the competency 'Digital Savviness', what is the average employee rating?",
+      "notes": "Filter struct by competency name, AVG rating",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "For the competency \"Digital Savviness\", the average employee rating is 4.00.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 2,
+      "assistant_msg_format": "marker"
+    },
+    {
+      "turn_index": 2,
+      "query": "Are there any employees where the supervisor rated them lower than they rated themselves for Digital Savviness?",
+      "notes": "Complex struct comparison — tests LLM's ability to compare nested fields",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "Yes, there are 1 employee(s) where the supervisor rated them lower than they rated themselves for Digital Savviness.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 4,
+      "assistant_msg_format": "marker"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "fence"
+  ]
+}

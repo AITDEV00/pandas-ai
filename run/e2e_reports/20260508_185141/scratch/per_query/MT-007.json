@@ -1,0 +1,53 @@
+{
+  "conversation_id": "MT-007",
+  "name": "Education & qualifications",
+  "turns": [
+    {
+      "turn_index": 0,
+      "query": "What is the most common degree among employees?",
+      "notes": "GROUP BY degree, COUNT, ORDER BY DESC",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "The most common degree among employees is Bachelor Degree, held by 9 employees.",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 0,
+      "assistant_msg_format": null
+    },
+    {
+      "turn_index": 1,
+      "query": "Which employees have a Master's degree or higher?",
+      "notes": "Filter by degree containing Master or PhD",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "There are 4 employees with a Master's degree or higher:\n- Eisa Rames Khamis AlDhaheri (Master Degree)\n- Afra Khalifa Shaheen Alghfeli (Master Degree)\n- Sara Ahmed Salem Alharbi (Master Degree)\n- Khalifa Sameh Khalaf aldhaen (Master Degree)",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 2,
+      "assistant_msg_format": "marker"
+    },
+    {
+      "turn_index": 2,
+      "query": "What qualifications do they hold? List the qualification titles.",
+      "notes": "Unnest Employee Qualification struct for those employees",
+      "expected_output_type": "string",
+      "success": true,
+      "final_type": "string",
+      "final_response": "The qualifications held by employees with Master's degree or higher:\nEisa Rames Khamis AlDhaheri (Master Degree): Bachelor of Mass Communication and Media (Public Relations), Master of Business Administration\nAfra Khalifa Shaheen Alghfeli (Master Degree): MBA in International Hospital and Healthcare Management, Higher Diploma in Health Information Management, Applied Sciences in Health Information Management\nSara Ahmed Salem Alharbi (Master Degree): Master of Business Administration\nKhalifa Sameh Khalaf aldhaen (Master Degree): Mechanical Engineering, Project and Enterprise Managment",
+      "error": null,
+      "response_format": "fence",
+      "llm_call_count": 1,
+      "history_depth": 4,
+      "assistant_msg_format": "marker"
+    }
+  ],
+  "total_turns": 3,
+  "successful_turns": 3,
+  "formats_used": [
+    "fence"
+  ]
+}

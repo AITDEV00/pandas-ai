@@ -1,0 +1,136 @@
+{
+  "timestamp": "2026-05-08T19:11:22.321091",
+  "registration_info": {
+    "file_path": "/home/jyao/ADEO/services/ait-icarus/pandas-ai/run/full data unflattened.xlsx",
+    "conversation_id": "f58b312c-584b-4a69-adf7-ee410797fdf9",
+    "mode": "single_reuse"
+  },
+  "total_queries": 58,
+  "total_success": 58,
+  "total_fail": 0,
+  "format_counts": {
+    "fence": 58
+  },
+  "category_stats": {
+    "count": {
+      "total": 1,
+      "success": 1,
+      "fail": 0
+    },
+    "count_filter": {
+      "total": 2,
+      "success": 2,
+      "fail": 0
+    },
+    "lookup": {
+      "total": 4,
+      "success": 4,
+      "fail": 0
+    },
+    "aggregation": {
+      "total": 2,
+      "success": 2,
+      "fail": 0
+    },
+    "distinct": {
+      "total": 1,
+      "success": 1,
+      "fail": 0
+    },
+    "grouped_count": {
+      "total": 2,
+      "success": 2,
+      "fail": 0
+    },
+    "grouped_aggregation": {
+      "total": 2,
+      "success": 2,
+      "fail": 0
+    },
+    "struct_query": {
+      "total": 3,
+      "success": 3,
+      "fail": 0
+    },
+    "multi_filter": {
+      "total": 2,
+      "success": 2,
+      "fail": 0
+    },
+    "computed": {
+      "total": 2,
+      "success": 2,
+      "fail": 0
+    },
+    "struct_aggregation": {
+      "total": 1,
+      "success": 1,
+      "fail": 0
+    },
+    "struct_filter": {
+      "total": 1,
+      "success": 1,
+      "fail": 0
+    },
+    "cross_struct": {
+      "total": 1,
+      "success": 1,
+      "fail": 0
+    },
+    "ambiguous": {
+      "total": 2,
+      "success": 2,
+      "fail": 0
+    },
+    "no_result": {
+      "total": 2,
+      "success": 2,
+      "fail": 0
+    },
+    "full_scan": {
+      "total": 1,
+      "success": 1,
+      "fail": 0
+    },
+    "explanation": {
+      "total": 1,
+      "success": 1,
+      "fail": 0
+    },
+    "off_topic": {
+      "total": 1,
+      "success": 1,
+      "fail": 0
+    },
+    "cross_struct_comparison": {
+      "total": 1,
+      "success": 1,
+      "fail": 0
+    }
+  },
+  "difficulty_stats": {
+    "trivial": {
+      "total": 5,
+      "success": 5,
+      "fail": 0
+    },
+    "easy": {
+      "total": 10,
+      "success": 10,
+      "fail": 0
+    },
+    "medium": {
+      "total": 11,
+      "success": 11,
+      "fail": 0
+    },
+    "hard": {
+      "total": 6,
+      "success": 6,
+      "fail": 0
+    }
+  },
+  "avg_llm_calls": 1.396551724137931,
+  "max_llm_calls": 4,
+  "multi_turn_marker_exposure": 0
+}

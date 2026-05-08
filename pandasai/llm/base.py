@@ -101,6 +101,14 @@ class LLM:
         # If separator is in the response then we want the code in between only
         if separator in response and len(code.split(separator)) > 1:
             code = code.split(separator)[1]
+        else:
+            # Fallback: try to extract code after "Code:" markers that some LLMs
+            # use (e.g. "---\nCode:" or just "Code:" at the start of a line).
+            # This handles small LLMs that don't use markdown code fences.
+            code_after_marker = self._extract_code_after_marker(response)
+            if code_after_marker is not None:
+                code = code_after_marker
+
         code = self._polish_code(code)
 
         # Even if the separator is not in the response, the output might still be valid python code
@@ -108,6 +116,30 @@ class LLM:
             raise NoCodeFoundError("No code found in the response")
 
         return code
+
+    @staticmethod
+    def _extract_code_after_marker(response: str) -> Optional[str]:
+        """
+        Extract code that appears after a 'Code:' marker in the LLM response.
+        Some small LLMs format their output as:
+            [preview text]
+            ---
+            Code:
+            import pandas as pd
+            ...
+
+        Returns the code string after the marker, or None if no marker found.
+        """
+        # Match "---\nCode:" or "Code:" at the start of a line (with optional
+        # whitespace before/after the marker).
+        for pattern in (
+            r"---\s*\n\s*Code\s*:\s*\n",
+            r"\n\s*Code\s*:\s*\n",
+        ):
+            match = re.search(pattern, response)
+            if match:
+                return response[match.end():]
+        return None
 
     def prepend_system_prompt(self, prompt: str, memory: Memory) -> str | Any:
         """
