@@ -67,13 +67,13 @@ class CodeCleaner:
         dialect = self.context.dfs[0].get_dialect()
         try:
             table_names = SQLParser.extract_table_names(sql_query, dialect)
-        except Exception:
+        except Exception as e:
             # sqlglot may fail to tokenize SQL with DuckDB-specific syntax
             # like struct field access (rec['Field Name']) or bracket-enclosed
             # column names. Skip table name validation and return the trimmed query.
             self.context.logger.log(
-                "Skipping SQL table-name validation: sqlglot could not parse the query "
-                "(likely due to DuckDB struct/bracket syntax)."
+                f"Skipping SQL table-name validation: sqlglot could not parse the query "
+                f"(likely due to DuckDB struct/bracket syntax). Error: {e}"
             )
             return sql_query
         allowed_table_names = {

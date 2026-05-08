@@ -70,13 +70,8 @@ class TestResponseParser(unittest.TestCase):
             mock_open.assert_called_once()
             mock_image.show.assert_called_once()
 
-        mock_image = unittest.mock.MagicMock()
-        with unittest.mock.patch(
-            "PIL.Image.open", return_value=mock_image
-        ) as mock_open:
-            print(response)
-            mock_open.assert_called_once()
-            mock_image.show.assert_called_once()
+        # __str__ returns the value string directly without opening the image
+        self.assertEqual(str(response), result["value"])
 
     def test_parse_with_last_code_executed(self):
         result = {"type": "number", "value": 42}

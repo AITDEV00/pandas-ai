@@ -1,6 +1,6 @@
 ---
 description: Project context and coding guidelines for the PandasAI chat-excel-server service using Vertical Slice Architecture (VSA)
-applyTo: '**/pandas-ai/server/**'
+applyTo: '**/pandas-ai/**'
 ---
 
 # PandasAI Chat Excel Server - Project Context
@@ -53,7 +53,7 @@ server/
 - **LiteLLM** for LLM abstraction
 - **Pydantic** for request/response models
 - **Uvicorn** as ASGI server
-- **Poetry** for dependency management
+- **Poetry** for dependency management and venv
 
 ## Development Environment
 

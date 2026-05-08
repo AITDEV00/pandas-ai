@@ -33,11 +33,15 @@ class BasePrompt:
             path_to_template = os.path.join(current_dir_path, "templates")
             env = Environment(loader=FileSystemLoader(path_to_template))
             self.prompt = env.get_template(self.template_path)
+        else:
+            raise ValueError(
+                f"{self.__class__.__name__} must define either 'template' or 'template_path'"
+            )
 
         self._resolved_prompt = None
 
     def render(self):
-        """Render the prompt."""
+        """Render the prompt with newline cleanup."""
         render = self.prompt.render(**self.props)
 
         # Remove additional newlines in render
@@ -46,9 +50,9 @@ class BasePrompt:
         return render
 
     def to_string(self):
-        """Render the prompt."""
+        """Render the prompt (cached). Uses render() for consistency."""
         if self._resolved_prompt is None:
-            self._resolved_prompt = self.prompt.render(**self.props)
+            self._resolved_prompt = self.render()
 
         return self._resolved_prompt
 

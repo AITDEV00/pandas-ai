@@ -7,6 +7,30 @@
 
 ---
 
+### Implementation Status Summary (Updated 2025-05-08)
+
+| Issue | Status | Notes |
+|-------|--------|-------|
+| 1–6 | ⬜ Not started | Column selection pipeline (Phase 2–3) |
+| 7 | 🟡 API updated | Memory API refactored (`size`→`memory_size`, `to_openai_messages_for_chat()`); `_build_step1_memory()` pending Phase 3 |
+| 8 | ✅ Done | `_store_assistant_message()` implemented in `Agent._process_query()` |
+| 9 | ✅ Done | All 3 layers: prompt improvements, runtime validation, handler coercion |
+| 10 | ✅ Done | `_validate_output_type()` in handler.py |
+| 11 | ✅ Done | Root cause fix (`ChartResponse.type="plot"`) + handler normalization |
+| 12 | ✅ Done | `InvalidLLMOutputType` now raised in `ResponseParser._validate_response()` |
+| 13 | ✅ Done | `code_strategy.tmpl` conditional `{% if output_type %}` block |
+| 14 | 📝 Documented | Known limitation; workarounds documented |
+| 15 | ⬜ Not started | Caching disabled by default; future work |
+| 16 | ✅ Done | `_coerce_response_type()` + error response type |
+| 17 | ✅ Done | DataFrame truncation in coercion (`.head()` + shape info) |
+| 18 | 📝 Documented | Known limitation; future improvement noted |
+| 19 | ✅ Done | Config fields added to `pandasai/config.py` |
+| 20 | ✅ Done | All 10 open questions resolved |
+
+**Dead code cleanup (Phase 5):** ✅ Complete — removed `BasePrompt.validate()`, `AbstractPrompt`, `LLM.is_pandasai_llm()`; fixed type annotations and f-strings.
+
+---
+
 ## Table of Contents
 
 1. [Issue 1: Wide Tables Overwhelm the LLM (§1–§3)](#issue-1-wide-tables-overwhelm-the-llm)
@@ -207,6 +231,8 @@ class ColumnSelector:
             return inner[:parent_end]
         return None
 ```
+
+> **Note on LLM calls:** `self._state.config.llm.call(prompt, self._state)` now internally uses `self._state.memory.to_openai_messages_for_chat()` to construct the messages array (see Issue 7 update). For Step 1, the `_build_step1_memory()` method creates a temporary Memory with reduced `memory_size` so only the last N turns are included.
 
 #### File: `pandasai/agent/base.py` (MODIFY — add to `_process_query()`)
 
@@ -661,11 +687,17 @@ def _process_query(self, query: str, output_type: Optional[str] = None):
     try:
         code = self.generate_code_with_retries(str(query))
         result = self.execute_with_retries(code)
+
+        # Issue 8: Store assistant message for multi-turn context
+        self._store_assistant_message(result, output_type)
+
         return result
     finally:
         if original_dfs is not None:
             self._state.dfs = original_dfs
 ```
+
+> **Note:** The `_store_assistant_message()` call is now implemented (see Issue 8). The `try/finally` DataFrame swap pattern for column selection is the remaining piece not yet wired in.
 
 ### Critical Detail: `list(self._state.dfs)` Creates a Shallow Copy
 
@@ -692,6 +724,12 @@ Step 1 and Step 2 are part of the SAME user turn, not separate turns. Memory sho
 
 ### Solution: Step 1 Uses Temporary Memory; Step 2 Uses Full Memory
 
+> **⚠️ Updated 2025-05-08:** The Memory API has been refactored since the original solution was written:
+> - `memory.size` → `memory.memory_size` (renamed with proper property + setter)
+> - The authoritative method for constructing LLM messages is now `memory.to_openai_messages_for_chat(num_turns)`, NOT `memory.all()` with a size limit
+> - `Agent.set_message_history(num_turns)` is the public API for setting memory size (replaces `agent._state.memory._memory_size = ...`)
+> - `LiteLLM.call()` and `BaseOpenAI.call()` now use `to_openai_messages_for_chat()` internally
+
 ```python
 def _build_step1_memory(self) -> Memory:
     """Create a temporary Memory for Step 1 with reduced size limit."""
@@ -708,21 +746,31 @@ def _build_step1_memory(self) -> Memory:
     return step1_memory
 ```
 
-Step 1 passes this temporary memory to the LLM call via the context. `LiteLLM.call()` reads `context.memory.all()` with the `memory.size` limit, so only the last 5 turns are included. Step 2 continues using the full memory.
+Step 1 passes this temporary memory to the LLM call via the context. The LLM caller now uses `context.memory.to_openai_messages_for_chat()` (which reads `memory.memory_size`) instead of the old `context.memory.all()` with `memory.size` limit. So only the last 5 turns are included. Step 2 continues using the full memory.
+
+**Key API differences from original solution:**
+
+| Old API | New API | Notes |
+|---------|---------|-------|
+| `memory.size` | `memory.memory_size` | Renamed property with getter + setter |
+| `memory.all()[:memory.size]` | `memory.to_openai_messages_for_chat(num_turns)` | Authoritative method; handles rounding, system prompt, dangling messages |
+| `agent._state.memory._memory_size = N` | `agent.set_message_history(N)` | Public API; properly encapsulated |
+| LLM reads `memory.all()` | LLM reads `to_openai_messages_for_chat()` | Called internally by LiteLLM and BaseOpenAI |
 
 ### Test Strategy
 
 | Test | What It Verifies |
 |------|-----------------|
-| Unit: `_build_step1_memory()` | Creates Memory with correct size and copied messages |
+| Unit: `_build_step1_memory()` | Creates Memory with correct `memory_size` and copied messages |
 | Integration: Step 1 doesn't write to memory | After Step 1, `self._state.memory.count()` is unchanged |
-| Integration: Step 2 uses full memory | Step 2's LLM call includes all memory messages |
+| Integration: Step 2 uses full memory | Step 2's LLM call includes all memory messages via `to_openai_messages_for_chat()` |
 
 ---
 
 ## Issue 8: No Assistant Messages in History
 
 **Plan Reference:** §4.7
+**Status:** ✅ IMPLEMENTED
 
 ### Problem
 
@@ -760,6 +808,16 @@ def _store_assistant_message(self, result, output_type: Optional[str] = None):
     self._state.memory.add(assistant_msg, is_user=False)
 ```
 
+### Implementation Notes (2025-05-08)
+
+The solution above is **fully implemented** in `pandasai/agent/base.py`:
+
+- `_store_assistant_message()` is called in `_process_query()` after successful execution
+- It stores assistant messages for `output_type in ("string", "number")` — exactly as designed
+- The assistant message format is `"{response_text}\n\n---\nCode:\n{working_code}"`
+- `to_openai_messages_for_chat()` now correctly produces alternating user/assistant message pairs
+- The handler calls `agent.set_message_history(message_history)` to configure memory size via the public API
+
 **Where to call it in `_process_query()`:**
 
 ```python
@@ -777,7 +835,7 @@ def _process_query(self, query: str, output_type: Optional[str] = None):
         code = self.generate_code_with_retries(str(query))
         result = self.execute_with_retries(code)
 
-        # NEW: Store assistant message for multi-turn context
+        # Store assistant message for multi-turn context
         self._store_assistant_message(result, output_type)
 
         return result
@@ -813,6 +871,7 @@ def _process_query(self, query: str, output_type: Optional[str] = None):
 ## Issue 9: Output Type Mismatch — No Enforcement
 
 **Plan Reference:** §4.8 Bug A
+**Status:** ✅ IMPLEMENTED (all 3 layers)
 
 ### Problem
 
@@ -932,6 +991,15 @@ def execute_with_retries(self, code: str) -> Any:
 
 See [Issue 10](#issue-10-clients-send-unsupported-types-like-text) for `_validate_output_type()` and [Issue 11](#issue-11-chartresponsetype--chart-instead-of-plot) for "chart" → "plot" normalization. The handler enforcement with `_coerce_response_type()` is detailed in [Issue 16](#issue-16-new-error-response-type).
 
+### Implementation Notes (2025-05-08)
+
+All three layers are implemented:
+
+- **Layer 1 (Better Prompts):** `output_type_template.tmpl` has IMPORTANT blocks with counter-examples for each type. `code_strategy.tmpl` has conditional `{% if output_type %}` block that says "You MUST use type" when constrained.
+- **Layer 2 (Runtime Validation):** `ResponseParser._output_type` attribute is set before `parse()` in `execute_with_retries()`. `_validate_response()` raises `InvalidLLMOutputType` on type mismatch, which activates the correction prompt path.
+- **Layer 3 (Handler Enforcement):** `_coerce_response_type()` in handler.py attempts type coercion. If it fails, returns `{"type": "error", ...}` response.
+- **Correction template:** `correct_output_type_error_prompt.tmpl` has IMPORTANT blocks with counter-examples.
+
 ### Test Strategy
 
 | Test | What It Verifies |
@@ -949,6 +1017,7 @@ See [Issue 10](#issue-10-clients-send-unsupported-types-like-text) for `_validat
 ## Issue 10: Clients Send Unsupported Types Like "text"
 
 **Plan Reference:** §4.8 Bug B
+**Status:** ✅ IMPLEMENTED
 
 ### Problem
 
@@ -997,6 +1066,10 @@ def _validate_output_type(output_type: Optional[str]) -> Optional[str]:
 
 **Decision:** Validate + reject. The 400 error immediately tells the developer what's wrong. The hint `"Use 'string' instead of 'text'"` makes the fix obvious.
 
+### Implementation Notes (2025-05-08)
+
+`_validate_output_type()` is implemented in `server/features/chat/handler.py` with `SUPPORTED_OUTPUT_TYPES = {"string", "number", "dataframe", "plot", "auto"}`. Called before `agent.chat()`/`agent.follow_up()`. Returns `None` for `"auto"` (normalized to auto mode).
+
 ### Test Strategy
 
 | Test | What It Verifies |
@@ -1014,6 +1087,7 @@ def _validate_output_type(output_type: Optional[str]) -> Optional[str]:
 ## Issue 11: ChartResponse.type = "chart" Instead of "plot"
 
 **Plan Reference:** §4.8 Bug C
+**Status:** ✅ IMPLEMENTED (both root cause fix + handler workaround)
 
 ### Problem
 
@@ -1042,6 +1116,12 @@ if actual_type == "chart":
 
 The handler workaround ensures that if the root cause fix hasn't been deployed yet (or if there are other code paths that create `ChartResponse` objects), the API still consistently returns `"plot"`.
 
+### Implementation Notes (2025-05-08)
+
+Both fixes are implemented:
+- **Root cause:** `ChartResponse.__init__` in `pandasai/core/response/chart.py` now passes `"plot"` to `super().__init__()` instead of `"chart"`
+- **Handler workaround:** `server/features/chat/handler.py` normalizes `actual_type == "chart"` → `"plot"` before enforcement checks
+
 ### Test Strategy
 
 | Test | What It Verifies |
@@ -1063,6 +1143,7 @@ The handler workaround ensures that if the root cause fix hasn't been deployed y
 ## Issue 12: Dead Correction Prompt Path
 
 **Plan Reference:** §4.8 Fix 3
+**Status:** ✅ IMPLEMENTED
 
 ### Problem
 
@@ -1125,6 +1206,14 @@ Fix the python code above and generate the new python code. Make sure the result
 
 **⚠️ Dependency on Issue 13:** This template includes `code_strategy.tmpl`, which currently says "choose the most appropriate type" — contradicting the error-correction context. The `code_strategy.tmpl` conditional fix (Issue 13) MUST be implemented first. After that fix, when `output_type` is set, `code_strategy.tmpl` will render "You MUST use type '{{output_type}}'" instead of "choose", which is consistent with the correction prompt's intent.
 
+### Implementation Notes (2025-05-08)
+
+The dead code path is now live:
+- `ResponseParser._validate_response()` raises `InvalidLLMOutputType` when `self._output_type` is set and `result["type"] != self._output_type`
+- `Agent._regenerate_code_after_error()` routes `InvalidLLMOutputType` to `get_correct_output_type_error_prompt()`
+- The correction template has IMPORTANT blocks with counter-examples for each type
+- Issue 13 dependency is satisfied: `code_strategy.tmpl` conditional is implemented
+
 ### Test Strategy
 
 | Test | What It Verifies |
@@ -1139,6 +1228,7 @@ Fix the python code above and generate the new python code. Make sure the result
 ## Issue 13: code_strategy.tmpl Contradicts Type Constraint
 
 **Plan Reference:** §4.8 Fix 2A
+**Status:** ✅ IMPLEMENTED
 
 ### Problem
 
@@ -1160,6 +1250,12 @@ Choose the most appropriate type for the user's question:
 ```
 
 This ensures `code_strategy.tmpl` reinforces the type constraint instead of contradicting it.
+
+### Implementation Notes (2025-05-08)
+
+Implemented in `pandasai/core/prompts/templates/shared/code_strategy.tmpl`:
+- When `output_type` is set: renders `"You MUST use type '{{output_type}}' — this is non-negotiable."`
+- When `output_type` is None: renders the "Choose the most appropriate type" guidance with type descriptions
 
 ### Test Strategy
 
@@ -1257,6 +1353,7 @@ def _is_similar_query(self, query1: str, query2: str) -> bool:
 ## Issue 16: New "error" Response Type
 
 **Plan Reference:** §4.8 Fix 2B
+**Status:** ✅ IMPLEMENTED
 
 ### Problem
 
@@ -1318,6 +1415,10 @@ def _coerce_response_type(response_obj, actual_type: str, requested_type: str):
     # All other mismatches are nonsensical — can't coerce
     return None
 ```
+
+### Implementation Notes (2025-05-08)
+
+`_coerce_response_type()` is implemented in `server/features/chat/handler.py`. When coercion fails, the handler returns `{"type": "error", "response": "Unable to produce output_type '...'..."}`. The `ChatResponse.type: str` field already supports this.
 
 ### Test Strategy
 
@@ -1414,6 +1515,7 @@ def _regenerate_code_after_error(self, code: str, error: Exception) -> str:
 ## Issue 19: Config Fields Don't Exist Yet
 
 **Plan Reference:** §3.2
+**Status:** ✅ IMPLEMENTED (config fields added)
 
 ### Problem
 
@@ -1432,24 +1534,9 @@ class Config(BaseModel):
     auto_fill_descriptions: bool = False
 ```
 
-Also add matching fields to the server payload model:
+### Implementation Notes (2025-05-08)
 
-```python
-# server/features/register/models.py
-class PandasAIConfigPayload(BaseModel):
-    # ... existing fields ...
-    column_selection_enabled: bool = Field(
-        False, description="Enable 2-step column selection for wide tables"
-    )
-    column_selection_threshold: int = Field(
-        30,
-        description="Auto-enable column selection when column count >= this value",
-    )
-    auto_fill_descriptions: bool = Field(
-        False,
-        description="Use LLM to fill missing column descriptions after enrichment",
-    )
-```
+All four config fields are added to `pandasai/config.py` with the exact defaults shown above. Server payload fields in `server/features/register/models.py` still need to be added (see Phase 1 checklist).
 
 ### Test Strategy
 
@@ -1499,22 +1586,33 @@ The plan lists 10 open questions that need decisions before implementation.
 | `pandasai/core/prompts/templates/auto_fill_descriptions.tmpl` | Auto-fill prompt template |
 | `server/core/description_filler.py` | Auto-fill missing column descriptions |
 
+### New Files (Testing)
+
+| File | Purpose |
+|------|---------|
+| `tests/unit_tests/llms/test_base_llm.py` | Removed `test_is_pandasai_llm` test (dead code) |
+
 ### Modified Files
 
-| File | Changes |
-|------|---------|
-| `pandasai/config.py` | Add `column_selection_enabled`, `column_selection_threshold`, `column_selection_memory_size`, `auto_fill_descriptions` |
-| `pandasai/agent/base.py` | Add `_should_select_columns()`, `_apply_column_selection()`, `_build_trimmed_dataframe()`, `_store_assistant_message()`; modify `_process_query()`, `execute_with_retries()` |
-| `pandasai/agent/state.py` | Add `last_selected_names`, `last_query` fields (for future caching) |
-| `pandasai/core/response/parser.py` | Add `self._output_type` attribute; raise `InvalidLLMOutputType` on type mismatch in `_validate_response()` |
-| `pandasai/core/response/chart.py` | Change `type="chart"` → `type="plot"` in `ChartResponse.__init__` |
-| `pandasai/core/prompts/templates/shared/output_type_template.tmpl` | Add IMPORTANT blocks with counter-examples + reformulation guidance |
-| `pandasai/core/prompts/templates/shared/code_strategy.tmpl` | Add conditional `{% if output_type %}` block |
-| `pandasai/core/prompts/templates/correct_output_type_error_prompt.tmpl` | Add IMPORTANT blocks with counter-examples |
-| `server/features/chat/handler.py` | Add `_validate_output_type()`, `_coerce_response_type()`, "chart" → "plot" normalization |
-| `server/features/chat/models.py` | No change needed (ChatResponse.type is already `str`) |
-| `server/features/register/handler.py` | Add step 2c: auto-fill missing descriptions |
-| `server/features/register/models.py` | Add `column_selection_enabled`, `column_selection_threshold`, `auto_fill_descriptions` fields |
+| File | Changes | Status |
+|------|---------|--------|
+| `pandasai/config.py` | Add `column_selection_enabled`, `column_selection_threshold`, `column_selection_memory_size`, `auto_fill_descriptions` | ✅ Done |
+| `pandasai/agent/base.py` | Add `_should_select_columns()`, `_apply_column_selection()`, `_build_trimmed_dataframe()`, `_store_assistant_message()`, `set_message_history()`; modify `_process_query()`, `execute_with_retries()` | 🟡 Partial (`_store_assistant_message`, `set_message_history`, `execute_with_retries` done; column selection methods pending) |
+| `pandasai/agent/state.py` | Add `last_selected_names`, `last_query` fields (for future caching) | ⬜ Not started |
+| `pandasai/helpers/memory.py` | Renamed `size` → `memory_size` (property + setter); added `to_openai_messages_for_chat()`; fixed `_truncate` type hint; added `to_json` return type | ✅ Done |
+| `pandasai/core/response/parser.py` | Add `self._output_type` attribute; raise `InvalidLLMOutputType` on type mismatch in `_validate_response()` | ✅ Done |
+| `pandasai/core/response/chart.py` | Change `type="chart"` → `type="plot"` in `ChartResponse.__init__` | ✅ Done |
+| `pandasai/core/prompts/base.py` | Removed dead `validate()` method and `AbstractPrompt` class | ✅ Done |
+| `pandasai/core/prompts/templates/shared/output_type_template.tmpl` | Add IMPORTANT blocks with counter-examples + reformulation guidance | ✅ Done |
+| `pandasai/core/prompts/templates/shared/code_strategy.tmpl` | Add conditional `{% if output_type %}` block | ✅ Done |
+| `pandasai/core/prompts/templates/correct_output_type_error_prompt.tmpl` | Add IMPORTANT blocks with counter-examples | ✅ Done |
+| `pandasai/llm/base.py` | Removed dead `is_pandasai_llm()` method | ✅ Done |
+| `extensions/llms/openai/pandasai_openai/base.py` | Fixed `_client_params` type annotation (`any` → `Any`) | ✅ Done |
+| `extensions/llms/litellm/pandasai_litellm/litellm.py` | Fixed pointless f-string (`f"litellm"` → `"litellm"`) | ✅ Done |
+| `server/features/chat/handler.py` | Add `_validate_output_type()`, `_coerce_response_type()`, "chart" → "plot" normalization; use `agent.set_message_history()` | ✅ Done |
+| `server/features/chat/models.py` | No change needed (ChatResponse.type is already `str`) | N/A |
+| `server/features/register/handler.py` | Add step 2c: auto-fill missing descriptions | ⬜ Not started |
+| `server/features/register/models.py` | Add `column_selection_enabled`, `column_selection_threshold`, `auto_fill_descriptions` fields | ⬜ Not started |
 
 ### Unchanged Files (Column Selection)
 
@@ -1531,7 +1629,7 @@ The plan lists 10 open questions that need decisions before implementation.
 ## Appendix B: Implementation Phase Checklist
 
 ### Phase 1: Foundation
-- [ ] Add config fields to `pandasai/config.py`
+- [x] Add config fields to `pandasai/config.py`
 - [ ] Add server payload fields to `server/features/register/models.py`
 - [ ] Add `_should_select_columns()` stub to `Agent`
 - [ ] Add `_apply_column_selection()` stub to `Agent`
@@ -1552,24 +1650,36 @@ The plan lists 10 open questions that need decisions before implementation.
 - [ ] Wire into `Agent._process_query()` with try/finally swap pattern
 - [ ] Add fallback logic and essential column protection
 
-### Phase 4: Memory Fix + Output Type Enforcement
-- [ ] Add `_validate_output_type()` in handler.py
-- [ ] Improve `output_type_template.tmpl` with IMPORTANT blocks + counter-examples
-- [ ] Update `code_strategy.tmpl` with conditional `{% if output_type %}` block
-- [ ] Add handler-level enforcement with `_coerce_response_type()`
-- [ ] Add "chart" → "plot" normalization in handler
-- [ ] Fix `ChartResponse.__init__` root cause (`type="chart"` → `type="plot"`)
-- [ ] Add `_output_type` attribute to `ResponseParser`
-- [ ] Raise `InvalidLLMOutputType` in `_validate_response()` on type mismatch
-- [ ] Pass `output_type` to `ResponseParser` via `self._response_parser._output_type`
-- [ ] Improve `correct_output_type_error_prompt.tmpl` with counter-examples
-- [ ] Add `_store_assistant_message()` to `Agent._process_query()`
-- [ ] Add `_build_step1_memory()` to `ColumnSelector`
-- [ ] Wire temporary memory into Step 1 LLM call
+### Phase 4: Memory Fix + Output Type Enforcement ✅ COMPLETE
+- [x] Add `_validate_output_type()` in handler.py
+- [x] Improve `output_type_template.tmpl` with IMPORTANT blocks + counter-examples
+- [x] Update `code_strategy.tmpl` with conditional `{% if output_type %}` block
+- [x] Add handler-level enforcement with `_coerce_response_type()`
+- [x] Add "chart" → "plot" normalization in handler
+- [x] Fix `ChartResponse.__init__` root cause (`type="chart"` → `type="plot"`)
+- [x] Add `_output_type` attribute to `ResponseParser`
+- [x] Raise `InvalidLLMOutputType` in `_validate_response()` on type mismatch
+- [x] Pass `output_type` to `ResponseParser` via `self._response_parser._output_type`
+- [x] Improve `correct_output_type_error_prompt.tmpl` with counter-examples
+- [x] Add `_store_assistant_message()` to `Agent._process_query()`
+- [x] Rename `Memory.size` → `Memory.memory_size` with proper property + setter
+- [x] Add `Agent.set_message_history()` public API
+- [x] Add `Memory.to_openai_messages_for_chat()` authoritative method
+- [x] Fix handler.py to use `agent.set_message_history()` (encapsulation)
+- [ ] Add `_build_step1_memory()` to `ColumnSelector` (depends on Phase 3)
+- [ ] Wire temporary memory into Step 1 LLM call (depends on Phase 3)
 - [ ] Test multi-turn conversations with follow-up column add/remove
 - [ ] Test output type enforcement end-to-end
 
-### Phase 5: Caching & Polish
+### Phase 5: Dead Code Cleanup ✅ COMPLETE
+- [x] Remove `BasePrompt.validate()` — dead code (never called, no overrides)
+- [x] Remove `AbstractPrompt` class — dead code (never imported, never subclassed)
+- [x] Remove `LLM.is_pandasai_llm()` — dead code (only called from its own test)
+- [x] Fix Memory type hints (`_truncate` return type, `to_json` return type)
+- [x] Fix BaseOpenAI `_client_params` type annotation (`any` → `Any`)
+- [x] Fix LiteLLM f-string (`f"litellm"` → `"litellm"`)
+
+### Phase 6: Caching & Polish
 - [ ] Add `last_selected_names` to `AgentState`
 - [ ] Implement column selection caching (disabled by default)
 - [ ] Add logging/metrics for column selection hits/misses

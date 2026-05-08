@@ -1,9 +1,12 @@
 import os
 import platform
+import logging
 
 import requests
 
 from pandasai.__version__ import __version__
+
+_logger = logging.getLogger(__name__)
 
 
 def scarf_analytics():
@@ -18,5 +21,5 @@ def scarf_analytics():
                 + "&platform="
                 + platform.system()
             )
-    except Exception:
-        pass
+    except Exception as e:
+        _logger.debug(f"Telemetry request failed: {e}")

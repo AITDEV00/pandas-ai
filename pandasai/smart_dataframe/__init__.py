@@ -22,7 +22,7 @@ class SmartDataframe:
     _table_name: str
     _table_description: str
     _custom_head: str = None
-    _original_import: any
+    _original_import: Any
 
     def __init__(
         self,
@@ -142,39 +142,39 @@ class SmartDataframe:
 
     @property
     def logs(self):
-        return self._agent.context.config.logs
+        return self._agent._state.config.logs
 
     @property
     def verbose(self):
-        return self._agent.context.config.verbose
+        return self._agent._state.config.verbose
 
     @verbose.setter
     def verbose(self, verbose: bool):
-        self._agent.context.config.verbose = verbose
+        self._agent._state.config.verbose = verbose
 
     @property
     def save_logs(self):
-        return self._agent.context.config.save_logs
+        return self._agent._state.config.save_logs
 
     @save_logs.setter
     def save_logs(self, save_logs: bool):
-        self._agent.context.config.save_logs = save_logs
+        self._agent._state.config.save_logs = save_logs
 
     @property
     def save_charts(self):
-        return self._agent.context.config.save_charts
+        return self._agent._state.config.save_charts
 
     @save_charts.setter
     def save_charts(self, save_charts: bool):
-        self._agent.context.config.save_charts = save_charts
+        self._agent._state.config.save_charts = save_charts
 
     @property
     def save_charts_path(self):
-        return self._agent.context.config.save_charts_path
+        return self._agent._state.config.save_charts_path
 
     @save_charts_path.setter
     def save_charts_path(self, save_charts_path: str):
-        self._agent.context.config.save_charts_path = save_charts_path
+        self._agent._state.config.save_charts_path = save_charts_path
 
     @property
     def table_name(self):

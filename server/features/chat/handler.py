@@ -1,6 +1,9 @@
+import logging
 from typing import Any, Optional, Tuple
 from fastapi import HTTPException
 from server.core.agent_store import agent_store
+
+logger = logging.getLogger(__name__)
 
 # Issue 10: Supported output types for API validation
 SUPPORTED_OUTPUT_TYPES = {"string", "number", "dataframe", "plot", "auto"}
@@ -71,15 +74,38 @@ def _coerce_response_type(
     return None
 
 
-def handle_chat_query(conversation_id: str, query: str, output_type: str = None, message_history: int = None) -> dict:
+def handle_chat_query(
+    conversation_id: str,
+    query: str,
+    output_type: Optional[str] = None,
+    message_history: Optional[int] = None,
+    column_selection_enabled: Optional[bool] = None,
+    column_selection_threshold: Optional[int] = None,
+    column_values_budget_ratio: Optional[float] = None,
+) -> dict:
     """Retrieves session state, queries the LLM, and formats the response object safely."""
     agent = agent_store.get_agent(conversation_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Conversation ID not found or expired.")
 
     # Apply message_history limit if provided
-    if message_history is not None and message_history > 0:
+    if message_history is not None and message_history >= 0:
         agent.set_message_history(message_history)
+
+    # --- Per-query config overrides (restored in finally block) ---
+    _overrides = {}  # {attr_name: original_value}
+
+    if column_selection_enabled is not None:
+        _overrides["column_selection_enabled"] = agent._state.config.column_selection_enabled
+        agent._state.config.column_selection_enabled = column_selection_enabled
+
+    if column_selection_threshold is not None:
+        _overrides["column_selection_threshold"] = agent._state.config.column_selection_threshold
+        agent._state.config.column_selection_threshold = column_selection_threshold
+
+    if column_values_budget_ratio is not None:
+        _overrides["column_values_budget_ratio"] = agent._state.config.column_values_budget_ratio
+        agent._state.config.column_values_budget_ratio = column_values_budget_ratio
 
     # Issue 10: Validate output_type at the API boundary
     validated_output_type = _validate_output_type(output_type)
@@ -119,7 +145,8 @@ def handle_chat_query(conversation_id: str, query: str, output_type: str = None,
                         f"converted to '{validated_output_type}'."
                     ),
                     "type": "error",
-                    "last_code_executed": getattr(agent, "last_code_executed", None)
+                    "last_code_executed": getattr(agent, "last_code_executed", None),
+                    "selected_columns": agent._state.last_selected_names,
                 }
         else:
             # Serialize response value appropriately based on type
@@ -131,7 +158,13 @@ def handle_chat_query(conversation_id: str, query: str, output_type: str = None,
         return {
             "response": response_value,
             "type": actual_type,
-            "last_code_executed": getattr(agent, "last_code_executed", None)
+            "last_code_executed": getattr(agent, "last_code_executed", None),
+            "selected_columns": agent._state.last_selected_names,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Chat query failed for conversation {conversation_id}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error. Check server logs for details.")
+    finally:
+        # Always restore per-query config overrides
+        for attr, original_value in _overrides.items():
+            setattr(agent._state.config, attr, original_value)

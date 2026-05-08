@@ -85,7 +85,7 @@ class DockerSandbox(Sandbox):
 
     def stop(self) -> None:
         if self._started and self._container:
-            logger.info(f"Stopping a Docker container with id '{self._container.id}''")
+            logger.info(f"Stopping a Docker container with id '{self._container.id}'")
             self._container.stop()
             self._container.remove()
             self._container = None

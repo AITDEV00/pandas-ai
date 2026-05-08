@@ -6,9 +6,10 @@ class UserQuery:
         return self.value
 
     def __repr__(self):
-        return f"UserQuery(value={self._value})"
+        return f"UserQuery(value={self.value})"
 
-    def __dict__(self):
+    def to_dict(self):
+        """Return the raw query string (alias for to_json)."""
         return self.value
 
     def to_json(self):

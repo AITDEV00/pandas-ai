@@ -1,6 +1,7 @@
 from typing import Optional
 
 import duckdb
+import pandas as pd
 
 from pandasai.query_builders.sql_parser import SQLParser
 
@@ -13,9 +14,12 @@ class DuckDBConnectionManager:
 
     def __del__(self):
         """Destructor to ensure the DuckDB connection is closed."""
-        self.close()
+        try:
+            self.close()
+        except Exception:
+            pass  # Prevent exceptions during garbage collection
 
-    def register(self, name: str, df):
+    def register(self, name: str, df: pd.DataFrame):
         """Registers a DataFrame as a DuckDB table."""
         self.connection.register(name, df)
         self._registered_tables.add(name)

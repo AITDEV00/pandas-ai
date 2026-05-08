@@ -29,6 +29,11 @@ class ViewDatasetLoader(SQLDatasetLoader):
         self.schema_dependencies_dict: dict[
             str, DatasetLoader
         ] = self._get_dependencies_schemas()
+        if not self.schema_dependencies_dict:
+            raise ValueError(
+                f"View schema '{schema.name}' has no dependency tables — "
+                "at least one is required to build a view."
+            )
         self.source: Source = list(self.schema_dependencies_dict.values())[
             0
         ].schema.source
@@ -65,7 +70,7 @@ class ViewDatasetLoader(SQLDatasetLoader):
             [loader.schema.source for loader in loaders]
         ):
             raise ValueError(
-                f"Sources in this schemas {self.schema} are compatible for a view."
+                f"Sources in this schema {self.schema} are NOT compatible for a view."
             )
 
         return dependency_dict

@@ -103,7 +103,7 @@ class TestAgent:
             agent.generate_code_with_retries("Which country has the highest gdp?")
 
         assert agent._code_generator.generate_code.called
-        assert agent._regenerate_code_after_error.call_count == 4
+        assert agent._regenerate_code_after_error.call_count == 3
 
     @patch("pandasai.agent.base.CodeGenerator")
     def test_generate_code_with(self, mock_generate_code, agent: Agent):

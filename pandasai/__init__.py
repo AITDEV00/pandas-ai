@@ -30,9 +30,6 @@ from pandasai.sandbox.sandbox import Sandbox
 
 from .agent import Agent
 from .data_loader.loader import DatasetLoader
-from .data_loader.semantic_layer_schema import (
-    Column,
-)
 from .dataframe import DataFrame, VirtualDataFrame
 from .helpers.path import get_table_name_from_path
 from .helpers.sql_sanitizer import (
@@ -193,6 +190,10 @@ def create(
             columns=parsed_columns,
             group_by=group_by,
             transformations=parsed_transformations,
+        )
+    else:
+        raise InvalidConfigError(
+            "Source must contain a 'table' key when providing a source dict"
         )
 
     schema.description = description or schema.description

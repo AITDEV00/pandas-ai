@@ -87,6 +87,7 @@ class ChromaDB(VectorStore):
             metadatas=metadatas,
             ids=ids,
         )
+        return ids
 
     def add_docs(
         self,
@@ -101,6 +102,7 @@ class ChromaDB(VectorStore):
             metadatas=metadatas,
             ids=ids,
         )
+        return ids
 
     def update_question_answer(
         self,
@@ -120,6 +122,7 @@ class ChromaDB(VectorStore):
             metadatas=metadatas,
             ids=ids,
         )
+        return list(ids)
 
     def update_docs(
         self,
@@ -132,6 +135,7 @@ class ChromaDB(VectorStore):
             metadatas=metadatas,
             ids=ids,
         )
+        return list(ids)
 
     def delete_question_and_answers(
         self, ids: Optional[List[str]] = None

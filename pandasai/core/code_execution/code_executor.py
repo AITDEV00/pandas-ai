@@ -1,6 +1,5 @@
 from typing import Any
 
-from pandasai.config import Config
 from pandasai.core.code_execution.environment import get_environment
 from pandasai.exceptions import CodeExecutionError, NoResultFoundError
 
@@ -12,7 +11,7 @@ class CodeExecutor:
 
     _environment: dict
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self) -> None:
         self._environment = get_environment()
 
     def add_to_env(self, key: str, value: Any) -> None:

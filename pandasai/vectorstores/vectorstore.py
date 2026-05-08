@@ -66,7 +66,9 @@ class VectorStore(ABC):
         Returns:
             List of ids from updating the texts into the vectorstore.
         """
-        pass
+        raise NotImplementedError(
+            "update_question_answer method must be implemented by subclass."
+        )
 
     def update_docs(
         self,
@@ -85,7 +87,9 @@ class VectorStore(ABC):
         Returns:
             List of ids from adding the texts into the vectorstore.
         """
-        pass
+        raise NotImplementedError(
+            "update_docs method must be implemented by subclass."
+        )
 
     def delete_question_and_answers(
         self, ids: Optional[List[str]] = None
@@ -124,6 +128,9 @@ class VectorStore(ABC):
         Returns:
             Optional[bool]: _description_
         """
+        raise NotImplementedError(
+            "delete_collection method must be implemented by subclass."
+        )
 
     def get_relevant_question_answers(self, question: str, k: int = 1) -> List[dict]:
         """
@@ -145,13 +152,17 @@ class VectorStore(ABC):
         """
         Returns relevant question answers based on ids
         """
-        pass
+        raise NotImplementedError(
+            "get_relevant_question_answers_by_id method must be implemented by subclass."
+        )
 
     def get_relevant_docs_by_id(self, ids: Iterable[str]) -> List[dict]:
         """
         Returns relevant documents based on ids
         """
-        pass
+        raise NotImplementedError(
+            "get_relevant_docs_by_id method must be implemented by subclass."
+        )
 
     @abstractmethod
     def get_relevant_qa_documents(self, question: str, k: int = 1) -> List[str]:

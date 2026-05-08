@@ -27,11 +27,6 @@ class LocalDatasetLoader(DatasetLoader):
     def query_builder(self) -> LocalQueryBuilder:
         return self._query_builder
 
-    def register_table(self):
-        df = self.load()
-        db_manager = DuckDBConnectionManager()
-        db_manager.register(self.schema.name, df)
-
     def load(self) -> DataFrame:
         df: pd.DataFrame = self.execute_query(self.query_builder.build_query())
         return DataFrame(

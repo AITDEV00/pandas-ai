@@ -18,7 +18,7 @@ class TestConfigNewFields:
 
     def test_column_selection_enabled_default(self):
         config = Config()
-        assert config.column_selection_enabled is False
+        assert config.column_selection_enabled is None
 
     def test_column_selection_threshold_default(self):
         config = Config()
@@ -30,12 +30,17 @@ class TestConfigNewFields:
 
     def test_auto_fill_descriptions_default(self):
         config = Config()
-        assert config.auto_fill_descriptions is False
+        assert config.auto_fill_descriptions is True
 
     def test_column_selection_enabled_can_be_set(self):
         llm = FakeLLM()
         config = Config(llm=llm, column_selection_enabled=True)
         assert config.column_selection_enabled is True
+
+    def test_column_selection_enabled_can_be_disabled(self):
+        llm = FakeLLM()
+        config = Config(llm=llm, column_selection_enabled=False)
+        assert config.column_selection_enabled is False
 
     def test_column_selection_threshold_can_be_set(self):
         llm = FakeLLM()

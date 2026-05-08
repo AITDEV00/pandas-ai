@@ -15,5 +15,8 @@ async def chat_endpoint(request: ChatRequest):
         query=request.query, 
         output_type=request.output_type,
         message_history=request.message_history,
+        column_selection_enabled=request.column_selection_enabled,
+        column_selection_threshold=request.column_selection_threshold,
+        column_values_budget_ratio=request.column_values_budget_ratio,
     )
     return ChatResponse(**result)

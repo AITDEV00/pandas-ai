@@ -57,15 +57,7 @@ def test_save_image(chart_response, tmp_path):
 
 
 def test_str_representation(chart_response, monkeypatch):
-    # Mock the show method to avoid actually displaying the image
-    shown = False
-
-    def mock_show(*args, **kwargs):
-        nonlocal shown
-        shown = True
-
-    monkeypatch.setattr(Image.Image, "show", mock_show)
-
+    # __str__ returns the value string directly without opening/showing the image
     str_value = str(chart_response)
-    assert shown  # Verify show was called
     assert isinstance(str_value, str)
+    assert str_value.startswith("data:image/png;base64,")

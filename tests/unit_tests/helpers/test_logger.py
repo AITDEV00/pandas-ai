@@ -1,14 +1,26 @@
 import logging
 
+import pytest
+
 from pandasai.helpers.logger import Logger
 
 
+@pytest.fixture(autouse=True)
+def _clear_logger_handlers():
+    """Clear the singleton logger's handlers before each test to avoid cross-test pollution."""
+    _logger = logging.getLogger("pandasai.helpers.logger")
+    _logger.handlers.clear()
+    yield
+    _logger.handlers.clear()
+
+
 def test_verbose_setter():
-    # Initialize logger with verbose=False
-    logger = Logger(verbose=False)
+    # Initialize logger with verbose=False, save_logs=False
+    logger = Logger(verbose=False, save_logs=False)
     assert logger._verbose is False
     assert not any(
         isinstance(handler, logging.StreamHandler)
+        and not isinstance(handler, logging.FileHandler)
         for handler in logger._logger.handlers
     )
 
@@ -17,6 +29,7 @@ def test_verbose_setter():
     assert logger._verbose is True
     assert any(
         isinstance(handler, logging.StreamHandler)
+        and not isinstance(handler, logging.FileHandler)
         for handler in logger._logger.handlers
     )
     assert len(logger._logger.handlers) == 1
@@ -26,6 +39,7 @@ def test_verbose_setter():
     assert logger._verbose is False
     assert not any(
         isinstance(handler, logging.StreamHandler)
+        and not isinstance(handler, logging.FileHandler)
         for handler in logger._logger.handlers
     )
     assert len(logger._logger.handlers) == 0
@@ -35,13 +49,14 @@ def test_verbose_setter():
     assert logger._verbose is True
     assert any(
         isinstance(handler, logging.StreamHandler)
+        and not isinstance(handler, logging.FileHandler)
         for handler in logger._logger.handlers
     )
     assert len(logger._logger.handlers) == 1
 
 
 def test_save_logs_property():
-    # Initialize logger with save_logs=False
+    # Initialize logger with save_logs=False, verbose=False
     logger = Logger(save_logs=False, verbose=False)
     assert logger.save_logs is False
 
@@ -60,16 +75,21 @@ def test_save_logs_property():
     )
 
 
-def test_save_logs_property():
-    # When logger is initialized with save_logs=True (default), it should have handlers
+def test_save_logs_property_defaults_with_save_logs():
+    # When logger is initialized with save_logs=True (default), it should have a FileHandler
     logger = Logger(save_logs=True)
     assert logger.save_logs is True
 
-    # When logger is initialized with save_logs=False, it should still have handlers if verbose=True
-    logger = Logger(save_logs=False, verbose=True)
-    assert logger.save_logs is True
 
+def test_save_logs_property_defaults_verbose_only():
+    # When logger is initialized with save_logs=False but verbose=True,
+    # save_logs should be False (no FileHandler), but verbose output is enabled
+    logger = Logger(save_logs=False, verbose=True)
+    assert logger.save_logs is False
+    assert logger.verbose is True
+
+
+def test_save_logs_property_defaults_no_handlers():
     # When both save_logs and verbose are False, there should be no handlers
     logger = Logger(save_logs=False, verbose=False)
-    logger._logger.handlers = []  # Reset handlers to match the property's expected behavior
     assert logger.save_logs is False

@@ -172,9 +172,8 @@ class LanceDB(VectorStore):
         if self._embedding_function is not None:
             return self._embedding_function([text])
 
-        model = SentenceTransformer("BAAI/bge-large-zh-v1.5")
-        embedding_function = model.encode(text, normalize_embeddings=True)
-        return embedding_function(text)
+        model = SentenceTransformer("BAAI/bge-small-en-v1.5")
+        return model.encode(text, normalize_embeddings=True)
 
     def update_question_answer(
         self,

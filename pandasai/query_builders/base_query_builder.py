@@ -104,5 +104,7 @@ class BaseQueryBuilder:
 
     @staticmethod
     def check_compatible_sources(sources: List[Source]) -> bool:
+        if not sources:
+            return True
         base_source = sources[0]
         return all(base_source.is_compatible_source(source) for source in sources[1:])

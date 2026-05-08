@@ -99,49 +99,49 @@ class SmartDatalake:
 
     @property
     def config(self):
-        return self._agent.context.config
+        return self._agent._state.config
 
     @property
     def verbose(self):
-        return self._agent.context.config.verbose
+        return self._agent._state.config.verbose
 
     @verbose.setter
     def verbose(self, verbose: bool):
-        self._agent.context.config.verbose = verbose
+        self._agent._state.config.verbose = verbose
         self._agent.logger.verbose = verbose
 
     @property
     def save_logs(self):
-        return self._agent.context.config.save_logs
+        return self._agent._state.config.save_logs
 
     @save_logs.setter
     def save_logs(self, save_logs: bool):
-        self._agent.context.config.save_logs = save_logs
+        self._agent._state.config.save_logs = save_logs
         self._agent.logger.save_logs = save_logs
 
     @property
     def custom_prompts(self):
-        return self._agent.context.config.custom_prompts
+        return self._agent._state.config.custom_prompts
 
     @custom_prompts.setter
     def custom_prompts(self, custom_prompts: dict):
-        self._agent.context.config.custom_prompts = custom_prompts
+        self._agent._state.config.custom_prompts = custom_prompts
 
     @property
     def save_charts(self):
-        return self._agent.context.config.save_charts
+        return self._agent._state.config.save_charts
 
     @save_charts.setter
     def save_charts(self, save_charts: bool):
-        self._agent.context.config.save_charts = save_charts
+        self._agent._state.config.save_charts = save_charts
 
     @property
     def save_charts_path(self):
-        return self._agent.context.config.save_charts_path
+        return self._agent._state.config.save_charts_path
 
     @save_charts_path.setter
     def save_charts_path(self, save_charts_path: str):
-        self._agent.context.config.save_charts_path = save_charts_path
+        self._agent._state.config.save_charts_path = save_charts_path
 
     @property
     def last_code_generated(self):
@@ -153,16 +153,16 @@ class SmartDatalake:
 
     @property
     def last_result(self):
-        return self._agent.last_result
+        return self._agent._state.last_result
 
     @property
     def last_error(self):
-        return self._agent.last_error
+        return self._agent._state.last_error
 
     @property
     def dfs(self):
-        return self._agent.context.dfs
+        return self._agent._state.dfs
 
     @property
     def memory(self):
-        return self._agent.context.memory
+        return self._agent._state.memory

@@ -27,8 +27,6 @@ class CodeGenerator:
             Exception: If any step fails during the process.
         """
         try:
-            self._context.logger.log(f"Using Prompt: {prompt}")
-
             # Generate the code
             code = self._context.config.llm.generate_code(prompt, self._context)
             # Store the original generated code (for logging purposes)

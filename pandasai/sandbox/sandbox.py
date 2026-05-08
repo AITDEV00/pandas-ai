@@ -39,30 +39,26 @@ class Sandbox:
         sql_queries = []
 
         class SQLQueryExtractor(ast.NodeVisitor):
-            def visit_Assign(self, node):
-                # Look for assignments where SQL queries might be defined
-                if (
-                    isinstance(node.value, (ast.Str, ast.Constant))
-                    and isinstance(node.value.s, str)
-                    and any(
-                        keyword in node.value.s.upper()
+            def _is_sql_string(self, node) -> bool:
+                """Check if an AST node is a string constant containing SQL."""
+                if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                    return any(
+                        keyword in node.value.upper()
                         for keyword in ["SELECT", "WITH"]
                     )
-                ):
-                    sql_queries.append(node.value.s)
+                return False
+
+            def visit_Assign(self, node):
+                # Look for assignments where SQL queries might be defined
+                if self._is_sql_string(node.value):
+                    sql_queries.append(node.value.value)
                 self.generic_visit(node)
 
             def visit_Call(self, node):
                 # Look for function calls where SQL queries might be passed
                 for arg in node.args:
-                    if (
-                        isinstance(arg, (ast.Str, ast.Constant))
-                        and isinstance(arg.s, str)
-                        and any(
-                            keyword in arg.s.upper() for keyword in ["SELECT", "WITH"]
-                        )
-                    ):
-                        sql_queries.append(arg.s)
+                    if self._is_sql_string(arg):
+                        sql_queries.append(arg.value)
                 self.generic_visit(node)
 
         # Parse the code into an AST and visit all nodes

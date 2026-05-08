@@ -83,7 +83,7 @@ def test_normalize_transformation():
     expr = "score"
     transform = Transformation(type="normalize", params=TransformationParams())
     result = SQLTransformationManager.apply_transformations(expr, [transform])
-    assert result == "((score - MIN(score)) / (MAX(score) - MIN(score)))"
+    assert result == "((score - MIN(score) OVER ()) / NULLIF(MAX(score) OVER () - MIN(score) OVER (), 0))"
     assert validate_sql(result)
 
 
@@ -167,7 +167,7 @@ def test_standardize_transformation():
     expr = "score"
     transform = Transformation(type="standardize", params=TransformationParams())
     result = SQLTransformationManager.apply_transformations(expr, [transform])
-    assert result == "((score - AVG(score)) / STDDEV(score))"
+    assert result == "((score - AVG(score) OVER ()) / NULLIF(STDDEV(score) OVER (), 0))"
     assert validate_sql(result)
 
 

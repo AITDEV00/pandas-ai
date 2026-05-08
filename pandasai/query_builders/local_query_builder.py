@@ -17,11 +17,13 @@ class LocalQueryBuilder(BaseQueryBuilder):
             self.schema.source.path,
         )
         abspath = filemanager.abs_path(filepath)
+        # Escape single quotes to prevent SQL injection via file paths
+        safe_path = abspath.replace("'", "''")
         source_type = self.schema.source.type
 
         if source_type == "parquet":
-            return f"read_parquet('{abspath}')"
+            return f"read_parquet('{safe_path}')"
         elif source_type == "csv":
-            return f"read_csv('{abspath}')"
+            return f"read_csv('{safe_path}')"
         else:
             raise ValueError(f"Unsupported file format: {source_type}")

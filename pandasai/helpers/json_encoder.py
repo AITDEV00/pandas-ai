@@ -31,7 +31,8 @@ def convert_numpy_types(obj):
     elif isinstance(obj, list):
         return [convert_numpy_types(item) for item in obj]
 
-    return None
+    # Return the object unchanged if it's not a numpy type
+    return obj
 
 
 class CustomJsonEncoder(JSONEncoder):
@@ -42,7 +43,14 @@ class CustomJsonEncoder(JSONEncoder):
         if isinstance(obj, pd.DataFrame):
             return obj.to_dict(orient="split")
 
-        if numpy_converted := convert_numpy_types(obj):
-            return numpy_converted
+        # Only use convert_numpy_types for numpy types; skip native Python types
+        if hasattr(obj, '__module__') and obj.__module__ == 'numpy':
+            converted = convert_numpy_types(obj)
+            if converted is not obj:
+                return converted
+        elif isinstance(obj, (np.integer, np.floating, np.ndarray)):
+            converted = convert_numpy_types(obj)
+            if converted is not obj:
+                return converted
 
         return super().default(obj)

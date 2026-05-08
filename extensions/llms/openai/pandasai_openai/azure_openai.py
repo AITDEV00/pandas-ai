@@ -132,7 +132,7 @@ class AzureOpenAI(BaseOpenAI):
         }
 
     @property
-    def _client_params(self) -> Dict[str, any]:
+    def _client_params(self) -> Dict[str, Any]:
         client_params = {
             "api_version": self.api_version,
             "azure_endpoint": self.azure_endpoint,

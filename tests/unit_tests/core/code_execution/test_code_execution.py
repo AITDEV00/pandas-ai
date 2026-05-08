@@ -1,15 +1,12 @@
 import unittest
-from unittest.mock import MagicMock
 
-from pandasai.config import Config
 from pandasai.core.code_execution.code_executor import CodeExecutor
 from pandasai.exceptions import CodeExecutionError, NoResultFoundError
 
 
 class TestCodeExecutor(unittest.TestCase):
     def setUp(self):
-        self.config = MagicMock(specs=Config)
-        self.executor = CodeExecutor(self.config)
+        self.executor = CodeExecutor()
 
     def test_initialization(self):
         """Test initialization of CodeExecutor."""

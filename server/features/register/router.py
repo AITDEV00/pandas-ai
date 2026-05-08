@@ -15,9 +15,9 @@ async def register_base64(payload: Base64UploadRequest):
     """Register endpoints using pure JSON base64 payloads."""
     try:
         response = handle_base64_upload(
-            payload.base64_data, 
+            payload.base64_data,
             payload.mimetype,
-                semantic_model=payload.semantic_model,
+            semantic_model=payload.semantic_model,
             pandasai_config=payload.pandasai_config,
             llm_config=payload.llm_config
         )
@@ -46,7 +46,8 @@ async def register_file(
         config_payload = PandasAIConfigPayload(**json.loads(pandasai_config)) if pandasai_config else PandasAIConfigPayload()
         llm_payload = LLMConfigPayload(**json.loads(llm_config)) if llm_config else LLMConfigPayload()
 
-        ext = ".csv" if "csv" in file.content_type.lower() else ".xlsx"
+        content_type = (file.content_type or "application/octet-stream").lower()
+        ext = ".csv" if "csv" in content_type else ".xlsx"
         safe_id = str(uuid.uuid4())
         
         temp_dir = os.path.join(tempfile.gettempdir(), "pandasai_uploads")

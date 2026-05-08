@@ -48,7 +48,7 @@ class Pinecone(VectorStore):
 
             if isinstance(index, str):
                 if index not in self._pinecone.list_indexes().names():
-                    self._index = self._pinecone.create_index(
+                    self._pinecone.create_index(
                         name=index,
                         dimension=dimensions,
                         metric=metric,
@@ -243,7 +243,7 @@ class Pinecone(VectorStore):
                 document["id"],
             )
             for document in documents["matches"]
-            if document["score"] < threshold
+            if document["score"] >= threshold
         ]
 
         return {

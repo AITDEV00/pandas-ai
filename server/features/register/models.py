@@ -3,18 +3,17 @@ from typing import Optional, Dict, Any, List
 
 class PandasAIConfigPayload(BaseModel):
     enrich_column_values: bool = Field(True, description="Enable semantic enrichment of column values")
-    llm_context_window: int = Field(250000, description="Context window of the LLM to calculate proportional budget")
-    column_values_token_budget: Optional[int] = Field(None, description="Hard cap on token budget for column enrichment")
     categorical_max_unique: int = Field(50, description="Max unique values before a column is no longer considered categorical")
-    # Issue 19: Column selection pipeline config
-    column_selection_enabled: bool = Field(False, description="Enable 2-step column selection for wide tables")
-    column_selection_threshold: int = Field(30, description="Auto-enable column selection when column count >= this value")
-    auto_fill_descriptions: bool = Field(False, description="Use LLM to fill missing column descriptions after enrichment")
+    auto_fill_descriptions: bool = Field(True, description="Use LLM to fill missing column descriptions after enrichment")
 
 class LLMConfigPayload(BaseModel):
     api_key: Optional[str] = None
     base_url: Optional[str] = None
     model_name: Optional[str] = "openai//model/Qwen/Qwen3.5-35B-A3B-GPTQ-Int4"
+    llm_context_window: Optional[int] = Field(
+        None,
+        description="Context window size of the LLM (in tokens). Used to calculate proportional budget for column value samples.",
+    )
     system_prompt: Optional[str] = Field(
         "You are an expert data assistant. Use execute_sql_query for data retrieval and aggregation. For presenting results, write Python code: compute derived values, format strings, build conditional logic, and choose the best result type (string for answers, number for counts, dataframe for tables, plot for charts). Do not make assumptions about data formats without checking the vocabulary lists.",
         description="Instructional prompt to guide the agent behavior"
@@ -67,7 +66,8 @@ class ColumnContext(BaseModel):
     column: str
     type: Optional[str] = None
     semantic_type: Optional[str] = None
-    samples: Any
+    description: Optional[str] = None
+    samples: Optional[Any] = None
 
 class RegisterResponse(BaseModel):
     conversation_id: str

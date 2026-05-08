@@ -241,7 +241,7 @@ class Qdrant(VectorStore):
 
         if points := self._client.retrieve(
             collection_name=self._docs_collection_name,
-            ids=ids,
+            ids=self._convert_ids(ids),
             with_payload=True,
             with_vectors=True,
         ):

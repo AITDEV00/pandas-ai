@@ -135,7 +135,7 @@ class Milvus(VectorStore):
                 "ids": [],
             }
 
-        vector = self.emb_function.encode_documents(question)
+        vector = self.emb_function.encode_documents([question])
         response = self.client.search(
             collection_name=self.qa_collection_name,
             data=vector,
@@ -155,7 +155,7 @@ class Milvus(VectorStore):
                 "metadatas": [],
                 "ids": [],
             }
-        vector = self.emb_function.encode_documents(question)
+        vector = self.emb_function.encode_documents([question])
         response = self.client.search(
             collection_name=self.docs_collection_name,
             data=vector,
@@ -328,7 +328,7 @@ class Milvus(VectorStore):
     ) -> List[str]:
         if not (len(ids) == len(docs)):
             raise ValueError(
-                f"Queries, codes and ids length doesn't match. {len(id)} != {len(docs)}"
+                f"IDs and docs length doesn't match. {len(ids)} != {len(docs)}"
             )
         milvus_ids = self._convert_ids(ids)
         if not self._validate_update_ids(
@@ -336,7 +336,7 @@ class Milvus(VectorStore):
         ):
             return []
 
-        vectors = self.emb_function.encode_document(docs)
+        vectors = self.emb_function.encode_documents(docs)
         data = [
             {ID: id, EMBEDDING: vector, DOCUMENT: doc}
             for id, vector, doc in zip(milvus_ids, vectors, docs)
@@ -348,7 +348,8 @@ class Milvus(VectorStore):
     # Returns True if all IDs are present, otherwise logs the missing IDs and returns False.
     def _validate_update_ids(self, collection_name: str, ids: List[str]) -> bool:
         response = self.client.query(collection_name=collection_name, ids=ids)
-        retrieved_ids = [p["id"] for p in response[0]]
+        # MilvusClient.query() returns a flat list of dicts, not a nested list
+        retrieved_ids = [p["id"] for p in response]
         diff = set(ids) - set(retrieved_ids)
         if diff:
             self._logger.log(

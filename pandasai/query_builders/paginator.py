@@ -28,6 +28,8 @@ class PaginationParams(BaseModel):
     @field_validator("search", "filters", "sort_by", "sort_order")
     @classmethod
     def not_sql(cls, field):
+        if field is None:
+            return field
         if is_sql_query(str(field)):
             raise ValueError(
                 f"SQL queries are not allowed in pagination parameters: {field}"
@@ -170,7 +172,13 @@ class DatasetPaginator:
                     if isinstance(pagination.filters, str)
                     else pagination.filters
                 )
+                # Validate filter column names against known columns
+                valid_column_names = {col["name"] for col in columns}
                 for column, values in filters.items():
+                    if column not in valid_column_names:
+                        raise ValueError(
+                            f"Filter column '{column}' not found in available columns"
+                        )
                     if not isinstance(values, list):
                         values = [values]
                     placeholders = ", ".join(["%s"] * len(values))

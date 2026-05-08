@@ -117,11 +117,21 @@ class SQLTransformationManager:
 
     @staticmethod
     def _normalize(expr: str, params: TransformationParams) -> str:
-        return f"(({expr} - MIN({expr})) / (MAX({expr}) - MIN({expr})))"
+        # Use window functions so aggregates work in a column expression context.
+        # NULLIF prevents division-by-zero when all values are identical.
+        return (
+            f"(({expr} - MIN({expr}) OVER ()) "
+            f"/ NULLIF(MAX({expr}) OVER () - MIN({expr}) OVER (), 0))"
+        )
 
     @staticmethod
     def _standardize(expr: str, params: TransformationParams) -> str:
-        return f"(({expr} - AVG({expr})) / STDDEV({expr}))"
+        # Use window functions so aggregates work in a column expression context.
+        # NULLIF prevents division-by-zero when STDDEV is 0 (all values identical).
+        return (
+            f"(({expr} - AVG({expr}) OVER ()) "
+            f"/ NULLIF(STDDEV({expr}) OVER (), 0))"
+        )
 
     @staticmethod
     def _convert_timezone(expr: str, params: TransformationParams) -> str:

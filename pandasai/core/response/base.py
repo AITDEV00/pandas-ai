@@ -1,5 +1,5 @@
 import json
-from typing import Any
+from typing import Any, Optional
 
 from pandasai.helpers.json_encoder import CustomJsonEncoder
 
@@ -12,9 +12,9 @@ class BaseResponse:
     def __init__(
         self,
         value: Any = None,
-        type: str = None,
-        last_code_executed: str = None,
-        error: str = None,
+        type: Optional[str] = None,
+        last_code_executed: Optional[str] = None,
+        error: Optional[str] = None,
     ):
         """
         Initialize the BaseResponse object

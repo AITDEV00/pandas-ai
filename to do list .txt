@@ -5,3 +5,7 @@ snippet: which is like string, number essecially any small amount of snippet of 
 artifact: which is like any amount of infomration maybe 200 rows of information from the excel of 20 selected columns or a plot generated in image format, so any large bult infomration which simply has to be in file format. can generate multiple artifacts in one turn and i think should return a link or url to get the artifact. based on how detailed the query is, maybe it asks for several different plots and a csv export or some others.
 
 mixed: which is a mix of snippet and artifact comletely up to the user query, imagine user asks for an artifact but also a summary of information based on the artifcat in the same turn.
+
+
+for any new chat to the same conversation id it should abort the current one immediately and call the new one.
+

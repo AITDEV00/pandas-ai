@@ -12,7 +12,7 @@ from pandasai.helpers.json_encoder import CustomJsonEncoder, convert_numpy_types
 @pytest.mark.parametrize(
     "input_value,expected_output",
     [
-        ("string", None),
+        ("string", "string"),
         (np.int32(42), 42),
         (np.float64(3.14), 3.14),
         (np.array([1, 2, 3]), [1, 2, 3]),

@@ -1,7 +1,7 @@
 import os
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from pandasai.helpers.filemanager import DefaultFileManager, FileManager
 from pandasai.llm.base import LLM
@@ -12,22 +12,23 @@ class Config(BaseModel):
     verbose: bool = False
     max_retries: int = 3
     llm: Optional[LLM] = None
-    file_manager: FileManager = DefaultFileManager()
+    file_manager: FileManager = Field(default_factory=DefaultFileManager)
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     direct_sql: bool = True
     enrich_column_values: bool = True
-    llm_context_window: int = 250000
+    llm_context_window: int = int(os.environ.get("LLM_CONTEXT_WINDOW", "250000"))
     column_values_budget_ratio: float = 0.10
     column_values_token_budget: Optional[int] = None
     categorical_max_unique: int = 50
     sample_head_size: int = 10
 
     # Column selection pipeline (Issue 19)
-    column_selection_enabled: bool = False
+    # Tri-state: True = force on, False = force off, None = auto-detect via threshold
+    column_selection_enabled: Optional[bool] = None
     column_selection_threshold: int = 30
     column_selection_memory_size: int = 5
-    auto_fill_descriptions: bool = False
+    auto_fill_descriptions: bool = True
 
     @classmethod
     def from_dict(cls, config: Dict[str, Any]) -> "Config":

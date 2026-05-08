@@ -5,7 +5,7 @@ The table schema contains a `"samples"` field. **This is your VOCABULARY DICTION
 {%- for df in context.dfs %}
 {%- set ns = namespace(flat_cols=[], struct_cols=[], id_like_cols=[]) %}
 {%- for col in df.schema.columns %}
-{%- if col.samples is not none and col.type is defined and col.type == 'list[struct]' %}
+{%- if col.samples is not none and col.type is defined and col.type == 'list[struct]' and col.samples is mapping and col.samples | length > 0 %}
 {%- set _ = ns.struct_cols.append(col) %}
 {%- elif col.samples is not none and col.semantic_type is defined and col.semantic_type == 'id_like' %}
 {%- set _ = ns.id_like_cols.append(col) %}
@@ -34,7 +34,22 @@ The table schema contains a `"samples"` field. **This is your VOCABULARY DICTION
 
 **STRUCT: `"{{ col.name }}"`** — fields:
 {%- for field_name in col.samples.keys() %}
-- `rec['{{ field_name }}']` ({{ col.samples[field_name].type | default('unknown') }}{%- if col.samples[field_name].semantic_type is defined and col.samples[field_name].semantic_type is not none %}, {{ col.samples[field_name].semantic_type }}{% endif %})
+{%- set field = col.samples[field_name] %}
+{%- set field_type = field.type | default('unknown') %}
+{%- set field_sem = field.semantic_type if field.semantic_type is defined and field.semantic_type is not none else '' %}
+{%- set display_name = field.short_name if field is mapping and field.short_name is defined and field.short_name is not none else field_name %}
+- `rec['{{ display_name }}']` ({{ field_type }}{%- if field_sem %}, {{ field_sem }}{% endif %})
+{%- if field.samples is defined and field.samples is not none %}
+{%- if field_sem == 'categorical' and field.samples is iterable and field.samples is not mapping %}
+  Values: {{ field.samples | join(', ') }}
+{%- elif field_sem == 'freetext' and field.samples is iterable and field.samples is not mapping %}
+  Vocabulary: {{ field.samples[:20] | join(', ') }}
+{%- elif field.samples is mapping and field.samples.min is defined %}
+  Range: {{ field.samples.min }}–{{ field.samples.max }}{%- if field.samples.mean is defined %}, mean: {{ field.samples.mean }}{% endif %}
+{%- elif field.samples is iterable and field.samples is not mapping and field.samples is not string %}
+  Samples: {{ field.samples[:10] | join(', ') }}
+{%- endif %}
+{%- endif %}
 {%- endfor %}
 {%- endfor %}
 {%- endif %}

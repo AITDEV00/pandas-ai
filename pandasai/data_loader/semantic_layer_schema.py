@@ -35,6 +35,8 @@ class SQLConnectionConfig(BaseModel):
     password: str = Field(..., description="Database password")
 
     def __eq__(self, other):
+        if not isinstance(other, SQLConnectionConfig):
+            return NotImplemented
         return (
             self.host == other.host
             and self.port == other.port

@@ -107,3 +107,88 @@ def _is_inner_column_of(schema_name: str, df_col_name: str) -> bool:
     if short == schema_name:
         return False  # Not in bracket convention, skip
     return f"[{short}]" in df_col_name
+
+
+# ------------------------------------------------------------------
+# Bracket-convention helpers (used by ColumnSelector)
+# ------------------------------------------------------------------
+
+
+def extract_struct_parent(bracket_name: str) -> Optional[str]:
+    """Extract parent struct column name from bracket convention.
+
+    ``'[Employee Achievements[Customary Name]]'`` → ``'Employee Achievements'``
+    ``'[Employee Achievements[Customary Name][Manager OA Comments][Employee OA Comments]]'``
+        → ``'Employee Achievements'``
+    ``'Employee Name'`` → ``None``
+    """
+    if not bracket_name.startswith("["):
+        return None
+    inner = bracket_name[1:-1]
+    parent_end = inner.find("[")
+    if parent_end > 0:
+        return inner[:parent_end]
+    return None
+
+
+def is_bracket_child_of(col_name: str, parent: str) -> bool:
+    """Check if *col_name* is a bracket-style inner field of *parent*.
+
+    ``is_bracket_child_of('[Emp[Name]]', 'Emp')`` → True
+    ``is_bracket_child_of('Emp', 'Emp')`` → False
+    ``is_bracket_child_of('[Other[Name]]', 'Emp')`` → False
+    """
+    if not col_name.startswith("["):
+        return False
+    inner = col_name[1:-1]
+    bracket_pos = inner.find("[")
+    if bracket_pos < 0:
+        return False
+    return inner[:bracket_pos] == parent
+
+
+def extract_field_from_llm_name(name: str) -> Optional[str]:
+    """Extract the inner field name from an LLM-returned column name.
+
+    The LLM may return names in two formats:
+      - Without outer brackets: ``Parent[Field]``  → ``Field``
+      - With outer brackets:    ``[Parent[Field]]`` → ``Field``
+
+    ``'Employee Achievements[Customary Name]'``   → ``'Customary Name'``
+    ``'[Employee Achievements[Customary Name]]'``  → ``'Customary Name'``
+    ``'Employee Previous Employer[Start Date]'``   → ``'Start Date'``
+    ``'[Employee Previous Employer[Start Date]]'`` → ``'Start Date'``
+    ``'Employee Name'``                            → ``None``
+    """
+    # If the name starts with '[', it uses the bracket convention —
+    # strip the outer brackets first so we only deal with the inner structure.
+    if name.startswith("[") and name.endswith("]"):
+        name = name[1:-1]
+
+    bracket_pos = name.find("[")
+    if bracket_pos < 0:
+        return None
+    # Everything after the first '[' up to (but not including) the last ']'
+    inner = name[bracket_pos + 1 :]
+    if inner.endswith("]"):
+        inner = inner[:-1]
+    return inner if inner else None
+
+
+def bracket_col_has_any_field(col_name: str, fields: list) -> bool:
+    """Check if a bracket-style column contains any of the specified inner fields.
+
+    Handles both separate and combined column layouts:
+      - Separate: ``[Parent[Field1]]`` → checks if ``Field1`` is in *fields*
+      - Combined: ``[Parent[Field1][Field2][Field3]]`` → checks if any
+        of ``Field1``, ``Field2``, ``Field3`` is in *fields*
+    """
+    if not col_name.startswith("[") or not col_name.endswith("]"):
+        return False
+    # Strip the outer brackets
+    inner = col_name[1:-1]
+    # Find all [Field] groups after the parent name.
+    # e.g. "Parent[Field1][Field2]" → extract "Field1", "Field2"
+    # e.g. "Parent[Field1]" → extract "Field1"
+    inner_fields_in_col = re.findall(r'\[([^\[\]]+)\]', inner)
+    return any(f in inner_fields_in_col for f in fields)

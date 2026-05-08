@@ -1,4 +1,5 @@
 import json
+import random
 import typing
 
 if typing.TYPE_CHECKING:
@@ -154,9 +155,8 @@ class DataframeSerializer:
         over_indices = [i for i, c in costs.items() if c > per_col_share]
         over_total = sum(costs[i] for i in over_indices)
 
-        result = [dict(col) for col in columns]
-
-        import random
+        import copy
+        result = [copy.deepcopy(col) for col in columns]
         for i in over_indices:
             col = result[i]
             proportion = costs[i] / over_total if over_total > 0 else 0

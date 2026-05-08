@@ -7,9 +7,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from pandasai.config import Config, ConfigManager
 from pandasai.constants import DEFAULT_CHART_DIRECTORY
-from pandasai.data_loader.semantic_layer_schema import is_schema_source_same
 from pandasai.ee.skills.manager import SkillsManager
-from pandasai.exceptions import InvalidConfigError
 from pandasai.helpers.folder import Folder
 from pandasai.helpers.logger import Logger
 from pandasai.helpers.memory import Memory
@@ -27,15 +25,18 @@ class AgentState:
     """
 
     dfs: List[Union[DataFrame, VirtualDataFrame]] = field(default_factory=list)
-    _config: Union[Config, dict] = field(default_factory=dict)
+    _config: Optional[Union[Config, dict]] = None
     memory: Memory = field(default_factory=Memory)
     vectorstore: Optional[VectorStore] = None
     intermediate_values: Dict[str, Any] = field(default_factory=dict)
     logger: Optional[Logger] = None
     last_code_generated: Optional[str] = None
     last_code_executed: Optional[str] = None
-    last_prompt_id: str = None
-    last_prompt_used: str = None
+    last_prompt_id: Optional[str] = None
+    last_prompt_used: Optional[str] = None
+    last_result: Optional[Any] = None
+    last_error: Optional[str] = None
+    skills: List[Any] = field(default_factory=list)
     output_type: Optional[str] = None
 
     # Column selection caching (Issue 15)
@@ -54,7 +55,7 @@ class AgentState:
         config: Optional[Union[Config, dict]] = None,
         memory_size: Optional[int] = 10,
         vectorstore: Optional[VectorStore] = None,
-        description: str = None,
+        description: Optional[str] = None,
     ):
         """Initialize the state with the given parameters."""
         self.dfs = dfs if isinstance(dfs, list) else [dfs]
@@ -90,7 +91,7 @@ class AgentState:
 
     def assign_prompt_id(self):
         """Assign a new prompt ID."""
-        self.last_prompt_id = uuid.uuid4()
+        self.last_prompt_id = str(uuid.uuid4())
 
         if self.logger:
             self.logger.log(f"Prompt ID: {self.last_prompt_id}")

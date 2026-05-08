@@ -20,7 +20,7 @@ import inspect
 import logging
 import sys
 import time
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -33,7 +33,9 @@ class Log(BaseModel):
     """Log class"""
 
     msg: str
-    level: int
+    level: str
+    time: float = 0.0
+    source: Optional[str] = None
 
 
 class Logger:
@@ -50,25 +52,27 @@ class Logger:
         self._verbose = verbose
         self._last_time = time.time()
 
-        if save_logs:
-            try:
-                filename = find_closest("pandasai.log")
-            except ValueError:
-                filename = "pandasai.log"
-            handlers = [logging.FileHandler(filename)]
-        else:
-            handlers = []
-
-        if verbose:
-            handlers.append(logging.StreamHandler(sys.stdout))
-
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s [%(levelname)s] %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-            handlers=handlers,
-        )
         self._logger = logging.getLogger(__name__)
+        # Ensure the logger itself is at INFO level regardless of root logger
+        self._logger.setLevel(logging.INFO)
+        # Avoid duplicate handlers if Logger is re-instantiated
+        if not self._logger.handlers:
+            _formatter = logging.Formatter(
+                "%(asctime)s [%(levelname)s] %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+            if save_logs:
+                try:
+                    filename = find_closest("pandasai.log")
+                except ValueError:
+                    filename = "pandasai.log"
+                fh = logging.FileHandler(filename)
+                fh.setFormatter(_formatter)
+                self._logger.addHandler(fh)
+            if verbose:
+                sh = logging.StreamHandler(sys.stdout)
+                sh.setFormatter(_formatter)
+                self._logger.addHandler(sh)
 
     def log(self, message: str, level: int = logging.INFO):
         """Log a message"""
@@ -83,12 +87,12 @@ class Logger:
             self._logger.critical(message)
 
         self._logs.append(
-            {
-                "msg": message,
-                "level": logging.getLevelName(level),
-                "time": self._calculate_time_diff(),
-                "source": self._invoked_from(),
-            }
+            Log(
+                msg=message,
+                level=logging.getLevelName(level),
+                time=self._calculate_time_diff(),
+                source=self._invoked_from(),
+            )
         )
 
     def _invoked_from(self, level: int = 5) -> str:
@@ -112,7 +116,7 @@ class Logger:
         return time_diff
 
     @property
-    def logs(self) -> List[str]:
+    def logs(self) -> List[Log]:
         """Return the logs"""
         return self._logs
 
@@ -125,26 +129,36 @@ class Logger:
     def verbose(self, verbose: bool):
         """Set the verbose flag"""
         self._verbose = verbose
-        self._logger.handlers = []
+        # Only add/remove the StreamHandler, preserving FileHandler
         if verbose:
-            self._logger.addHandler(logging.StreamHandler(sys.stdout))
+            # Add StreamHandler if not already present
+            has_stream = any(
+                isinstance(h, logging.StreamHandler) and not isinstance(h, logging.FileHandler)
+                for h in self._logger.handlers
+            )
+            if not has_stream:
+                self._logger.addHandler(logging.StreamHandler(sys.stdout))
         else:
-            # remove the StreamHandler if it exists
-            for handler in self._logger.handlers:
-                if isinstance(handler, logging.StreamHandler):
+            # Remove only StreamHandler (not FileHandler)
+            for handler in list(self._logger.handlers):
+                if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
                     self._logger.removeHandler(handler)
 
     @property
     def save_logs(self) -> bool:
         """Return the save_logs flag"""
-        return len(self._logger.handlers) > 0
+        return any(isinstance(h, logging.FileHandler) for h in self._logger.handlers)
 
     @save_logs.setter
     def save_logs(self, save_logs: bool):
         """Set the save_logs flag"""
         if save_logs and not self.save_logs:
-            filename = find_closest("pandasai.log")
-            self._logger.addHandler(logging.FileHandler(filename))
+            try:
+                filename = find_closest("pandasai.log")
+                self._logger.addHandler(logging.FileHandler(filename))
+            except ValueError:
+                # find_closest may fail if no project root is found
+                pass
         elif not save_logs and self.save_logs:
             # remove the FileHandler if it exists
             for handler in self._logger.handlers:

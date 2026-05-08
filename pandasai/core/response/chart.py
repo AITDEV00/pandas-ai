@@ -1,6 +1,6 @@
 import base64
 import io
-from typing import Any
+from typing import Any, Optional
 
 from PIL import Image
 
@@ -8,14 +8,25 @@ from .base import BaseResponse
 
 
 class ChartResponse(BaseResponse):
-    def __init__(self, value: Any, last_code_executed: str):
+    def __init__(self, value: Any = None, last_code_executed: Optional[str] = None):
         super().__init__(value, "plot", last_code_executed)  # Issue 11: Use "plot" to match LLM output type and template
 
     def _get_image(self) -> Image.Image:
-        if not self.value.startswith("data:image"):
-            return Image.open(self.value)
+        # Handle dict values (e.g., {"path": "...", "base64": "..."})
+        value = self.value
+        if isinstance(value, dict):
+            # Try to extract image data from dict
+            if "base64" in value:
+                image_data = base64.b64decode(value["base64"])
+                return Image.open(io.BytesIO(image_data))
+            if "path" in value:
+                return Image.open(value["path"])
+            raise ValueError(f"Cannot extract image from dict value: {list(value.keys())}")
 
-        base64_data = self.value.split(",")[1]
+        if not value.startswith("data:image"):
+            return Image.open(value)
+
+        base64_data = value.split(",")[1]
         image_data = base64.b64decode(base64_data)
         return Image.open(io.BytesIO(image_data))
 
@@ -28,7 +39,8 @@ class ChartResponse(BaseResponse):
         img.show()
 
     def __str__(self) -> str:
-        self.show()
+        if isinstance(self.value, dict):
+            return str(self.value)
         return self.value
 
     def get_base64_image(self) -> str:

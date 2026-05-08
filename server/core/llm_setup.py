@@ -1,8 +1,41 @@
+import logging
 import os
 import httpx
 import pandasai as pai
 from pandasai_litellm.litellm import LiteLLM
 import openai
+
+logger = logging.getLogger(__name__)
+
+
+def create_litellm(
+    api_key: str,
+    base_url: str,
+    model_name: str,
+    verify_ssl: bool = False,
+    **litellm_kwargs,
+) -> LiteLLM:
+    """Factory: build a LiteLLM instance backed by a custom OpenAI client.
+
+    Centralises the httpx + openai + LiteLLM wiring so both the global
+    setup and per-request handlers share the same logic.
+    """
+    custom_httpx_client = httpx.Client(verify=verify_ssl)
+    try:
+        custom_openai_client = openai.OpenAI(
+            api_key=api_key,
+            base_url=base_url,
+            http_client=custom_httpx_client,
+        )
+        return LiteLLM(
+            model=model_name,
+            client=custom_openai_client,
+            **litellm_kwargs,
+        )
+    except Exception:
+        custom_httpx_client.close()
+        raise
+
 
 def setup_global_llm():
     """
@@ -19,19 +52,17 @@ def setup_global_llm():
         # The register endpoint can still provide per-request LLM config.
         return
 
-    custom_httpx_client = httpx.Client(verify=verify_ssl)
-    custom_openai_client = openai.OpenAI(
+    llm = create_litellm(
         api_key=api_key,
         base_url=base_url,
-        http_client=custom_httpx_client,
+        model_name=model_name,
+        verify_ssl=verify_ssl,
     )
 
-    llm = LiteLLM(
-        model=model_name,
-        client=custom_openai_client,
-    )
+    llm_context_window = int(os.environ.get("LLM_CONTEXT_WINDOW", "250000"))
 
     pai.config.set({
         "llm": llm,
         "verbose": True,
+        "llm_context_window": llm_context_window,
     })

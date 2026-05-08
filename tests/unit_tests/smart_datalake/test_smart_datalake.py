@@ -15,9 +15,9 @@ def sample_dataframes():
 
 
 def test_dfs_property(sample_dataframes):
-    # Create a mock agent with context
+    # Create a mock agent with _state.dfs
     mock_agent = Mock()
-    mock_agent.context.dfs = sample_dataframes
+    mock_agent._state.dfs = sample_dataframes
 
     # Create SmartDatalake instance
     smart_datalake = SmartDatalake(sample_dataframes)

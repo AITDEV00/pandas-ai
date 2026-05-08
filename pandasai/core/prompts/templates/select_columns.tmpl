@@ -1,0 +1,31 @@
+You are a data analyst. Given a table schema and a user question, select ONLY the
+columns and struct inner fields needed to answer the question.
+
+Table: {{ table_name }} ({{ total_columns }} columns)
+{% if table_description %}Description: {{ table_description }}{% endif %}
+
+**FLAT COLUMNS:**
+{% for col in flat_columns %}
+- "{{ col.name }}" ({{ col.type }}{% if col.description %}: {{ col.description }}{% endif %})
+{% if col.samples %}  Values: {{ col.samples }}{% endif %}
+{% endfor %}
+
+**STRUCT COLUMNS (each has inner fields you can select individually):**
+{% for col in struct_columns %}
+- "{{ col.name }}"{% if col.description %}: {{ col.description }}{% endif %} — inner fields:
+{% for field_name, field_info in (col.samples.items() if col.samples is mapping else []) %}
+    → "{{ field_info.short_name if field_info is mapping and field_info.short_name is defined and field_info.short_name is not none else field_name }}" ({{ field_info.type if field_info is mapping and 'type' in field_info else 'unknown' }}{% if field_info is mapping and field_info.get('semantic_type') %}, {{ field_info.semantic_type }}{% endif %})
+{% endfor %}
+{% endfor %}
+
+User question: {{ query }}
+
+Respond in JSON format:
+{
+  "selected": [
+    "Column Name 1",
+    "Column Name 2",
+    "Struct Inner Field Name"
+  ],
+  "reasoning": "brief explanation of why these columns are relevant"
+}

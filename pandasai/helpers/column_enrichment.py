@@ -102,12 +102,21 @@ class ColumnValueExtractor:
         if not all_structs:
             return None
 
-        from pandasai.helpers.semantic_matching import match_column_details_to_schema
+        from pandasai.helpers.semantic_matching import (
+            _extract_short_name,
+            get_matching_schema_columns,
+            match_column_details_to_schema,
+        )
 
         temp_df = pd.DataFrame(all_structs)
         struct_vocabulary = {}
         for inner_col in temp_df.columns:
             inner_series = temp_df[inner_col]
+            # Use the schema column name as the samples key (the canonical name
+            # from the semantic model), falling back to the raw pandas column
+            # name if no schema match is found.
+            schema_matches = get_matching_schema_columns(inner_col, df_schema)
+            schema_key = schema_matches[0].name if schema_matches else inner_col
             details = match_column_details_to_schema(inner_col, df_schema)
             inner_type = details["type"]
             inner_desc = details["description"]
@@ -141,12 +150,13 @@ class ColumnValueExtractor:
                 inner_entry = {
                     "type": inner_type,
                     "samples": inner_samples,
+                    "short_name": _extract_short_name(schema_key),
                 }
                 if inner_desc:
                     inner_entry["description"] = inner_desc
                 if inner_semantic_type is not None:
                     inner_entry["semantic_type"] = inner_semantic_type
-                struct_vocabulary[inner_col] = inner_entry
+                struct_vocabulary[schema_key] = inner_entry
 
         return struct_vocabulary if struct_vocabulary else None
 

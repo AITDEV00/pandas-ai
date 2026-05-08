@@ -77,14 +77,19 @@ class LiteLLM(LLM):
         self.last_prompt = "\n".join(m["content"] for m in messages)
 
         if context and context.logger:
-            context.logger.log(f"FINAL PROMPT TO LLM:\n{self.last_prompt}")
-
-        return (
-            completion(
-                model=self.model,
-                messages=messages,
-                **self.params,
+            context.logger.log(
+                f"LLM PROMPT ({len(messages)} messages, ~{len(self.last_prompt)} chars)"
             )
-            .choices[0]
-            .message.content
-        )
+
+        response = completion(
+            model=self.model,
+            messages=messages,
+            **self.params,
+        ).choices[0].message.content
+
+        if context and context.logger:
+            context.logger.log(
+                f"LLM RESPONSE ({len(response)} chars):\n{response}"
+            )
+
+        return response

@@ -44,7 +44,7 @@ class Agent:
         config: Optional[Union[Config, dict]] = None,
         memory_size: Optional[int] = 10,
         vectorstore: Optional[VectorStore] = None,
-        description: str = None,
+        description: Optional[str] = None,
         sandbox: Sandbox = None,
     ):
         """
@@ -124,7 +124,7 @@ class Agent:
         """Execute the generated code."""
         self._state.logger.log(f"Executing code: {code}")
 
-        code_executor = CodeExecutor(self._state.config)
+        code_executor = CodeExecutor()
         code_executor.add_to_env("execute_sql_query", self._execute_sql_query)
         for skill in self._state.skills:
             code_executor.add_to_env(skill.name, skill.func)
@@ -176,37 +176,40 @@ class Agent:
             return df_executor(final_query)
 
     def generate_code_with_retries(self, query: str) -> Any:
-        """Execute the code with retry logic."""
+        """Generate code with retry logic.
+
+        Total attempts = 1 (initial) + max_retries (regeneration attempts).
+        """
         max_retries = self._state.config.max_retries
-        attempts = 0
-        try:
-            return self.generate_code(query)
-        except Exception as e:
-            exception = e
-            while attempts <= max_retries:
-                try:
+        exception = None
+
+        for attempt in range(1 + max_retries):
+            try:
+                if attempt == 0:
+                    return self.generate_code(query)
+                else:
                     return self._regenerate_code_after_error(
                         self._state.last_code_generated, exception
                     )
-                except Exception as e:
-                    exception = e
-                    attempts += 1
-                    if attempts > max_retries:
-                        self._state.logger.log(
-                            f"Maximum retry attempts exceeded. Last error: {e}"
-                        )
-                        raise
+            except Exception as e:
+                exception = e
+                if attempt >= max_retries:
                     self._state.logger.log(
-                        f"Retrying Code Generation ({attempts}/{max_retries})..."
+                        f"Maximum retry attempts exceeded. Last error: {e}"
                     )
-            return None
+                    raise
+                self._state.logger.log(
+                    f"Retrying Code Generation ({attempt}/{max_retries})..."
+                )
 
     def execute_with_retries(self, code: str) -> Any:
-        """Execute the code with retry logic."""
-        max_retries = self._state.config.max_retries
-        attempts = 0
+        """Execute the code with retry logic.
 
-        while attempts <= max_retries:
+        Total attempts = 1 (initial) + max_retries (regeneration attempts).
+        """
+        max_retries = self._state.config.max_retries
+
+        for attempt in range(1 + max_retries):
             try:
                 result = self.execute_code(code)
                 # Track the code that actually executed successfully
@@ -215,16 +218,13 @@ class Agent:
                 self._response_parser._output_type = self._state.output_type
                 return self._response_parser.parse(result, code)
             except Exception as e:
-                attempts += 1
-                if attempts > max_retries:
+                if attempt >= max_retries:
                     self._state.logger.log(f"Max retries reached. Error: {e}")
                     raise
                 self._state.logger.log(
-                    f"Retrying execution ({attempts}/{max_retries})..."
+                    f"Retrying execution ({attempt + 1}/{max_retries})..."
                 )
                 code = self._regenerate_code_after_error(code, e)
-
-        return None
 
     def train(
         self,
@@ -289,20 +289,53 @@ class Agent:
         self.clear_memory()
 
     def _process_query(self, query: str, output_type: Optional[str] = None):
-        """Process a user query and return the result."""
+        """Process a user query and return the result.
+
+        Supports a 2-step column selection pipeline for wide tables:
+          Step 1: LLM selects relevant columns (small prompt, reduced memory)
+          Step 2: Code generation runs on trimmed DataFrame/schema
+
+        The original DataFrames are always restored in the ``finally`` block
+        so that follow-up queries see the full schema again.
+        """
         query = UserQuery(query)
         self._state.logger.log(f"Question: {query}")
         self._state.logger.log(
             f"Running PandasAI with {self._state.config.llm.type} LLM..."
         )
 
+        # Reset per-query state
+        self._state.last_selected_names = None
+
         self._state.output_type = output_type
+        self._state.assign_prompt_id()
+
+        # Step 1: Column Selection (if needed)
+        original_dfs = None
+        should_select = self._should_select_columns()
+        total_cols = sum(len(df.columns) for df in self._state.dfs)
+        if should_select:
+            reason = ("forced on" if self._state.config.column_selection_enabled is True
+                      else f"{total_cols} cols ≥ threshold ({self._state.config.column_selection_threshold})")
+            self._state.logger.log(f"[Column Selection] Triggered: {reason}")
+            original_dfs = list(self._state.dfs)  # Shallow copy of list
+            self._apply_column_selection(str(query))
+            # Diagnostic: show trimmed DF column names for Step 2
+            for i, df in enumerate(self._state.dfs):
+                self._state.logger.log(f"[Column Selection] Trimmed DF[{i}] columns: {list(df.columns)}")
+                if hasattr(df, 'schema') and df.schema:
+                    schema_names = [c.name for c in df.schema.columns]
+                    self._state.logger.log(f"[Column Selection] Trimmed DF[{i}] schema: {schema_names}")
+        else:
+            reason = ("forced off" if self._state.config.column_selection_enabled is False
+                      else f"{total_cols} cols < threshold ({self._state.config.column_selection_threshold})")
+            self._state.logger.log(f"[Column Selection] Skipped: {reason}")
+
+        # Step 2: Code Generation (outside try so CodeExecutionError from
+        # generate_code_with_retries propagates up, not caught below)
+        code = self.generate_code_with_retries(str(query))
+
         try:
-            self._state.assign_prompt_id()
-
-            # Generate code
-            code = self.generate_code_with_retries(str(query))
-
             # Execute code with retries
             result = self.execute_with_retries(code)
 
@@ -310,11 +343,14 @@ class Agent:
             self._store_assistant_message(result, output_type)
 
             self._state.logger.log("Response generated successfully.")
-            # Generate and return the final response
             return result
 
         except CodeExecutionError:
             return self._handle_exception(code)
+        finally:
+            # ALWAYS restore original DataFrames — even on exception
+            if original_dfs is not None:
+                self._state.dfs = original_dfs
 
     def _regenerate_code_after_error(self, code: str, error: Exception) -> str:
         """Generate a new code snippet based on the error."""
@@ -360,6 +396,75 @@ class Agent:
             return
 
         self._state.memory.add(assistant_msg, is_user=False)
+
+    def _should_select_columns(self) -> bool:
+        """Check if 2-step column selection should be used.
+
+        Tri-state logic for ``column_selection_enabled``:
+          - ``True``  → force on (always select columns)
+          - ``False`` → force off (never select columns)
+          - ``None``  → auto-detect: select if total cols >= threshold
+        """
+        config = self._state.config
+        if config.column_selection_enabled is True:
+            return True
+        if config.column_selection_enabled is False:
+            return False
+        # None → auto-detect via threshold
+        total_cols = sum(len(df.columns) for df in self._state.dfs)
+        return total_cols >= config.column_selection_threshold
+
+    def _apply_column_selection(self, query: str):
+        """Step 1: Select columns and swap in trimmed DataFrames.
+
+        On failure, logs a warning and falls back to using all columns.
+        The original DataFrames are preserved in ``_process_query``'s
+        ``original_dfs`` variable and restored in the ``finally`` block.
+        """
+        try:
+            from pandasai.core.column_selector import ColumnSelector
+
+            selector = ColumnSelector(self._state)
+
+            # Use a temporary Memory with reduced size for Step 1
+            original_memory = self._state.memory
+            self._state.memory = selector.build_step1_memory()
+
+            try:
+                selected_names = selector.select(query)
+            finally:
+                # Always restore the full memory for Step 2
+                self._state.memory = original_memory
+
+            if not selected_names:
+                self._state.logger.log("[Column Selection] LLM returned empty list — using all columns")
+                return
+
+            # Store the raw LLM-selected names on state for API response
+            self._state.last_selected_names = selected_names
+            self._state.logger.log(f"[Column Selection] LLM selected {len(selected_names)} columns: "
+                  f"{selected_names}")
+
+            trimmed_dfs = []
+            for i, df in enumerate(self._state.dfs):
+                matched = selector.match_names_to_schema(selected_names, df)
+                self._state.logger.log(f"[Column Selection] DF[{i}] matched after LLM: {matched}")
+                if matched:
+                    matched = selector.ensure_essential_columns(matched, df, query)
+                    self._state.logger.log(f"[Column Selection] DF[{i}] matched after essential: {matched}")
+                    trimmed_df = selector.build_trimmed_dataframe(df, matched)
+                    trimmed_dfs.append(trimmed_df)
+                else:
+                    self._state.logger.log(f"[Column Selection] DF[{i}] no matches — keeping all columns")
+                    trimmed_dfs.append(df)
+
+            self._state.dfs = trimmed_dfs
+            final_col_count = sum(len(df.columns) for df in trimmed_dfs)
+            self._state.logger.log(f"[Column Selection] Trimmed to {final_col_count} columns "
+                  f"(after matching + essential-column guarantees)")
+        except Exception as e:
+            self._state.logger.log(f"[Column Selection] Failed: {e} — using all columns")
+            return
 
     @property
     def last_generated_code(self):

@@ -3,16 +3,16 @@ import os
 import uuid
 import tempfile
 import json
-import httpx
-import openai
+import logging
 import pandasai as pai
 from fastapi import HTTPException
 from pydantic import ValidationError
 from pandasai import Agent
-from pandasai_litellm.litellm import LiteLLM
 from pandasai.data_loader.semantic_layer_schema import SemanticLayerSchema
 from server.core.agent_store import agent_store
 from .models import RegisterResponse, ColumnContext, PandasAIConfigPayload, LLMConfigPayload, SemanticModelPayload
+
+logger = logging.getLogger(__name__)
 
 def create_agent_from_file_path(
     file_path: str, 
@@ -37,7 +37,7 @@ def create_agent_from_file_path(
     elif "excel" in mimetype.lower() or "spreadsheet" in mimetype.lower() or file_path.endswith(".xlsx"):
         df = pai.read_excel(file_path)
     else:
-        raise ValueError(f"Unsupported mimetype: {mimetype}")
+        raise HTTPException(status_code=400, detail=f"Unsupported mimetype: {mimetype}")
 
     from pandasai.helpers.type_determination import parse_json_array_columns
 
@@ -74,15 +74,22 @@ def create_agent_from_file_path(
     # IMPORTANT: When a DataFrame column is list[struct] and the match is via
     # semantic matching (inner/parent match), we must NOT patch the inner schema
     # column — instead we ADD the squashed column to the schema. The inner columns
-    # are useful for the serializer's XML but the template needs the actual
-    # DuckDB column name for UNNEST.
+    # are useful for merging descriptions but must be REMOVED from the final
+    # schema so they don't appear as separate top-level entries alongside the
+    # combined struct column.  The template needs the actual DuckDB column name
+    # for UNNEST, and duplicate inner-field columns confuse the LLM.
     if df.schema and df.schema.columns:
         from pandasai.helpers.type_determination import is_list_struct_column
-        from pandasai.helpers.semantic_matching import get_matching_schema_columns, merge_descriptions
+        from pandasai.helpers.semantic_matching import (
+            get_matching_schema_columns, merge_descriptions,
+        )
         from pandasai.data_loader.semantic_layer_schema import Column as SchemaColumn
 
         schema_by_name = {col.name: col for col in df.schema.columns}
         new_schema_columns = []
+        # Track names of inner-field schema columns that should be removed
+        # once the combined struct column replaces them.
+        inner_field_names_to_remove: set[str] = set()
 
         for col_name in df.columns:
             series = df[col_name]
@@ -110,9 +117,16 @@ def create_agent_from_file_path(
                 else:
                     # No exact match — the squashed column is NOT in the schema.
                     # Semantic matching would return inner columns, but we must NOT
-                    # patch those. Instead, add the squashed column as a new entry.
+                    # patch those. Instead, add the squashed column as a new entry
+                    # and mark the inner-field columns for removal.
                     matches = get_matching_schema_columns(col_name, df.schema)
                     merged_desc = merge_descriptions(matches) if matches else None
+
+                    # Collect the matched inner-field column names so they can
+                    # be removed from the schema later (they are now represented
+                    # by the combined struct column).
+                    for m in matches:
+                        inner_field_names_to_remove.add(m.name)
 
                     samples = None
                     if pandasai_config.enrich_column_values:
@@ -144,9 +158,46 @@ def create_agent_from_file_path(
                     if result["semantic_type"] is not None and exact_match.semantic_type is None:
                         exact_match.semantic_type = result["semantic_type"]
 
-        # Append any new columns to the schema
-        if new_schema_columns:
-            df.schema.columns = list(df.schema.columns) + new_schema_columns
+        # Append new struct columns and remove inner-field columns that are
+        # now represented by the combined struct column.
+        if new_schema_columns or inner_field_names_to_remove:
+            filtered = []
+            for col in list(df.schema.columns) + new_schema_columns:
+                # Skip inner-field columns that are now part of a combined
+                # struct column entry.  This prevents duplicate entries
+                # (inner fields + combined struct column) in the schema.
+                if col.name in inner_field_names_to_remove:
+                    continue
+                filtered.append(col)
+            df.schema.columns = filtered
+
+    # --- 2c. Auto-fill missing column descriptions ---
+    if pandasai_config.auto_fill_descriptions and df.schema and df.schema.columns:
+        from server.core.description_filler import fill_missing_descriptions
+        from server.core.llm_setup import create_litellm
+
+        # Build the LLM that will be used for the agent so descriptions
+        # are generated by the same model the user selected.
+        # response_format={"type": "json_object"} forces structured JSON output.
+        _desc_llm = None
+        if llm_config.api_key and llm_config.base_url:
+            try:
+                _desc_llm = create_litellm(
+                    api_key=llm_config.api_key,
+                    base_url=llm_config.base_url,
+                    model_name=llm_config.model_name,
+                    verify_ssl=os.environ.get("LLM_VERIFY_SSL", "false").lower() == "true",
+                    response_format={"type": "json_object"},
+                )
+                fill_missing_descriptions(df, _desc_llm)
+            except Exception:
+                logger.warning("Failed to create description-filler LLM, skipping auto-fill", exc_info=True)
+        else:
+            from pandasai.config import ConfigManager
+            _desc_llm = ConfigManager.get().llm
+
+        if _desc_llm and not (llm_config.api_key and llm_config.base_url):
+            fill_missing_descriptions(df, _desc_llm)
 
     # --- 2. Apply Custom LLM Config ---
     from pandasai.config import ConfigManager
@@ -156,14 +207,13 @@ def create_agent_from_file_path(
     
     agent_config.update(pandasai_config.model_dump())
     
+    # Apply llm_context_window from LLM config (it's an LLM property, not a PandasAI one)
+    if llm_config.llm_context_window is not None:
+        agent_config["llm_context_window"] = llm_config.llm_context_window
+    
     if llm_config.api_key and llm_config.base_url:
-        custom_httpx_client = httpx.Client(verify=False)
-        custom_openai_client = openai.OpenAI(
-            api_key=llm_config.api_key,
-            base_url=llm_config.base_url,
-            http_client=custom_httpx_client
-        )
-        
+        from server.core.llm_setup import create_litellm
+
         # Extract all LiteLLM generation sampling parameters
         sampling_params = llm_config.model_dump(
             exclude={"api_key", "base_url", "model_name", "system_prompt"}, 
@@ -171,12 +221,18 @@ def create_agent_from_file_path(
             exclude_none=True
         )
         
-        custom_llm = LiteLLM(
-            model=llm_config.model_name,
-            client=custom_openai_client,
-            **sampling_params
-        )
-        agent_config["llm"] = custom_llm
+        try:
+            custom_llm = create_litellm(
+                api_key=llm_config.api_key,
+                base_url=llm_config.base_url,
+                model_name=llm_config.model_name,
+                verify_ssl=os.environ.get("LLM_VERIFY_SSL", "false").lower() == "true",
+                **sampling_params,
+            )
+            agent_config["llm"] = custom_llm
+        except Exception as e:
+            logger.error("Failed to create custom LLM", exc_info=True)
+            raise HTTPException(status_code=400, detail=f"Invalid LLM configuration: {str(e)}")
 
     # Inject the system prompt via the description parameter
     # df is already a PandasAI DataFrame (from pai.read_csv/read_excel).
@@ -185,18 +241,20 @@ def create_agent_from_file_path(
     conversation_id = agent_store.register_agent(agent)
     
     # --- 3. Extract Context for API Response ---
-    # Schema columns were already enriched in step 2b, so just read from them.
+    # Return ALL schema columns with their descriptions and samples (if enriched).
+    # This gives the client full visibility into the enriched schema including
+    # auto-filled descriptions.
     extracted_context = None
-    if pandasai_config.enrich_column_values and df.schema and df.schema.columns:
+    if df.schema and df.schema.columns:
         extracted_context = []
         for schema_col in df.schema.columns:
-            if schema_col.samples is not None:
-                extracted_context.append(ColumnContext(
-                    column=schema_col.name,
-                    type=schema_col.type,
-                    semantic_type=schema_col.semantic_type,
-                    samples=schema_col.samples,
-                ))
+            extracted_context.append(ColumnContext(
+                column=schema_col.name,
+                type=schema_col.type,
+                semantic_type=schema_col.semantic_type,
+                description=schema_col.description,
+                samples=schema_col.samples if pandasai_config.enrich_column_values else None,
+            ))
 
     return RegisterResponse(conversation_id=conversation_id, extracted_context=extracted_context)
 
@@ -218,10 +276,13 @@ def handle_base64_upload(
     
     temp_dir = os.path.join(tempfile.gettempdir(), "pandasai_uploads")
     os.makedirs(temp_dir, exist_ok=True)
-    temp_path = os.path.join(temp_dir, f"upload_{safe_id}{ext}")
-    
-    with open(temp_path, "wb") as f:
-        f.write(file_bytes)
+    fd, temp_path = tempfile.mkstemp(suffix=ext, prefix=f"upload_{safe_id}_", dir=temp_dir)
+    try:
+        os.write(fd, file_bytes)
+        os.close(fd)
+    except Exception:
+        os.close(fd)
+        raise
     
     try:
         result = create_agent_from_file_path(

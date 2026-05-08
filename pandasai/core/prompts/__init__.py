@@ -11,6 +11,8 @@ from pandasai.core.prompts.correct_output_type_error_prompt import (
 
 from .base import BasePrompt
 from .generate_python_code_with_sql import GeneratePythonCodeWithSQLPrompt
+from .select_columns import SelectColumnsPrompt
+from .auto_fill_descriptions import AutoFillDescriptionsPrompt
 
 if TYPE_CHECKING:
     from pandasai.agent.state import AgentState
@@ -45,7 +47,9 @@ def get_correct_output_type_error_prompt(
 
 __all__ = [
     "BasePrompt",
-    "CorrectErrorPrompt",
-    "GeneratePythonCodePrompt",
+    "CorrectExecuteSQLQueryUsageErrorPrompt",
+    "CorrectOutputTypeErrorPrompt",
     "GeneratePythonCodeWithSQLPrompt",
+    "SelectColumnsPrompt",
+    "AutoFillDescriptionsPrompt",
 ]

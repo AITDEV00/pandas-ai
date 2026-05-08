@@ -1,0 +1,28 @@
+You are a data catalog assistant. Given a list of columns with their types and sample values,
+write a concise 1-sentence description for each column listed in MISSING below.
+
+Table: {{ table_name }}
+
+**ALL COLUMNS:**
+{% for col in columns %}
+- "{{ col.name }}" ({{ col.type }}{% if col.description %}, existing description: "{{ col.description }}"{% endif %})
+{% if col.samples %}  Values: {{ col.samples | truncate(150) }}{% endif %}
+{% endfor %}
+
+**MISSING (generate a description for each of these):**
+{% for key in missing_keys %}
+- "{{ key }}"
+{% endfor %}
+
+**Sample rows from the data:**
+{{ sample_rows }}
+
+Respond in JSON format:
+{
+  "descriptions": {
+    "exact_column_key": "A concise 1-sentence description.",
+    ...
+  }
+}
+
+Important: Use the exact column key verbatim (e.g. "Employee Master.Employee Name") as it appears in the MISSING list.
