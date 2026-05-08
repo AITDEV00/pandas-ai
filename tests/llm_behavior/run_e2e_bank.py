@@ -109,6 +109,20 @@ from tests.llm_behavior.query_bank_adversarial_v3 import (
     get_adversarial_v3_stats,
 )
 
+# ── Import adversarial v4 query bank ────────────────────────────────────
+from tests.llm_behavior.query_bank_adversarial_v4 import (
+    BRACKET_NAMING_INCONSISTENCY,
+    EMPLOYEE_ID_LEADING_ZERO,
+    STRUCT_FIELD_PROMPT_CONFUSION,
+    COLUMN_HINT_PHRASING,
+    MULTI_STRUCT_FIELD_SELECTION,
+    NAMING_CONVENTION_STRESS,
+    get_all_adversarial_v4_single_turn_queries,
+    get_all_adversarial_v4_multi_turn_conversations,
+    get_adversarial_v4_query_by_id,
+    get_adversarial_v4_stats,
+)
+
 # ── Import the E2E pipeline test (registration + chat + monitoring) ───────
 from tests.llm_behavior.test_e2e_pipeline import (
     DEFAULT_XLSX,
@@ -669,7 +683,7 @@ def main():
     parser.add_argument("--conv-id", default=None, help="Skip registration, use existing conversation ID")
     parser.add_argument("--output-type", default="string", help="Default output type")
     parser.add_argument("--no-enrich", action="store_true", help="Disable column value enrichment")
-    parser.add_argument("--bank", choices=["standard", "adversarial", "adversarial_v2", "adversarial_v3", "all"], default="standard", help="Which query bank to use")
+    parser.add_argument("--bank", choices=["standard", "adversarial", "adversarial_v2", "adversarial_v3", "adversarial_v4", "all"], default="standard", help="Which query bank to use")
     parser.add_argument("--column-selection", action="store_true", help="Enable column selection (2-step LLM call)")
     parser.add_argument("--column-selection-threshold", type=int, default=30, help="Column count threshold to trigger auto column selection")
     parser.add_argument("--column-values-budget-ratio", type=float, default=0.10, help="Fraction of column values to include in prompt")
@@ -762,6 +776,8 @@ def main():
             if not item:
                 item = get_adversarial_v3_query_by_id(args.only)
             if not item:
+                item = get_adversarial_v4_query_by_id(args.only)
+            if not item:
                 print(f"  ❌ Query/Conversation ID not found: {args.only}")
                 return
             if "turns" in item:
@@ -797,6 +813,12 @@ def main():
                 adv3_multi = CONVERSATION_POISON if args.mode in ("multi", "all") else []
                 single_queries = single_queries + adv3_single
                 multi_queries = multi_queries + adv3_multi
+
+            if args.bank in ("adversarial_v4", "all"):
+                adv4_single = get_all_adversarial_v4_single_turn_queries() if args.mode in ("single", "all") else []
+                adv4_multi = []  # v4 has no multi-turn conversations
+                single_queries = single_queries + adv4_single
+                multi_queries = multi_queries + adv4_multi
 
         # ── Run single-turn queries ───────────────────────────────────
         if single_queries:

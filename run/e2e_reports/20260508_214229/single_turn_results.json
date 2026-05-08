@@ -1,0 +1,95 @@
+[
+  {
+    "query_id": "BN-001",
+    "query": "what is the percentage by different leave types did ayesha take? use the leave detail column",
+    "category": "bracket_naming_inconsistency",
+    "difficulty": "extreme",
+    "expected_output_type": "string",
+    "notes": "EXACT REPRODUCTION of user's failure case. The phrase 'leave detail column' triggers the LLM to return bracket-style names like [Employee Leave Details[Leave Type]] which don't match the actual combined DataFrame column. The working variant uses 'employee leave detail columns' (plural).",
+    "success": true,
+    "final_type": "string",
+    "final_response": "Ayesha took 66 leave(s) in total.\n\nPercentage by leave type:\n----------------------------------------\n- Training Leave: 4.545% (3 leave)\n- Non-Mandatory Leave: 31.818% (21 leave)\n- Wellbeing: 21.212% (14 leave)\n- Remote Work: 42.424% (28 leave)",
+    "error": null,
+    "response_format": "no_code_delimiter",
+    "llm_call_count": 2,
+    "history_depth": 0,
+    "assistant_msg_format": null,
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  }
+]

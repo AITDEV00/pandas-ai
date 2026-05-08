@@ -32,12 +32,41 @@ def create_agent_from_file_path(
         semantic_model_dict = None
     
     # --- 1. Read file (only after validation passes) ---
+    # Pre-compute dtype overrides from semantic model to preserve leading zeros
+    # and other string formatting that pandas auto-detection would strip.
+    dtype_overrides: dict[str, str] = {}
+    if semantic_model and semantic_model.columns:
+        for sm_col in semantic_model.columns:
+            col_name = sm_col.get("name") if isinstance(sm_col, dict) else getattr(sm_col, "name", None)
+            col_type = sm_col.get("type") if isinstance(sm_col, dict) else getattr(sm_col, "type", None)
+            if col_name and col_type == "string":
+                dtype_overrides[col_name] = str
+
     if "csv" in mimetype.lower() or file_path.endswith(".csv"):
         df = pai.read_csv(file_path)
     elif "excel" in mimetype.lower() or "spreadsheet" in mimetype.lower() or file_path.endswith(".xlsx"):
         df = pai.read_excel(file_path)
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported mimetype: {mimetype}")
+
+    # --- 1a. Re-read columns where dtype overrides are needed ---
+    # pandas auto-detects numeric columns from Excel, stripping leading zeros
+    # (e.g. Employee Number "0111" → 111).  For columns declared as string in
+    # the semantic model, re-read them from the raw Excel file with dtype=str.
+    if dtype_overrides and ("excel" in mimetype.lower() or "spreadsheet" in mimetype.lower() or file_path.endswith(".xlsx")):
+        import pandas as _pd
+        try:
+            raw_df = _pd.read_excel(file_path, dtype=dtype_overrides)
+            for col_name in dtype_overrides:
+                if col_name in raw_df.columns and col_name in df.columns:
+                    if str(df[col_name].dtype) != "object":
+                        logger.info(
+                            "Re-reading column %r as str (was %s, semantic model declares string)",
+                            col_name, df[col_name].dtype,
+                        )
+                        df[col_name] = raw_df[col_name]
+        except Exception as e:
+            logger.warning("Failed to re-read Excel with dtype overrides: %s", e)
 
     from pandasai.helpers.type_determination import parse_json_array_columns
 

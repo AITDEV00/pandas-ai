@@ -59,14 +59,51 @@ class CodeCleaner:
                 )
         return sql_query
 
+    @staticmethod
+    def _normalize_duckdb_struct_syntax(sql: str) -> str:
+        """Replace DuckDB struct field access with placeholders for sqlglot parsing.
+
+        DuckDB uses ``rec['Field Name']`` syntax for struct field access and
+        ``CROSS JOIN UNNEST(col) AS t(rec)`` for struct unnesting.  sqlglot
+        cannot parse these correctly and may extract spurious table names
+        (e.g. "columns" from ``information_schema.columns``, or field names
+        misidentified as table references).
+
+        This method replaces struct access patterns with safe placeholders so
+        sqlglot can correctly identify only real table names.  The original
+        query is returned unchanged — only the *normalized* copy is used for
+        table-name extraction.
+        """
+        # Replace rec['...'] and similar struct field access patterns
+        # e.g. rec['Employee Leave Details[Leave Type]'] → rec['__STRUCT_FIELD__']
+        normalized = re.sub(
+            r"(\w+)\['([^']*)'\]",
+            r"\1['__STRUCT_FIELD__']",
+            sql,
+        )
+        # Replace bracket-enclosed column names in SELECT/WHERE clauses
+        # e.g. "[Employee Master[Employee Name]]" → "__BRACKET_COL__"
+        normalized = re.sub(
+            r'"\[([^\]]+)\[([^\]]+)\]\]"',
+            r'"__BRACKET_COL__"',
+            normalized,
+        )
+        return normalized
+
     def _clean_sql_query(self, sql_query: str) -> str:
         """
         Clean the SQL query by trimming semicolons and validating table names.
         """
         sql_query = sql_query.rstrip(";")
         dialect = self.context.dfs[0].get_dialect()
+
+        # Normalize DuckDB struct syntax before passing to sqlglot.
+        # sqlglot may misparse rec['Field'] and bracket-enclosed column names,
+        # extracting spurious table names that cause false MaliciousQueryError.
+        normalized_query = self._normalize_duckdb_struct_syntax(sql_query)
+
         try:
-            table_names = SQLParser.extract_table_names(sql_query, dialect)
+            table_names = SQLParser.extract_table_names(normalized_query, dialect)
         except Exception as e:
             # sqlglot may fail to tokenize SQL with DuckDB-specific syntax
             # like struct field access (rec['Field Name']) or bracket-enclosed

@@ -130,6 +130,28 @@ class ColumnSelector:
                 schema_names = {col.name for col in df.schema.columns}
                 if name in schema_names:
                     result[name] = None
+                elif name.startswith("[") and "]" in name:
+                    # The LLM may return inner field names (e.g.
+                    # "[Employee Leave Details[Leave Type]]") that are NOT
+                    # in the schema because the handler replaced them with a
+                    # combined list[struct] column.  Check if this is an
+                    # inner field of a known struct parent and has real data.
+                    parent = extract_struct_parent(name)
+                    has_real_data = name in real_bracket_col_names
+                    if parent and (parent in struct_parent_names or has_real_data):
+                        decomposed = decompose_squashed_name(name)
+                        logger.debug(
+                            "match: LLM=%r → no schema match, but struct inner field of parent=%r, decomposed=%s",
+                            name, parent, decomposed,
+                        )
+                        if parent not in result:
+                            result[parent] = []
+                        if result[parent] is not None:
+                            for field_name in decomposed:
+                                if field_name not in result[parent]:
+                                    result[parent].append(field_name)
+                    else:
+                        logger.debug("match_names_to_schema: no match for %r", name)
                 else:
                     logger.debug("match_names_to_schema: no match for %r", name)
                 continue

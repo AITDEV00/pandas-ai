@@ -1,0 +1,95 @@
+[
+  {
+    "query_id": "BN-002",
+    "query": "what is the percentage by different leave types did ayesha take? use the employee leave detail columns",
+    "category": "bracket_naming_inconsistency",
+    "difficulty": "hard",
+    "expected_output_type": "string",
+    "notes": "WORKING VARIANT of BN-001. The phrase 'employee leave detail columns' (plural) triggers the LLM to return names WITHOUT outer brackets like 'Employee Leave Details[Leave Type]' which match duckdb_key format. This should succeed where BN-001 fails.",
+    "success": true,
+    "final_type": "string",
+    "final_response": "No leave detail columns are available in the enterprise_data table schema. Only employee name information (\"[Employee Master[Employee Name]]\") is accessible, which contains names like Ayesha but no leave type breakdown data.",
+    "error": null,
+    "response_format": "fence",
+    "llm_call_count": 2,
+    "history_depth": 0,
+    "assistant_msg_format": null,
+    "steps_summary": [
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "prompt_rendered",
+        "has_error": false,
+        "details_keys": [
+          "prompt_length",
+          "prompt_last_300"
+        ]
+      },
+      {
+        "step": "llm_call",
+        "has_error": false,
+        "details_keys": [
+          "num_messages",
+          "message_roles",
+          "user_prompt_length",
+          "user_prompt_first_500",
+          "system_prompt",
+          "history_messages"
+        ]
+      },
+      {
+        "step": "llm_messages_full",
+        "has_error": false,
+        "details_keys": []
+      },
+      {
+        "step": "llm_response",
+        "has_error": false,
+        "details_keys": [
+          "response_length",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extraction",
+        "has_error": false,
+        "details_keys": [
+          "has_separator",
+          "has_code_marker",
+          "response_first_300"
+        ]
+      },
+      {
+        "step": "code_extracted",
+        "has_error": false,
+        "details_keys": [
+          "code_length",
+          "code_first_200"
+        ]
+      }
+    ]
+  }
+]
