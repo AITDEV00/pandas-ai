@@ -72,12 +72,16 @@ def merge_descriptions(schema_columns: List) -> Optional[str]:
     """
     Merge the descriptions from multiple matched schema columns into a single string.
     Returns None if no descriptions are available.
+    Deduplicates by short_name — only the first description for each short_name is kept.
     """
     descriptions = []
+    seen_short_names = set()
     for col in schema_columns:
         if col.description:
-            # Extract the short column name from the bracket convention
             short_name = _extract_short_name(col.name)
+            if short_name in seen_short_names:
+                continue
+            seen_short_names.add(short_name)
             descriptions.append(f"{short_name}: {col.description}")
     return " | ".join(descriptions) if descriptions else None
 
@@ -173,6 +177,42 @@ def extract_field_from_llm_name(name: str) -> Optional[str]:
     if inner.endswith("]"):
         inner = inner[:-1]
     return inner if inner else None
+
+
+def decompose_squashed_name(squashed_name: str) -> List[str]:
+    """Decompose a squashed bracket column name into individual field names.
+
+    A squashed column like ``[Parent[Field1][Field2][Field3]]`` is decomposed
+    into individual schema column names:
+      ``[Parent[Field1]]``, ``[Parent[Field2]]``, ``[Parent[Field3]]``
+
+    A single-field column like ``[Parent[Field1]]`` is returned as-is.
+
+    Non-bracket names are returned as a single-element list.
+    """
+    if not squashed_name.startswith("[") or not squashed_name.endswith("]"):
+        return [squashed_name]
+
+    # Strip outer brackets
+    inner = squashed_name[1:-1]
+
+    # Find the parent name (everything before the first '[')
+    parent_end = inner.find("[")
+    if parent_end < 0:
+        # No inner fields — just a bracket-wrapped name
+        return [squashed_name]
+
+    parent = inner[:parent_end]
+
+    # Extract all field names from [Field] groups
+    field_names = re.findall(r'\[([^\[\]]+)\]', inner)
+
+    if len(field_names) <= 1:
+        # Single field — return as-is
+        return [squashed_name]
+
+    # Reconstruct individual field names in bracket convention
+    return [f"[{parent}[{field}]]" for field in field_names]
 
 
 def bracket_col_has_any_field(col_name: str, fields: list) -> bool:

@@ -147,10 +147,16 @@ class ColumnValueExtractor:
                 inner_samples = sorted(sample_vals[:5]) if sample_vals else None
 
             if inner_samples:
+                # duckdb_key: the exact struct field key DuckDB expects in rec['...'].
+                # Strip outer brackets from schema_key if present (e.g.
+                # "[Employee Leave Details[Leave Type]]" -> "Employee Leave Details[Leave Type]").
+                # If no outer brackets, use schema_key as-is.
+                duckdb_key = schema_key[1:-1] if schema_key.startswith("[") and schema_key.endswith("]") else schema_key
                 inner_entry = {
                     "type": inner_type,
                     "samples": inner_samples,
                     "short_name": _extract_short_name(schema_key),
+                    "duckdb_key": duckdb_key,
                 }
                 if inner_desc:
                     inner_entry["description"] = inner_desc

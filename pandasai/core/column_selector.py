@@ -24,6 +24,7 @@ from pandasai.core.prompts.base import BasePrompt
 from pandasai.helpers.semantic_matching import (
     _extract_short_name,
     bracket_col_has_any_field,
+    decompose_squashed_name,
     extract_struct_parent,
     get_matching_schema_columns,
     is_bracket_child_of,
@@ -79,17 +80,21 @@ class ColumnSelector:
             for matched_col in matches:
                 if matched_col.name.startswith("[") and "]" in matched_col.name:
                     parent = extract_struct_parent(matched_col.name)
-                    # Use the matched schema column name as-is (the canonical
-                    # name from the semantic model), NOT a short-name extraction.
-                    # This keeps names consistent with the schema and the
-                    # samples dict keys (which also use schema column names).
-                    schema_field_name = matched_col.name
-                    logger.debug("match: LLM=%r → schema=%r → parent=%r, field=%r", name, matched_col.name, parent, schema_field_name)
+                    # Decompose squashed schema column names into individual
+                    # field names that match the samples dict keys.
+                    # e.g. "[Parent[Field1][Field2][Field3]]" →
+                    #   ["[Parent[Field1]]", "[Parent[Field2]]", "[Parent[Field3]]"]
+                    # This ensures inner_fields entries match samples dict keys
+                    # like "[Parent[Field1]]" rather than the full squashed name.
+                    decomposed = decompose_squashed_name(matched_col.name)
+                    logger.debug("match: LLM=%r → schema=%r → parent=%r, decomposed=%s", name, matched_col.name, parent, decomposed)
                     if parent:
                         if parent not in result:
                             result[parent] = []
-                        if result[parent] is not None and schema_field_name not in result[parent]:
-                            result[parent].append(schema_field_name)
+                        if result[parent] is not None:
+                            for field_name in decomposed:
+                                if field_name not in result[parent]:
+                                    result[parent].append(field_name)
                     else:
                         # Bracket name but no parent — keep as-is
                         result[matched_col.name] = None
@@ -156,34 +161,35 @@ class ColumnSelector:
             if parent not in matched:
                 continue
 
-            # Use the schema column name (canonical name from semantic model)
-            # for the inner field, NOT a short-name extraction.
-            field_name = col.name
-            short_name = _extract_short_name(col.name)
-            is_essential = False
+            # Decompose squashed schema column names into individual fields.
+            # e.g. "[Parent[Field1][Field2]]" → ["[Parent[Field1]]", "[Parent[Field2]]"]
+            decomposed = decompose_squashed_name(col.name)
+            for field_name in decomposed:
+                short_name = _extract_short_name(field_name)
+                is_essential = False
 
-            # Query-mentioned inner field (use short name for query matching)
-            if short_name and short_name.lower() in query.lower():
-                is_essential = True
-
-            # Primary ID field for the parent — from schema column level
-            if col.semantic_type == "id_like":
-                existing_fields = matched[parent]
-                has_id_already = existing_fields is not None and any(
-                    sc.name in existing_fields
-                    for sc in df.schema.columns
-                    if extract_struct_parent(sc.name) == parent
-                    and sc.semantic_type == "id_like"
-                )
-                if not has_id_already:
+                # Query-mentioned inner field (use short name for query matching)
+                if short_name and short_name.lower() in query.lower():
                     is_essential = True
 
-            if is_essential:
-                if matched[parent] is None:
-                    matched[parent] = []
-                if field_name not in matched[parent]:
-                    matched[parent].append(field_name)
-                    essential_added.append(f"struct:{parent}[{field_name}] (schema-level, type={col.type}, semantic={col.semantic_type})")
+                # Primary ID field for the parent — from schema column level
+                if col.semantic_type == "id_like":
+                    existing_fields = matched[parent]
+                    has_id_already = existing_fields is not None and any(
+                        sc.name in existing_fields
+                        for sc in df.schema.columns
+                        if extract_struct_parent(sc.name) == parent
+                        and sc.semantic_type == "id_like"
+                    )
+                    if not has_id_already:
+                        is_essential = True
+
+                if is_essential:
+                    if matched[parent] is None:
+                        matched[parent] = []
+                    if field_name not in matched[parent]:
+                        matched[parent].append(field_name)
+                        essential_added.append(f"struct:{parent}[{field_name}] (schema-level, type={col.type}, semantic={col.semantic_type})")
 
         # --- Second pass: enrichment-level semantic_type from samples ---
         # This catches id_like/query-mentioned fields that the schema column level
@@ -195,9 +201,18 @@ class ColumnSelector:
             # Look up the parent schema column (non-bracket name) for samples
             schema_col = parent_schema_lookup.get(col_name)
             if not schema_col:
-                # Also check bracket-style schema entries
+                # Also check bracket-style schema entries (exact name match)
                 schema_col = next(
                     (c for c in df.schema.columns if c.name == col_name), None
+                )
+            if not schema_col:
+                # Also check by parent name — the schema column may be a
+                # squashed bracket-style name (e.g. "[Parent[Field1][Field2]]")
+                # while col_name is just "Parent".
+                schema_col = next(
+                    (c for c in df.schema.columns
+                     if c.type == "list[struct]" and is_bracket_child_of(c.name, col_name)),
+                    None
                 )
             if not schema_col or schema_col.type != "list[struct]":
                 continue
@@ -336,11 +351,21 @@ class ColumnSelector:
                             kept_schema_names.add(sc.name)
                     else:
                         # Specific inner fields — inner_fields now contains
-                        # canonical schema column names.  Match by checking
-                        # if the schema column name is in inner_fields.
+                        # decomposed individual field names (e.g.
+                        # "[Parent[Field1]]", "[Parent[Field2]]").
+                        # Match by checking:
+                        #   1. Direct match: schema column name is in inner_fields
+                        #   2. Squashed match: schema column is a squashed name
+                        #      that contains inner fields from inner_fields
                         for sc in parent_schema_cols:
                             if sc.name in inner_fields:
                                 kept_schema_names.add(sc.name)
+                            else:
+                                # Check if this is a squashed schema column
+                                # that contains any of the inner fields
+                                sc_decomposed = decompose_squashed_name(sc.name)
+                                if any(f in sc_decomposed for f in inner_fields):
+                                    kept_schema_names.add(sc.name)
 
             trimmed_schema_columns = []
             for col in df.schema.columns:

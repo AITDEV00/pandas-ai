@@ -37,7 +37,7 @@ The table schema contains a `"samples"` field. **This is your VOCABULARY DICTION
 {%- set field = col.samples[field_name] %}
 {%- set field_type = field.type | default('unknown') %}
 {%- set field_sem = field.semantic_type if field.semantic_type is defined and field.semantic_type is not none else '' %}
-{%- set display_name = field.short_name if field is mapping and field.short_name is defined and field.short_name is not none else field_name %}
+{%- set display_name = field.duckdb_key if field is mapping and field.duckdb_key is defined and field.duckdb_key is not none else (field.short_name if field is mapping and field.short_name is defined and field.short_name is not none else field_name) %}
 - `rec['{{ display_name }}']` ({{ field_type }}{%- if field_sem %}, {{ field_sem }}{% endif %})
 {%- if field.samples is defined and field.samples is not none %}
 {%- if field_sem == 'categorical' and field.samples is iterable and field.samples is not mapping %}
