@@ -1,0 +1,839 @@
+{
+  "timestamp": "20260512_110139",
+  "query": "How many records are there?",
+  "data_file": "/home/jyao/ait-projects/chat-excel-server/pandas-ai/emirati_employees_data.csv",
+  "batch_sizes": [
+    5,
+    10,
+    15,
+    20,
+    25
+  ],
+  "batches": [
+    {
+      "batch_size": 5,
+      "wall_ms": 3753.5,
+      "min_ms": 3110.1,
+      "max_ms": 3750.1,
+      "avg_ms": 3313.3,
+      "p50_ms": 3229.9,
+      "p95_ms": 3750.1,
+      "stddev_ms": 259.8,
+      "success_count": 5,
+      "fail_count": 0,
+      "parallelism_ratio": 4.414,
+      "per_request": [
+        {
+          "index": 0,
+          "conversation_id": "78ec05a8-099c-4c65-9236-9e570b6fdb5d",
+          "success": true,
+          "latency_ms": 3229.9,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-2_0"
+        },
+        {
+          "index": 1,
+          "conversation_id": "09d3c8bc-6e18-412c-80b7-72e3680d8846",
+          "success": true,
+          "latency_ms": 3139.2,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-2_1"
+        },
+        {
+          "index": 2,
+          "conversation_id": "f88827da-7842-41dd-8f34-c94b20e0eb3f",
+          "success": true,
+          "latency_ms": 3337.1,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-2_2"
+        },
+        {
+          "index": 3,
+          "conversation_id": "4da22721-9f8a-495a-9954-8fe8ac2c6a19",
+          "success": true,
+          "latency_ms": 3110.1,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-2_3"
+        },
+        {
+          "index": 4,
+          "conversation_id": "830e4e89-3120-4c71-87f4-e44ef516f07d",
+          "success": true,
+          "latency_ms": 3750.1,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati Employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-2_4"
+        }
+      ]
+    },
+    {
+      "batch_size": 10,
+      "wall_ms": 3206.9,
+      "min_ms": 1675.9,
+      "max_ms": 3198.5,
+      "avg_ms": 2222.6,
+      "p50_ms": 2078.9,
+      "p95_ms": 3198.5,
+      "stddev_ms": 461.9,
+      "success_count": 10,
+      "fail_count": 0,
+      "parallelism_ratio": 6.931,
+      "per_request": [
+        {
+          "index": 0,
+          "conversation_id": "d7e160f1-369a-415e-9f6a-515c6ea445e8",
+          "success": true,
+          "latency_ms": 2702.5,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-3_0"
+        },
+        {
+          "index": 1,
+          "conversation_id": "ee95536f-6b21-495c-b58f-91f290d91acc",
+          "success": true,
+          "latency_ms": 1969.7,
+          "response_type": "string",
+          "response_preview": "There are 500 employee records.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-3_1"
+        },
+        {
+          "index": 2,
+          "conversation_id": "c3662706-8f8c-42db-95af-edc6cf97fbc6",
+          "success": true,
+          "latency_ms": 1921.3,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati employees database.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-3_2"
+        },
+        {
+          "index": 3,
+          "conversation_id": "587be79b-6233-4a53-abb6-270fd3eb6f9b",
+          "success": true,
+          "latency_ms": 1935.0,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-3_3"
+        },
+        {
+          "index": 4,
+          "conversation_id": "d73cb5d9-9214-4160-9235-cae6ad9888d4",
+          "success": true,
+          "latency_ms": 1848.3,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati Employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-3_4"
+        },
+        {
+          "index": 5,
+          "conversation_id": "f672447f-193e-4ae9-805c-8d3270c06144",
+          "success": true,
+          "latency_ms": 2365.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-3_5"
+        },
+        {
+          "index": 6,
+          "conversation_id": "758a9aab-de97-45aa-9b57-72269df4fd4d",
+          "success": true,
+          "latency_ms": 2421.3,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-3_6"
+        },
+        {
+          "index": 7,
+          "conversation_id": "a389eb6e-cd36-4865-b02a-a7775dc2ad75",
+          "success": true,
+          "latency_ms": 2188.0,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-3_7"
+        },
+        {
+          "index": 8,
+          "conversation_id": "8b9b9a48-f289-4fce-911d-07144bc9db0a",
+          "success": true,
+          "latency_ms": 3198.5,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-3_8"
+        },
+        {
+          "index": 9,
+          "conversation_id": "4753e992-9d7f-4893-b958-a1230456ea7c",
+          "success": true,
+          "latency_ms": 1675.9,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-3_9"
+        }
+      ]
+    },
+    {
+      "batch_size": 15,
+      "wall_ms": 26066.6,
+      "min_ms": 1875.9,
+      "max_ms": 26057.0,
+      "avg_ms": 4355.4,
+      "p50_ms": 2307.5,
+      "p95_ms": 26057.0,
+      "stddev_ms": 6246.1,
+      "success_count": 15,
+      "fail_count": 0,
+      "parallelism_ratio": 2.506,
+      "per_request": [
+        {
+          "index": 0,
+          "conversation_id": "857335fd-f3dc-47bc-ba59-256f169c67e3",
+          "success": true,
+          "latency_ms": 3251.9,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_0"
+        },
+        {
+          "index": 1,
+          "conversation_id": "f162c1a6-3ac4-4871-841a-ed7961604b59",
+          "success": true,
+          "latency_ms": 2127.4,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_1"
+        },
+        {
+          "index": 2,
+          "conversation_id": "d11a2d67-7065-4d90-ac96-9396d784f935",
+          "success": true,
+          "latency_ms": 2007.2,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_2"
+        },
+        {
+          "index": 3,
+          "conversation_id": "939355d2-9fe1-4f12-84ff-4181f3150abc",
+          "success": true,
+          "latency_ms": 1950.8,
+          "response_type": "string",
+          "response_preview": "There are 500 records in total.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_3"
+        },
+        {
+          "index": 4,
+          "conversation_id": "456dcaff-8560-49ea-b679-2bc8ee3f5f35",
+          "success": true,
+          "latency_ms": 2159.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_4"
+        },
+        {
+          "index": 5,
+          "conversation_id": "b2125188-9ce9-47e3-a9e5-ddebbca7e50f",
+          "success": true,
+          "latency_ms": 2352.1,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati employees directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_5"
+        },
+        {
+          "index": 6,
+          "conversation_id": "57cba0ba-801f-4cfa-ba58-f2ed0555b562",
+          "success": true,
+          "latency_ms": 2070.9,
+          "response_type": "string",
+          "response_preview": "There are 500 employee records in the database.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_6"
+        },
+        {
+          "index": 7,
+          "conversation_id": "6954ff0d-980d-4186-a81d-0a6342b3b951",
+          "success": true,
+          "latency_ms": 2956.6,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_7"
+        },
+        {
+          "index": 8,
+          "conversation_id": "04a6f36d-9ffe-4460-83a9-5122a9eb6be4",
+          "success": true,
+          "latency_ms": 3040.8,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_8"
+        },
+        {
+          "index": 9,
+          "conversation_id": "2ebf3cef-e36e-41d8-9c03-88095d40990b",
+          "success": true,
+          "latency_ms": 1916.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_9"
+        },
+        {
+          "index": 10,
+          "conversation_id": "243becef-a40f-4fc9-81d1-081ce74ff549",
+          "success": true,
+          "latency_ms": 26057.0,
+          "response_type": "string",
+          "response_preview": "There are 500 records.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_10"
+        },
+        {
+          "index": 11,
+          "conversation_id": "5fab8c4a-66c3-4c24-b446-936613875c06",
+          "success": true,
+          "latency_ms": 2428.2,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati employees directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_11"
+        },
+        {
+          "index": 12,
+          "conversation_id": "e4e649a8-8e9e-48aa-b9ca-c29d7d01d332",
+          "success": true,
+          "latency_ms": 1875.9,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_12"
+        },
+        {
+          "index": 13,
+          "conversation_id": "80479754-f06b-4407-9c1a-b041c5063e1c",
+          "success": true,
+          "latency_ms": 8829.0,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_13"
+        },
+        {
+          "index": 14,
+          "conversation_id": "5d80d4d1-47a9-4d5e-9d0e-78591ebf2ae4",
+          "success": true,
+          "latency_ms": 2307.5,
+          "response_type": "string",
+          "response_preview": "There are 500 employee records in the database.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-4_14"
+        }
+      ]
+    },
+    {
+      "batch_size": 20,
+      "wall_ms": 7986.1,
+      "min_ms": 2175.2,
+      "max_ms": 7976.8,
+      "avg_ms": 2967.3,
+      "p50_ms": 2420.1,
+      "p95_ms": 7976.8,
+      "stddev_ms": 1367.4,
+      "success_count": 20,
+      "fail_count": 0,
+      "parallelism_ratio": 7.431,
+      "per_request": [
+        {
+          "index": 0,
+          "conversation_id": "7a6e189e-4d00-4194-90b4-c6e5053b2d76",
+          "success": true,
+          "latency_ms": 2195.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_0"
+        },
+        {
+          "index": 1,
+          "conversation_id": "0262edd4-d311-49e9-b5f8-00fcc8bc7b88",
+          "success": true,
+          "latency_ms": 3650.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_1"
+        },
+        {
+          "index": 2,
+          "conversation_id": "373442b4-3015-4d90-9e4a-34865d819c83",
+          "success": true,
+          "latency_ms": 2245.6,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_2"
+        },
+        {
+          "index": 3,
+          "conversation_id": "eea4590b-ee3c-4b90-8b87-a1e22e362c33",
+          "success": true,
+          "latency_ms": 2298.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_3"
+        },
+        {
+          "index": 4,
+          "conversation_id": "7630a121-28d8-40ac-b7fd-a9886dd09ae7",
+          "success": true,
+          "latency_ms": 2478.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in total.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_4"
+        },
+        {
+          "index": 5,
+          "conversation_id": "dadf885d-e46c-45aa-bbf8-27fee8e22aa8",
+          "success": true,
+          "latency_ms": 3014.9,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_5"
+        },
+        {
+          "index": 6,
+          "conversation_id": "bcd5d579-8813-4bd2-bab2-a3b61f2eb6a0",
+          "success": true,
+          "latency_ms": 2571.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_6"
+        },
+        {
+          "index": 7,
+          "conversation_id": "d3a17735-c6f3-4504-9952-e38103fe401b",
+          "success": true,
+          "latency_ms": 4988.2,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_7"
+        },
+        {
+          "index": 8,
+          "conversation_id": "1db7dd5b-1e02-44c5-a50e-925b8e77c042",
+          "success": true,
+          "latency_ms": 7976.8,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_8"
+        },
+        {
+          "index": 9,
+          "conversation_id": "7bd83b52-7bfc-4591-81c5-6fed86d452a3",
+          "success": true,
+          "latency_ms": 2271.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_9"
+        },
+        {
+          "index": 10,
+          "conversation_id": "e50130d6-53c6-45f7-85a2-284b5db153a9",
+          "success": true,
+          "latency_ms": 2273.1,
+          "response_type": "string",
+          "response_preview": "There are 500 employee records in the database.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_10"
+        },
+        {
+          "index": 11,
+          "conversation_id": "4a590318-aee6-4afe-893f-dfa48846d526",
+          "success": true,
+          "latency_ms": 3617.1,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_11"
+        },
+        {
+          "index": 12,
+          "conversation_id": "f07309c2-f88d-4305-9995-34df7c6fb544",
+          "success": true,
+          "latency_ms": 2175.2,
+          "response_type": "string",
+          "response_preview": "There are 500 employee records.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_12"
+        },
+        {
+          "index": 13,
+          "conversation_id": "9139c99c-edd6-4fa3-a6e2-a53e37e8bbc5",
+          "success": true,
+          "latency_ms": 2322.3,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_13"
+        },
+        {
+          "index": 14,
+          "conversation_id": "1092797c-3c84-4af9-9507-74ed62d90956",
+          "success": true,
+          "latency_ms": 2361.5,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_14"
+        },
+        {
+          "index": 15,
+          "conversation_id": "3a3a9cdf-8f87-4710-bd58-fb34a793a13a",
+          "success": true,
+          "latency_ms": 3030.8,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_15"
+        },
+        {
+          "index": 16,
+          "conversation_id": "ff064076-92e7-44f9-b42c-14e42ed96fdf",
+          "success": true,
+          "latency_ms": 2286.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_16"
+        },
+        {
+          "index": 17,
+          "conversation_id": "84b89432-3c68-464a-b9be-9a18a5f08d60",
+          "success": true,
+          "latency_ms": 2360.4,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_17"
+        },
+        {
+          "index": 18,
+          "conversation_id": "4424d0d2-dfbc-4172-a459-e86151c6543c",
+          "success": true,
+          "latency_ms": 2740.3,
+          "response_type": "string",
+          "response_preview": "There are 500 employee records in the database.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_18"
+        },
+        {
+          "index": 19,
+          "conversation_id": "2011daa1-f63b-43a5-b93c-d8a10110f26c",
+          "success": true,
+          "latency_ms": 2486.5,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-5_19"
+        }
+      ]
+    },
+    {
+      "batch_size": 25,
+      "wall_ms": 13171.1,
+      "min_ms": 2318.8,
+      "max_ms": 13153.4,
+      "avg_ms": 3320.7,
+      "p50_ms": 2975.8,
+      "p95_ms": 3848.5,
+      "stddev_ms": 2078.1,
+      "success_count": 25,
+      "fail_count": 0,
+      "parallelism_ratio": 6.303,
+      "per_request": [
+        {
+          "index": 0,
+          "conversation_id": "8ecb3bd9-c66b-451b-b655-984ef975120c",
+          "success": true,
+          "latency_ms": 3421.8,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_0"
+        },
+        {
+          "index": 1,
+          "conversation_id": "b87dc5fa-68b1-4d4b-9490-ff3520d67cb0",
+          "success": true,
+          "latency_ms": 3103.2,
+          "response_type": "string",
+          "response_preview": "There are 500 records.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_1"
+        },
+        {
+          "index": 2,
+          "conversation_id": "e1515731-fcbb-451c-80ba-461ec4518c75",
+          "success": true,
+          "latency_ms": 3005.3,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati Employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_2"
+        },
+        {
+          "index": 3,
+          "conversation_id": "d2b428f5-41d6-4cc3-b0fa-e0a1dbf921d4",
+          "success": true,
+          "latency_ms": 2575.9,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_3"
+        },
+        {
+          "index": 4,
+          "conversation_id": "bab7dc7f-e454-489a-b97b-eb3642877399",
+          "success": true,
+          "latency_ms": 3061.8,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_4"
+        },
+        {
+          "index": 5,
+          "conversation_id": "07ca2225-a44b-4a35-a8a6-4a7f40253fa1",
+          "success": true,
+          "latency_ms": 2639.8,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_5"
+        },
+        {
+          "index": 6,
+          "conversation_id": "359e7172-07b3-42cb-80a8-1654ed0829a0",
+          "success": true,
+          "latency_ms": 2583.4,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_6"
+        },
+        {
+          "index": 7,
+          "conversation_id": "ff7e7c19-1ef8-488f-8fca-dd964488c547",
+          "success": true,
+          "latency_ms": 2884.8,
+          "response_type": "string",
+          "response_preview": "There are 500 employee records.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_7"
+        },
+        {
+          "index": 8,
+          "conversation_id": "168bc534-9c76-49ec-8c35-970b911d89b4",
+          "success": true,
+          "latency_ms": 2517.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_8"
+        },
+        {
+          "index": 9,
+          "conversation_id": "65b71b06-0e84-413f-8387-4d6fa853e073",
+          "success": true,
+          "latency_ms": 3100.1,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_9"
+        },
+        {
+          "index": 10,
+          "conversation_id": "fb772c90-3b3d-4799-9ed5-a94ee638d80c",
+          "success": true,
+          "latency_ms": 3230.4,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_10"
+        },
+        {
+          "index": 11,
+          "conversation_id": "54191ead-1abe-48ad-b4cf-f3f9b64b6443",
+          "success": true,
+          "latency_ms": 2318.8,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_11"
+        },
+        {
+          "index": 12,
+          "conversation_id": "21741016-d8d4-4bba-9668-374ca3ff50a1",
+          "success": true,
+          "latency_ms": 2567.7,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_12"
+        },
+        {
+          "index": 13,
+          "conversation_id": "52ab5ef5-7c6d-4de9-84c5-76ea8897cced",
+          "success": true,
+          "latency_ms": 2903.5,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_13"
+        },
+        {
+          "index": 14,
+          "conversation_id": "61f63837-8bbc-4b3d-82f7-eac4cf543f59",
+          "success": true,
+          "latency_ms": 3026.0,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_14"
+        },
+        {
+          "index": 15,
+          "conversation_id": "17d7dc13-5393-4bef-b6d3-e959de2ccae8",
+          "success": true,
+          "latency_ms": 3228.4,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati Employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_15"
+        },
+        {
+          "index": 16,
+          "conversation_id": "8717eca7-9a1e-4f5b-8c86-b34a8a296a92",
+          "success": true,
+          "latency_ms": 2558.6,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_16"
+        },
+        {
+          "index": 17,
+          "conversation_id": "46bd5c02-a92b-404b-953c-2ff321a4a831",
+          "success": true,
+          "latency_ms": 3232.3,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_17"
+        },
+        {
+          "index": 18,
+          "conversation_id": "161d2792-3c72-43fb-aa3a-c0dd3503c2ed",
+          "success": true,
+          "latency_ms": 2817.3,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_18"
+        },
+        {
+          "index": 19,
+          "conversation_id": "a82b666a-9408-4f3d-850f-bf6fa56d9604",
+          "success": true,
+          "latency_ms": 13153.4,
+          "response_type": "string",
+          "response_preview": "There are 500 records.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_19"
+        },
+        {
+          "index": 20,
+          "conversation_id": "06a0465b-8860-4fb7-a6df-a38dd0e96e3c",
+          "success": true,
+          "latency_ms": 2975.8,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the Emirati employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_20"
+        },
+        {
+          "index": 21,
+          "conversation_id": "291eb3a5-fea0-4234-9430-b3d2ef70b86a",
+          "success": true,
+          "latency_ms": 3848.5,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_21"
+        },
+        {
+          "index": 22,
+          "conversation_id": "cb7a3fed-9b2b-4834-8b98-74404e71f7f8",
+          "success": true,
+          "latency_ms": 3146.6,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_22"
+        },
+        {
+          "index": 23,
+          "conversation_id": "1fd156fe-e1c8-452d-9d89-2a143a615876",
+          "success": true,
+          "latency_ms": 2503.2,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the employee directory.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_23"
+        },
+        {
+          "index": 24,
+          "conversation_id": "6ab8545a-af6e-4ff7-b417-486a85c0c337",
+          "success": true,
+          "latency_ms": 2612.6,
+          "response_type": "string",
+          "response_preview": "There are 500 records in the emirati_employees table.",
+          "error": null,
+          "thread_name": "ThreadPoolExecutor-6_24"
+        }
+      ]
+    }
+  ]
+}
