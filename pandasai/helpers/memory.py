@@ -123,6 +123,12 @@ class Memory:
                 {"role": "system", "content": self.agent_description}
             )
 
+        # Special cases for num_turns:
+        #   -1 (or any negative) = include ALL history (no slicing)
+        #    0                   = include NO history (system prompt only)
+        if num_turns == 0:
+            return messages
+
         # 2. Gather previous conversation (excluding the current query)
         all_msgs = self.all()
         if len(all_msgs) <= 1:
@@ -145,10 +151,13 @@ class Memory:
         #    current query, the history should only contain complete
         #    pairs. If the last message in history is a user message
         #    (dangling), we drop it to maintain complete pairs.
-        max_raw_messages = num_turns * 2  # user + assistant pairs
-
-        # Take the last max_raw_messages from history
-        history_slice = history[-max_raw_messages:]
+        if num_turns < 0:
+            # Negative = all history, no slicing
+            history_slice = history
+        else:
+            max_raw_messages = num_turns * 2  # user + assistant pairs
+            # Take the last max_raw_messages from history
+            history_slice = history[-max_raw_messages:]
 
         # Round up: ensure we don't end with a dangling user message.
         # If the last message in the slice is a user message (no

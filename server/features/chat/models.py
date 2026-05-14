@@ -9,8 +9,8 @@ class ChatRequest(BaseModel):
         None,
         description=(
             "Number of previous user turns to include as conversation history. "
-            "Rounded up to ensure complete user→assistant pairs. "
-            "If not set, uses the server default (10)."
+            "0 = no history; -1 = all history; null = server default (10). "
+            "Rounded up to ensure complete user→assistant pairs."
         ),
     )
     column_selection_enabled: Optional[bool] = Field(

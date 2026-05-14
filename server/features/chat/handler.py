@@ -88,12 +88,14 @@ def handle_chat_query(
     if not agent:
         raise HTTPException(status_code=404, detail="Conversation ID not found or expired.")
 
-    # Apply message_history limit if provided
-    if message_history is not None and message_history >= 0:
-        agent.set_message_history(message_history)
-
     # --- Per-query config overrides (restored in finally block) ---
     _overrides = {}  # {attr_name: original_value}
+
+    # Apply message_history limit if provided
+    # 0 = no history, -1 = all history, null = server default
+    if message_history is not None:
+        _overrides["memory_size"] = agent._state.memory.memory_size
+        agent.set_message_history(message_history)
 
     if column_selection_enabled is not None:
         _overrides["column_selection_enabled"] = agent._state.config.column_selection_enabled
@@ -167,4 +169,7 @@ def handle_chat_query(
     finally:
         # Always restore per-query config overrides
         for attr, original_value in _overrides.items():
-            setattr(agent._state.config, attr, original_value)
+            if attr == "memory_size":
+                agent._state.memory.memory_size = original_value
+            else:
+                setattr(agent._state.config, attr, original_value)
