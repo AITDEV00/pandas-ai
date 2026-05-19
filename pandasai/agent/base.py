@@ -21,6 +21,7 @@ from pandasai.exceptions import (
     InvalidLLMOutputType,
     MissingVectorStoreError,
 )
+from pandasai.helpers.memory import Memory
 from pandasai.sandbox import Sandbox
 from pandasai.vectorstores.vectorstore import VectorStore
 
@@ -331,11 +332,30 @@ class Agent:
                       else f"{total_cols} cols < threshold ({self._state.config.column_selection_threshold})")
             self._state.logger.log(f"[Column Selection] Skipped: {reason}")
 
-        # Step 2: Code Generation (outside try so CodeExecutionError from
-        # generate_code_with_retries propagates up, not caught below)
-        code = self.generate_code_with_retries(str(query))
+        # === Isolate Step 2 from conversation history ===
+        # When column selection is active, Step 2 (code generation) must not
+        # see previous conversation history or last_code_generated — those may
+        # contain column references from a different column selection, causing
+        # the LLM to generate code referencing columns not in the trimmed set.
+        # Step 1 retains full access via build_step1_memory().
+        saved_memory = None
+        saved_last_code = None
+        if original_dfs is not None:
+            saved_memory = self._state.memory
+            saved_last_code = self._state.last_code_generated
 
+            step2_memory = Memory(
+                memory_size=1,
+                agent_description=saved_memory.agent_description,
+            )
+            self._state.memory = step2_memory
+            self._state.last_code_generated = None
+
+        # Step 2: Code Generation
+        code = ""
         try:
+            code = self.generate_code_with_retries(str(query))
+
             # Execute code with retries
             result = self.execute_with_retries(code)
 
@@ -345,9 +365,29 @@ class Agent:
             self._state.logger.log("Response generated successfully.")
             return result
 
-        except CodeExecutionError:
-            return self._handle_exception(code)
+        except CodeExecutionError as exc:
+            error_result = self._handle_exception(code)
+            # Store the error as an assistant message so that the merge-back
+            # in the finally block can transfer it to the original memory.
+            self._store_error_message(error_result, code)
+            return error_result
+        except Exception as exc:
+            # Unexpected error during code generation — still store something
+            # so the merge-back doesn't lose the turn entirely.
+            error_text = f"Error: {type(exc).__name__}: {exc}"
+            self._state.memory.add(error_text, is_user=False)
+            raise
         finally:
+            # Merge Step 2's messages (user query + assistant response with
+            # executed code) back into the original memory so Step 1 on the
+            # next turn has full context. Then restore the original memory
+            # and last_code_generated.
+            if saved_memory is not None:
+                for msg in self._state.memory.all():
+                    saved_memory.add(msg["message"], msg["is_user"])
+                self._state.memory = saved_memory
+                self._state.last_code_generated = saved_last_code
+
             # ALWAYS restore original DataFrames — even on exception
             if original_dfs is not None:
                 self._state.dfs = original_dfs
@@ -396,6 +436,26 @@ class Agent:
             return
 
         self._state.memory.add(assistant_msg, is_user=False)
+
+    def _store_error_message(self, error_result: "ErrorResponse", code: str):
+        """Store an error response in memory for multi-turn context.
+
+        When code execution fails, the error response still needs to be
+        recorded in memory so that the merge-back logic in _process_query's
+        finally block can transfer it to the original memory. Without this,
+        a failed turn produces no assistant message, which breaks the
+        expected user/assistant alternating pattern in conversation history.
+        """
+        error_text = str(error_result) if error_result else ""
+        working_code = code or ""
+
+        if working_code:
+            assistant_msg = f"{error_text}\n\n```python\n{working_code}\n```"
+        else:
+            assistant_msg = error_text
+
+        if assistant_msg:
+            self._state.memory.add(assistant_msg, is_user=False)
 
     def _should_select_columns(self) -> bool:
         """Check if 2-step column selection should be used.

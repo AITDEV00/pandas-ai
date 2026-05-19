@@ -1,0 +1,467 @@
+================================================================================
+STRATEGY PLAN: Fixing Struct Column Inconsistencies
+================================================================================
+Date: 2025-05-19
+Based on: ROOT_CAUSE_ANALYSIS.txt
+Goal: Address all 4 inconsistencies with the least amount of code changes,
+      in a clean and maintainable way.
+
+================================================================================
+DESIGN PRINCIPLES
+================================================================================
+
+1. SINGLE SOURCE OF TRUTH: The struct field keys in the `samples` dict must
+   always match the actual DuckDB struct field names (the flat keys from the
+   data). This is the ground truth — everything else must align with it.
+
+2. FIX AT THE SOURCE, NOT THE SYMPTOMS: The root cause is that
+   `_extract_struct_vocabulary()` calls `get_matching_schema_columns()` with
+   flat data keys against a schema that only has the squashed column. Fix the
+   enrichment function to NOT rely on schema matching for duckdb_key — the
+   duckdb_key IS the flat key from the data, by definition.
+
+3. MINIMAL CHANGES: Each strategy targets exactly one inconsistency with
+   the smallest possible code change. No refactoring of existing working code.
+
+4. ORDER MATTERS: Strategies are ordered by dependency. Strategy A fixes the
+   root cause (Inconsistency 2+3). Strategy B fixes the downstream effect
+   (Inconsistency 4). Strategy C fixes the schema design (Inconsistency 1).
+
+================================================================================
+STRATEGY A: Fix _extract_struct_vocabulary to use flat keys as duckdb_key
+================================================================================
+
+TARGET: Inconsistency 2 + Inconsistency 3 (root cause)
+FILE:   pandasai/helpers/column_enrichment.py, _extract_struct_vocabulary()
+CHANGE: 1 function, ~10 lines modified
+
+CURRENT BEHAVIOR (BUGGY):
+  For each inner_col (flat key from data), it calls get_matching_schema_columns()
+  to find a schema_key, then derives duckdb_key by stripping outer brackets.
+
+  Problem: When the schema only has the squashed column, the first flat key
+  "Employee Leave Details[Leave Type]" falsely matches the squashed parent
+  column via Strategy 2b. This produces:
+    schema_key = "[Employee Leave Details[Leave Type][Leave Duration (Days)]...]"
+    duckdb_key = "Employee Leave Details[Leave Type][Leave Duration (Days)]..."
+  ← WRONG
+
+PROPOSED FIX:
+  The duckdb_key is ALWAYS the flat key from the data. It should NOT be derived
+  from the schema — it comes directly from the struct dict keys that DuckDB
+  uses as field names. The schema matching should only be used for:
+    1. Finding the canonical schema_key (for samples dict key naming)
+    2. Getting the description and type from the semantic model
+
+  Change the logic to:
+    a. duckdb_key = inner_col (the flat key from the data) — ALWAYS
+    b. schema_key = schema_matches[0].name if schema_matches else inner_col
+    c. Skip schema matches that return list[struct] type (these are false
+       positives — the parent squashed column, not an inner field)
+
+  This eliminates the false positive from Inconsistency 3 because we no longer
+  USE the false match for duckdb_key. We still use it for schema_key (the
+  canonical name), but we add a guard to skip list[struct] matches.
+
+CODE CHANGE (pandasai/helpers/column_enrichment.py, _extract_struct_vocabulary):
+
+  BEFORE (lines ~120-135):
+    schema_matches = get_matching_schema_columns(inner_col, df_schema)
+    schema_key = schema_matches[0].name if schema_matches else inner_col
+    details = match_column_details_to_schema(inner_col, df_schema)
+    inner_type = details["type"]
+    inner_desc = details["description"]
+
+    # Fallback to pandas heuristics
+    # Also: if the schema returned list[struct], it matched the parent
+    # squashed column instead of an actual inner field.  An inner field
+    # of a struct cannot itself be list[struct] (DuckDB doesn't support
+    # nested list[struct] in UNNEST), so this is a false match.
+    if not inner_type or inner_type == "unknown" or inner_type == "list[struct]":
+        inner_type = determine_series_type(inner_series)
+
+    ...
+
+    if inner_samples:
+        # duckdb_key: the exact struct field key DuckDB expects in rec['...'].
+        # Strip outer brackets from schema_key if present
+        duckdb_key = schema_key[1:-1] if schema_key.startswith("[") and schema_key.endswith("]") else schema_key
+
+  AFTER:
+    schema_matches = get_matching_schema_columns(inner_col, df_schema)
+
+    # Filter out false-positive matches: an inner field of a struct cannot
+    # itself be list[struct]. If a schema match returns list[struct], it
+    # matched the parent squashed column, not an actual inner field.
+    schema_matches = [
+        m for m in schema_matches
+        if getattr(m, 'type', None) != 'list[struct]'
+    ]
+
+    schema_key = schema_matches[0].name if schema_matches else inner_col
+    details = match_column_details_to_schema(inner_col, df_schema)
+    inner_type = details["type"]
+    inner_desc = details["description"]
+
+    # Fallback to pandas heuristics
+    if not inner_type or inner_type == "unknown" or inner_type == "list[struct]":
+        inner_type = determine_series_type(inner_series)
+
+    ...
+
+    if inner_samples:
+        # duckdb_key: the exact struct field key DuckDB expects in rec['...'].
+        # This is ALWAYS the flat key from the data (inner_col), because
+        # DuckDB uses the dict keys from parse_json_array_columns as struct
+        # field names. We do NOT derive it from the schema — the schema may
+        # have squashed column names that don't match the actual struct keys.
+        duckdb_key = inner_col
+
+IMPACT:
+  - The samples dict keys will now consistently use schema_key (canonical name
+    from semantic model, or flat key if no match) — same as before for
+    non-false-positive cases
+  - duckdb_key will ALWAYS be the flat key from the data — CORRECT
+  - The first entry's short_name will be derived from schema_key (which may
+    still be the flat key if no schema match), but that's fine — the critical
+    duckdb_key is now correct
+  - "Leave End Date" will still be missing from the samples if the schema only
+    has the squashed column (because the first flat key no longer falsely
+    matches the squashed column, so it falls through to using the flat key as
+    schema_key). But this is actually BETTER — it means all 5 fields will be
+    present (the first field won't consume the squashed match anymore)
+
+VERIFICATION:
+  After this fix, the samples dict should be:
+    Key: "Employee Leave Details[Leave Type]"
+         duckdb_key = "Employee Leave Details[Leave Type]"  ← CORRECT
+    Key: "Employee Leave Details[Leave Duration (Days)]"
+         duckdb_key = "Employee Leave Details[Leave Duration (Days)]"  ← CORRECT
+    Key: "Employee Leave Details[Approval Status]"
+         duckdb_key = "Employee Leave Details[Approval Status]"  ← CORRECT
+    Key: "Employee Leave Details[Leave Start Date]"
+         duckdb_key = "Employee Leave Details[Leave Start Date]"  ← CORRECT
+    Key: "Employee Leave Details[Leave End Date]"
+         duckdb_key = "Employee Leave Details[Leave End Date]"  ← CORRECT
+
+  Note: The samples dict keys no longer have outer brackets (they're flat keys
+  from the data, not canonical schema names). This creates a new issue for
+  the column selector — see Strategy B.
+
+================================================================================
+STRATEGY B: Fix column selector samples filtering to match flat keys
+================================================================================
+
+TARGET: Inconsistency 4
+FILE:   pandasai/core/column_selector.py, build_trimmed_dataframe()
+CHANGE: 1 function, ~15 lines modified
+
+CURRENT BEHAVIOR (BUGGY):
+  The column selector filters samples by inner_fields, which are canonical
+  schema column names like "[Employee Leave Details[Leave Type]]".
+  But the samples dict keys are now flat keys like
+  "Employee Leave Details[Leave Type]" (after Strategy A fix).
+  None match → filtered_samples = {} → samples = None → LLM gets no field info.
+
+PROPOSED FIX:
+  Add a normalization step that converts both the samples dict keys and the
+  inner_fields to a common format for comparison. The simplest approach:
+  strip outer brackets from inner_fields and compare against the samples keys.
+
+  Specifically, in build_trimmed_dataframe(), when filtering samples for a
+  struct column, normalize the inner_fields by stripping outer brackets:
+
+  BEFORE (in build_trimmed_dataframe, the samples filtering block):
+    if inner_fields is not None and col.type == "list[struct]":
+        trimmed_col = col.model_copy(deep=True)
+        if isinstance(trimmed_col.samples, dict):
+            trimmed_col.samples = {
+                k: v
+                for k, v in trimmed_col.samples.items()
+                if k in inner_fields
+            }
+
+  AFTER:
+    if inner_fields is not None and col.type == "list[struct]":
+        trimmed_col = col.model_copy(deep=True)
+        if isinstance(trimmed_col.samples, dict):
+            # Normalize inner_fields for comparison:
+            # - Strip outer brackets: "[Parent[Field]]" → "Parent[Field]"
+            # - This matches the flat keys used in the samples dict
+            normalized_fields = set()
+            for f in inner_fields:
+                if f.startswith("[") and f.endswith("]"):
+                    normalized_fields.add(f[1:-1])
+                else:
+                    normalized_fields.add(f)
+            # Also keep original names for backward compatibility
+            all_fields = set(inner_fields) | normalized_fields
+            trimmed_col.samples = {
+                k: v
+                for k, v in trimmed_col.samples.items()
+                if k in all_fields
+            }
+
+IMPACT:
+  - The column selector will now correctly match flat keys in the samples dict
+  - The LLM will get the correct struct field information after column selection
+  - Backward compatible: if samples keys use bracket notation, they'll still match
+
+VERIFICATION:
+  After this fix, when inner_fields = ['[Employee Leave Details[Leave Type]]']:
+    normalized_fields = {'Employee Leave Details[Leave Type]'}
+    all_fields = {'[Employee Leave Details[Leave Type]]', 'Employee Leave Details[Leave Type]'}
+    Samples key "Employee Leave Details[Leave Type]" IS in all_fields → KEPT ✓
+
+================================================================================
+STRATEGY C: Keep individual inner-field columns in the schema alongside squashed
+================================================================================
+
+TARGET: Inconsistency 1
+FILE:   server/features/register/handler.py
+CHANGE: ~15 lines modified
+
+CURRENT BEHAVIOR (PROBLEMATIC):
+  The register handler removes individual inner-field columns from the schema,
+  leaving only the squashed column. This means:
+  - The LLM sees only the confusing squashed column name
+  - _extract_struct_vocabulary can't find schema matches for flat keys
+  - The column selector can't resolve inner fields from the schema
+
+PROPOSED FIX:
+  Instead of REMOVING the individual inner-field columns, KEEP them in the
+  schema alongside the squashed column. The squashed column is needed for
+  DuckDB UNNEST (it's the actual DataFrame column name), and the individual
+  columns provide the semantic information (type, description) for each field.
+
+  The key insight: the register handler currently removes individual columns
+  because "duplicate inner-field columns confuse the LLM." But the LLM prompt
+  template (search_strategy.tmpl) only renders struct columns (type=list[struct])
+  as STRUCT entries with rec['field'] access. Individual inner-field columns
+  (type=string, type=float, etc.) would be rendered as FLAT columns, which
+  IS confusing.
+
+  SOLUTION: Keep the individual columns in the schema but mark them with a
+  special attribute (e.g., `hidden=True`) so the serializer and template
+  skip them. This way:
+  - _extract_struct_vocabulary can find schema matches for flat keys
+  - The column selector can resolve inner fields
+  - The LLM doesn't see duplicate entries
+
+  ALTERNATIVE (simpler, less invasive): Instead of keeping individual columns
+  in the schema, store them in a separate lookup dict on the schema object
+  (e.g., `df.schema._inner_field_lookup`). This avoids changing the template
+  or serializer, and _extract_struct_vocabulary can use this lookup instead
+  of get_matching_schema_columns().
+
+  RECOMMENDED APPROACH (simplest): Don't change the register handler at all.
+  Instead, pass the ORIGINAL schema (before patching) to _extract_struct_vocabulary
+  as a separate parameter. The enrichment function can use the original schema
+  for name resolution while the patched schema is used for the LLM prompt.
+
+  ACTUALLY, the simplest fix is even more targeted: in _extract_struct_vocabulary,
+  we already have the flat key from the data. With Strategy A's fix (using
+  inner_col as duckdb_key), we don't NEED schema matching for the duckdb_key.
+  For the schema_key (canonical name) and description, we can fall back to the
+  flat key if no match is found — which is exactly what the current code does.
+
+  CONCLUSION: Strategy A already addresses Inconsistency 1's impact. The schema
+  patching (removing individual columns) is actually correct behavior — it
+  prevents the LLM from seeing duplicate flat columns. The problem was only
+  that _extract_struct_vocabulary used the schema incorrectly (deriving
+  duckdb_key from a false-positive match). With Strategy A's fix, the schema
+  patching is no longer problematic.
+
+  DECISION: **No code change needed for Inconsistency 1.** Strategy A fixes
+  the downstream impact. The register handler's current behavior is correct.
+
+================================================================================
+STRATEGY D (OPTIONAL): Tighten get_matching_schema_columns Strategy 2b
+================================================================================
+
+TARGET: Inconsistency 3 (defense in depth)
+FILE:   pandasai/helpers/semantic_matching.py, get_matching_schema_columns()
+CHANGE: ~5 lines modified
+
+CURRENT BEHAVIOR (LOOSE):
+  Strategy 2b checks: f"[{col_name}" in schema_col.name
+  This is too loose — it matches any schema column that starts with the same
+  bracket group, even if the rest of the name is completely different.
+
+PROPOSED FIX:
+  Add an additional check: the bracket group must be followed by a closing
+  bracket (]) — meaning the schema column name contains the EXACT field, not
+  just a prefix of it.
+
+  BEFORE:
+    if "[" in col_name:
+        bracket_group = f"[{col_name}"
+        if bracket_group in schema_col.name:
+            results.append(schema_col)
+            continue
+
+  AFTER:
+    if "[" in col_name:
+        bracket_group = f"[{col_name}"
+        if bracket_group in schema_col.name:
+            # Verify this is an exact field match, not just a prefix.
+            # The bracket group must be followed by ']' (end of field) or
+            # '][' (end of field, start of next field in squashed name).
+            idx = schema_col.name.index(bracket_group)
+            after = schema_col.name[idx + len(bracket_group):idx + len(bracket_group) + 1]
+            if after in ("]", "["):
+                results.append(schema_col)
+                continue
+
+IMPACT:
+  - Prevents false positive matches where a flat key like
+    "Employee Leave Details[Leave Type]" matches the squashed parent column
+    "[Employee Leave Details[Leave Type][Leave Duration (Days)]...]"
+  - The bracket_group "[Employee Leave Details[Leave Type]" IS in the squashed
+    name, but the character after it is "[" (start of next field), not "]"
+    (end of field). Wait — actually "[" IS in the allowed set. Let me reconsider.
+
+  RECONSIDERATION: The issue is that "[Employee Leave Details[Leave Type]" is
+  followed by "[Leave Duration..." in the squashed name. The "]" after "Leave Type"
+  is a CLOSING bracket for the inner field, but it's followed by "[" for the
+  next field. So after the bracket_group, the next character is "]" — which
+  would PASS the check.
+
+  Actually, let me trace through more carefully:
+    bracket_group = "[Employee Leave Details[Leave Type]"
+    squashed_name = "[Employee Leave Details[Leave Type][Leave Duration (Days)]...]"
+    idx = squashed_name.index(bracket_group) = 0
+    after = squashed_name[0 + len(bracket_group)] = "]"
+    Wait, no. The bracket_group is "[Employee Leave Details[Leave Type]" (no closing bracket).
+    The squashed_name starts with "[Employee Leave Details[Leave Type][Leave Duration..."
+    So after the bracket_group, the next char is "]"
+    And "]" IS in the allowed set → would still match.
+
+  The problem is that the flat key "Employee Leave Details[Leave Type]" ends
+  with "]" when it's in a bracket context. But in the squashed name, this "]"
+  is followed by "[Leave Duration..." — meaning it's NOT the end of the field
+  in the squashed context.
+
+  CORRECT FIX: After the bracket_group, check if the next characters are "]]"
+  (end of the entire schema column name's outer bracket) or "][" (end of this
+  field, start of next field in a squashed name). The former means it's a
+  single-field column match; the latter means it's a multi-field squashed
+  column where our field is just one of many.
+
+  Wait — we WANT to match squashed columns that contain our field. The issue
+  is that we're matching from a FLAT KEY (from the data) against a SQUASHED
+  schema column. The flat key "Employee Leave Details[Leave Type]" should
+  match the schema column "[Employee Leave Details[Leave Type]]" (individual
+  inner field) but should it match "[Employee Leave Details[Leave Type][Leave Duration...]]"
+  (squashed parent)?
+
+  Actually, for the register handler's use case, it SHOULD match — the register
+  handler uses this to find which individual schema columns are inner fields
+  of the squashed DataFrame column. The problem is only in _extract_struct_vocabulary,
+  where the flat key from the data matches the squashed schema column and
+  produces a wrong duckdb_key.
+
+  DECISION: **Don't change get_matching_schema_columns.** Strategy A already
+  fixes the problem by not using the false-positive match for duckdb_key.
+  The matching function is used by multiple callers with different needs —
+  changing it could break other use cases. The guard in Strategy A (filtering
+  out list[struct] matches) is a more targeted fix.
+
+================================================================================
+FINAL STRATEGY SUMMARY
+================================================================================
+
+┌──────────┬───────────────────────────────────────────────┬──────────┬─────────┐
+│ Strategy │ Description                                   │ Target   │ Changes │
+├──────────┼───────────────────────────────────────────────┼──────────┼─────────┤
+│ A        │ Fix _extract_struct_vocabulary to use flat    │ Inc. 2+3 │ ~10     │
+│          │ keys as duckdb_key, filter out list[struct]  │ (root)   │ lines   │
+│          │ false-positive matches                       │          │         │
+├──────────┼───────────────────────────────────────────────┼──────────┼─────────┤
+│ B        │ Fix column selector samples filtering to     │ Inc. 4   │ ~15     │
+│          │ normalize inner_fields for comparison with   │          │ lines   │
+│          │ flat sample keys (strip outer brackets)      │          │         │
+├──────────┼───────────────────────────────────────────────┼──────────┼─────────┤
+│ C        │ No change needed — Strategy A fixes the      │ Inc. 1   │ 0       │
+│          │ downstream impact of schema column removal   │          │ lines   │
+├──────────┼───────────────────────────────────────────────┼──────────┼─────────┤
+│ D        │ No change needed — Strategy A's guard is     │ Inc. 3   │ 0       │
+│          │ more targeted than tightening the matcher    │ (defense)│ lines   │
+└──────────┴───────────────────────────────────────────────┴──────────┴─────────┘
+
+TOTAL CODE CHANGES: 2 files, ~25 lines
+
+================================================================================
+IMPLEMENTATION ORDER
+================================================================================
+
+1. Strategy A FIRST — fixes the root cause (wrong duckdb_key in samples dict)
+   File: pandasai/helpers/column_enrichment.py
+   Test: Run the pipeline simulation and verify samples dict has correct keys
+
+2. Strategy B SECOND — fixes the column selector (empty samples after filtering)
+   File: pandasai/core/column_selector.py
+   Test: Run a chat query with column selection enabled and verify the LLM
+         gets correct struct field information
+
+3. Strategies C and D — no code changes needed
+
+================================================================================
+VERIFICATION PLAN
+================================================================================
+
+After implementing Strategy A + B, verify:
+
+1. FULL PIPELINE TEST (without column selection):
+   a. Load Excel → parse_json_array_columns → apply semantic model → patch schema
+   b. Enrich struct columns → check samples dict
+   c. EXPECTED: All 5 Leave fields present with correct duckdb_keys
+   d. Serialize DataFrame → check LLM prompt
+   e. EXPECTED: All 5 fields shown with correct rec['...'] access patterns
+
+2. FULL PIPELINE TEST (with column selection):
+   a. Same as above, then run column selector
+   b. EXPECTED: Trimmed DataFrame has correct struct column with filtered samples
+   c. EXPECTED: The filtered samples contain the selected fields with correct duckdb_keys
+
+3. END-TO-END TEST:
+   a. Register the Excel file via /api/register/file
+   b. Chat query: "what is the percentage by different leave types did Ayesha take?"
+   c. EXPECTED: LLM generates correct SQL with rec['Employee Leave Details[Leave Type]']
+   d. EXPECTED: Query succeeds and returns correct results
+
+4. DUCKDB VERIFICATION:
+   a. After registration, check DuckDB struct field names
+   b. EXPECTED: "Employee Leave Details[Leave Type]", etc.
+   c. Run the LLM-generated query directly
+   d. EXPECTED: No BinderException
+
+================================================================================
+RISK ASSESSMENT
+================================================================================
+
+Strategy A (column_enrichment.py):
+  Risk: LOW
+  - Only changes _extract_struct_vocabulary, which is only called for list[struct] columns
+  - The guard (filter out list[struct] matches) is safe — inner fields cannot be list[struct]
+  - Using inner_col as duckdb_key is correct by definition (it IS the struct field name)
+  - Backward compatible: if schema matches are correct, schema_key is still used for the
+    samples dict key (canonical name)
+
+Strategy B (column_selector.py):
+  Risk: LOW
+  - Only adds normalization to the comparison, doesn't change the filtering logic
+  - Keeps original inner_fields in the comparison set for backward compatibility
+  - The normalization (strip outer brackets) is a well-defined, reversible operation
+
+Strategy C (no change):
+  Risk: NONE
+  - No code change
+
+Strategy D (no change):
+  Risk: NONE
+  - No code change. Defense-in-depth can be added later if needed.
+
+================================================================================
+END OF STRATEGY PLAN
+================================================================================

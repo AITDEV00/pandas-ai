@@ -226,3 +226,78 @@ JOIN "department" AS d
         assert "pp['field_a']" in result
         assert "pr['field_b']" in result
         assert ".rec[" not in result
+
+    # --- Fix 4: Nested struct field access → flat key ---
+
+    def test_fix_nested_struct_basic(self):
+        """rec['Parent']['Child'] → rec['Parent[Child]'] (flat key for DuckDB struct)."""
+        sql = "SELECT rec['Employee Leave Details']['Leave Type'] FROM t"
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "rec['Employee Leave Details[Leave Type]']" in result
+        assert "]['Leave Type']" not in result
+
+    def test_fix_nested_struct_multiple_fields(self):
+        """Multiple nested accesses in same query all get flattened."""
+        sql = (
+            "SELECT rec['Employee Leave Details']['Leave Type'], "
+            "rec['Employee Leave Details']['Leave Duration (Days)'] FROM t"
+        )
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "rec['Employee Leave Details[Leave Type]']" in result
+        assert "rec['Employee Leave Details[Leave Duration (Days)]']" in result
+        assert "]['Leave" not in result
+
+    def test_fix_nested_struct_with_where(self):
+        """Nested access in WHERE clause gets flattened."""
+        sql = (
+            "SELECT * FROM t "
+            "WHERE rec['Employee Leave Details']['Leave Type'] = 'Remote Work'"
+        )
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "rec['Employee Leave Details[Leave Type]']" in result
+        assert "]['Leave Type']" not in result
+
+    def test_fix_nested_struct_already_flat_unchanged(self):
+        """Already-flat struct access is NOT modified."""
+        sql = "SELECT rec['Employee Leave Details[Leave Type]'] FROM t"
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert result == sql
+
+    def test_fix_nested_struct_triple_nesting(self):
+        """Triple nesting rec['A']['B']['C'] → rec['A[B][C]']."""
+        sql = "SELECT rec['A']['B']['C'] FROM t"
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "rec['A[B][C]']" in result
+
+    def test_fix_nested_struct_different_alias(self):
+        """Works with any variable name, not just 'rec'."""
+        sql = "SELECT pp['Employee Leave Details']['Leave Type'] FROM t"
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "pp['Employee Leave Details[Leave Type]']" in result
+
+    def test_fix_nested_struct_mixed_flat_and_nested(self):
+        """Flat struct access preserved while nested gets flattened."""
+        sql = (
+            "SELECT rec['Employee Leave Details']['Leave Type'], "
+            "rec['Simple Field'] FROM t"
+        )
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "rec['Employee Leave Details[Leave Type]']" in result
+        assert "rec['Simple Field']" in result
+
+    def test_fix_nested_struct_non_struct_unchanged(self):
+        """Non-struct column access (no brackets) is NOT modified."""
+        sql = "SELECT col_name FROM t WHERE col_name = 'value'"
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert result == sql
+
+    def test_fix_nested_struct_group_by(self):
+        """Nested access in GROUP BY clause gets flattened."""
+        sql = (
+            "SELECT rec['Employee Leave Details']['Leave Type'] AS leave_type, "
+            "COUNT(*) as cnt FROM t "
+            "GROUP BY rec['Employee Leave Details']['Leave Type']"
+        )
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert result.count("rec['Employee Leave Details[Leave Type]']") == 2
+        assert "]['Leave Type']" not in result

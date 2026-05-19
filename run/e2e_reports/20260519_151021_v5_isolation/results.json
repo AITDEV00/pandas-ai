@@ -1,0 +1,1522 @@
+{
+  "timestamp": "20260519_151021",
+  "test_type": "v5_column_selection_isolation",
+  "config": {
+    "column_selection_enabled": true,
+    "column_selection_threshold": 30,
+    "column_values_budget_ratio": 0.1,
+    "leak_check_enabled": true
+  },
+  "summary": {
+    "total_conversations": 19,
+    "overall_passed": 19,
+    "query_success": 19,
+    "isolation_passed": 19,
+    "leak_free": 19,
+    "merge_back_ok": 19,
+    "by_category": {
+      "cross_domain_leak": {
+        "total": 4,
+        "passed": 4,
+        "success": 4,
+        "isolation": 4,
+        "leak_free": 4
+      },
+      "overlapping_domain_leak": {
+        "total": 3,
+        "passed": 3,
+        "success": 3,
+        "isolation": 3,
+        "leak_free": 3
+      },
+      "narrow_then_wide": {
+        "total": 2,
+        "passed": 2,
+        "success": 2,
+        "isolation": 2,
+        "leak_free": 2
+      },
+      "wide_then_narrow": {
+        "total": 4,
+        "passed": 4,
+        "success": 4,
+        "isolation": 4,
+        "leak_free": 4
+      },
+      "three_turn_cascade": {
+        "total": 3,
+        "passed": 3,
+        "success": 3,
+        "isolation": 3,
+        "leak_free": 3
+      },
+      "same_domain_refinement": {
+        "total": 3,
+        "passed": 3,
+        "success": 3,
+        "isolation": 3,
+        "leak_free": 3
+      }
+    }
+  },
+  "conversations": [
+    {
+      "id": "CD-001",
+      "category": "cross_domain_leak",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "What is the average basic salary across all employees?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Basic Salary"
+          ],
+          "forbidden_columns": [
+            "Leave Type",
+            "Leave Duration (Days)",
+            "Assignment Name"
+          ],
+          "answer": "The average basic salary across all employees is $0.00.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What types of leave did Ayesha take?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Leave Type"
+          ],
+          "forbidden_columns": [
+            "Basic Salary",
+            "Department",
+            "Job Title"
+          ],
+          "answer": "Ayesha took the following types of leave: Remote Work, Training Leave, Wellbeing, Non-Mandatory Leave.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "CD-002",
+      "category": "cross_domain_leak",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "How many employees are in each department?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Department"
+          ],
+          "forbidden_columns": [
+            "Leave Type",
+            "Basic Salary",
+            "GPA (Grade Point Average)"
+          ],
+          "answer": "There are 14 employees across 8 departments.\n\nDepartments and employee counts:\n  - Health Department: 3 employee(s)\n  - Tourism and Culture Department: 3 employee(s)\n  - Community Affairs and Education Department: 2 employee(s)\n  - Special Intervention Department: 2 employee(s)\n  - Business Environment and Investment Affairs Department: 1 employee(s)\n  - EC and Committees Affairs Department: 1 employee(s)\n  - Environment and Energy Department: 1 employee(s)\n  - Economic Analysis Department: 1 employee(s)\n",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What qualifications does Ahmed have? Show the qualification title.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Qualification Title"
+          ],
+          "forbidden_columns": [
+            "Department",
+            "Basic Salary",
+            "Leave Type"
+          ],
+          "answer": "Nouf Ahmed Mohamed Alnuaimi has the following qualifications:\n- Interactive Media\n- Master of Business Administration",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "CD-003",
+      "category": "cross_domain_leak",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "List all employees and their email addresses.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Email Address"
+          ],
+          "forbidden_columns": [
+            "Basic Salary",
+            "Leave Type",
+            "Assignment Name"
+          ],
+          "answer": "Employee Contact List:\n\nEisa Rames Khamis AlDhaheri - eraldhaheri@ECOUNCIL.AE\nShamma Salem Saeed Aldhaheri - sssaldhaheri@ECOUNCIL.AE\nAfra Khalifa Shaheen Alghfeli - akalghfeli@ECOUNCIL.AE\nNoura Mubarak Saleh Almenhali - nmsalmenhali@ECOUNCIL.AE\nSara Ahmed Salem Alharbi - saalharbi@ECOUNCIL.AE\nSara Nadeem Hussain Alafeefi - snAlafeefi@ecouncil.ae\nNouf Ahmed Mohamed Alnuaimi - naamlnuaimi@ECOUNCIL.AE\nNouf Mohamed Abdulla Baadheem - nmbaadheem@ECOUNCIL.AE\nAli Mohamed Shamekh Alshamsi - amalshamsi@ECOUNCIL.AE\nSalem Ali Abdulla Alnuaimi - saamalnuaimi@ECOUNCIL.AE\nKhalifa Sameh Khalaf aldhaen - ksaldhaen@ECOUNCIL.AE\nRodah Mohamed Abdulla  Almazrouei - rmalmazrouei@ECOUNCIL.AE\nDr.Hamda Musabah Ghanim Alremeithi - hmalremeithi@ecouncil.ae\nRakan Salem Abdulla Almazrouei - rsaalmazrouei@ecouncil.ae\nNone - None\nAyesha Jumaa Mubarak Al Qubaisi - None",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is the total leave duration in days for each employee?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Leave Duration (Days)"
+          ],
+          "forbidden_columns": [
+            "Email Address",
+            "Basic Salary",
+            "Department"
+          ],
+          "answer": "Found 15 employee(s) in the database. However, the table schema only contains employee names with no leave duration data available. Employee names: Noura Mubarak Saleh Almenhali, Nouf Mohamed Abdulla Baadheem, Ali Mohamed Shamekh Alshamsi, Rakan Salem Abdulla Almazrouei, Sara Ahmed Salem Alharbi, Eisa Rames Khamis AlDhaheri, Rodah Mohamed Abdulla  Almazrouei, Ayesha Jumaa Mubarak Al Qubaisi, Sara Nadeem Hussain Alafeefi, Salem Ali Abdulla Alnuaimi, Khalifa Sameh Khalaf aldhaen, Dr.Hamda Musabah Ghanim Alremeithi, Shamma Salem Saeed Aldhaheri, Afra Khalifa Shaheen Alghfeli, Nouf Ahmed Mohamed Alnuaimi",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "CD-004",
+      "category": "cross_domain_leak",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "What are the different assignment names for Ali?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Assignment Name"
+          ],
+          "forbidden_columns": [
+            "Basic Salary",
+            "Leave Type",
+            "Email Address"
+          ],
+          "answer": "The different assignment names for Ali are: Senior Specialist, Director, Senior Specialist, Energy, E1318, Senior Specialist, Agenda Management, Assistant Advisor, Economic Analysis, Director, Health Department, Junior Specialist, Community Affairs, Assistant Advisor.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is the average total entitlement amount by sector?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Sector",
+            "Total Entitlement Amount"
+          ],
+          "forbidden_columns": [
+            "Assignment Name",
+            "Leave Type",
+            "Qualification Title"
+          ],
+          "answer": "The average total entitlement amounts by sector are:\n• None: 0.00\n• Economic Affairs Sector: 0.00\n• Infrastructure and Sustainability Sector: 0.00\n• Wellbeing Sector: 0.00",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "OD-001",
+      "category": "overlapping_domain_leak",
+      "difficulty": "medium",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "List all employees with their department and job title.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Department",
+            "Job Title"
+          ],
+          "forbidden_columns": [
+            "Basic Salary",
+            "Leave Type"
+          ],
+          "answer": "There are 16 employees in total. Details:\n- Eisa Rames Khamis AlDhaheri: Manager at Not Assigned\n- Shamma Salem Saeed Aldhaheri: Junior Specialist at Business Environment and Investment Affairs Department\n- Afra Khalifa Shaheen Alghfeli: Director at Health Department\n- Noura Mubarak Saleh Almenhali: Junior Specialist at Community Affairs and Education Department\n- Sara Ahmed Salem Alharbi: Executive Director at Not Assigned\n- Sara Nadeem Hussain Alafeefi: Senior Specialist at Health Department\n- Nouf Ahmed Mohamed Alnuaimi: Junior Specialist at Tourism and Culture Department\n- Nouf Mohamed Abdulla Baadheem: Specialist at Special Intervention Department\n- Ali Mohamed Shamekh Alshamsi: Senior Specialist at EC and Committees Affairs Department\n- Salem Ali Abdulla Alnuaimi: Assistant Advisor at Economic Analysis Department\n- Khalifa Sameh Khalaf aldhaen: Senior Specialist at Environment and Energy Department\n- Rodah Mohamed Abdulla  Almazrouei: Specialist at Special Intervention Department\n- Dr.Hamda Musabah Ghanim Alremeithi: Assistant Advisor at Health Department\n- Rakan Salem Abdulla Almazrouei: Specialist at Community Affairs and Education Department\n- None: Senior Officer at Tourism and Culture Department\n- Ayesha Jumaa Mubarak Al Qubaisi: Senior Officer at Tourism and Culture Department",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is the headcount by department only?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Department"
+          ],
+          "forbidden_columns": [
+            "Job Title",
+            "Basic Salary",
+            "Leave Type"
+          ],
+          "answer": "Headcount by department (Total: 14):\nTourism and Culture Department: 3\nHealth Department: 3\nCommunity Affairs and Education Department: 2\nSpecial Intervention Department: 2\nEconomic Analysis Department: 1\nBusiness Environment and Investment Affairs Department: 1\nEC and Committees Affairs Department: 1\nEnvironment and Energy Department: 1",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "OD-002",
+      "category": "overlapping_domain_leak",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "Show Ayesha's leave types and their approval status.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Leave Type",
+            "Approval Status"
+          ],
+          "forbidden_columns": [
+            "Basic Salary",
+            "Department"
+          ],
+          "answer": "Ayesha's Leave Details:\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Training Leave | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Wellbeing | Status: Denied\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Training Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Training Leave | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Wellbeing | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Non-Mandatory Leave | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Remote Work | Status: Approved\n• Leave Type: Wellbeing | Status: Approved",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is the total leave duration in days for Ayesha by leave type?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Leave Type",
+            "Leave Duration (Days)"
+          ],
+          "forbidden_columns": [
+            "Approval Status",
+            "Basic Salary"
+          ],
+          "answer": "Unfortunately, I was not able to get your answer. Please try again.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "OD-003",
+      "category": "overlapping_domain_leak",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "Show each employee's name, department, and basic salary.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Department",
+            "Basic Salary"
+          ],
+          "forbidden_columns": [
+            "Leave Type",
+            "Total Entitlement Amount"
+          ],
+          "answer": "There are 16 employees in the database:\n  Eisa Rames Khamis AlDhaheri - N/A - Salary: $0.00\n  Shamma Salem Saeed Aldhaheri - Business Environment and Investment Affairs Department - Salary: $0.00\n  Afra Khalifa Shaheen Alghfeli - Health Department - Salary: $0.00\n  Noura Mubarak Saleh Almenhali - Community Affairs and Education Department - Salary: $0.00\n  Sara Ahmed Salem Alharbi - N/A - Salary: $0.00\n  Sara Nadeem Hussain Alafeefi - Health Department - Salary: $0.00\n  Nouf Ahmed Mohamed Alnuaimi - Tourism and Culture Department - Salary: $0.00\n  Nouf Mohamed Abdulla Baadheem - Special Intervention Department - Salary: $0.00\n  Ali Mohamed Shamekh Alshamsi - EC and Committees Affairs Department - Salary: $0.00\n  Salem Ali Abdulla Alnuaimi - Economic Analysis Department - Salary: $0.00\n  Khalifa Sameh Khalaf aldhaen - Environment and Energy Department - Salary: $0.00\n  Rodah Mohamed Abdulla  Almazrouei - Special Intervention Department - Salary: $0.00\n  Dr.Hamda Musabah Ghanim Alremeithi - Health Department - Salary: $0.00\n  Rakan Salem Abdulla Almazrouei - Community Affairs and Education Department - Salary: $0.00\n  N/A - Tourism and Culture Department - Salary: $0.00\n  Ayesha Jumaa Mubarak Al Qubaisi - Tourism and Culture Department - Salary: $0.00",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is the total entitlement amount for each employee?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Total Entitlement Amount"
+          ],
+          "forbidden_columns": [
+            "Department",
+            "Basic Salary",
+            "Leave Type"
+          ],
+          "answer": "The total entitlement amounts for each employee are:\nEisa Rames Khamis AlDhaheri: $0.00\nShamma Salem Saeed Aldhaheri: $0.00\nAfra Khalifa Shaheen Alghfeli: $0.00\nNoura Mubarak Saleh Almenhali: $0.00\nSara Ahmed Salem Alharbi: $0.00\nSara Nadeem Hussain Alafeefi: $0.00\nNouf Ahmed Mohamed Alnuaimi: $0.00\nNouf Mohamed Abdulla Baadheem: $0.00\nAli Mohamed Shamekh Alshamsi: $0.00\nSalem Ali Abdulla Alnuaimi: $0.00\nKhalifa Sameh Khalaf aldhaen: $0.00\nRodah Mohamed Abdulla  Almazrouei: $0.00\nDr.Hamda Musabah Ghanim Alremeithi: $0.00\nRakan Salem Abdulla Almazrouei: $0.00\nNone: $0.00\nAyesha Jumaa Mubarak Al Qubaisi: $0.00",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "NW-001",
+      "category": "narrow_then_wide",
+      "difficulty": "medium",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "How many employees are there?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name"
+          ],
+          "forbidden_columns": [
+            "Basic Salary",
+            "Leave Type",
+            "Department"
+          ],
+          "answer": "There are 16 employees in the dataset.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "Show each employee's name, department, sector, and job title.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Department",
+            "Sector",
+            "Job Title"
+          ],
+          "forbidden_columns": [
+            "Basic Salary",
+            "Leave Type"
+          ],
+          "answer": "There are 16 employee(s) in the enterprise data:\n\n  • Eisa Rames Khamis AlDhaheri - Manager\n      Department: N/A\n      Sector: N/A\n  • Shamma Salem Saeed Aldhaheri - Junior Specialist\n      Department: Business Environment and Investment Affairs Department\n      Sector: Economic Affairs Sector\n  • Afra Khalifa Shaheen Alghfeli - Director\n      Department: Health Department\n      Sector: Wellbeing Sector\n  • Noura Mubarak Saleh Almenhali - Junior Specialist\n      Department: Community Affairs and Education Department\n      Sector: Wellbeing Sector\n  • Sara Ahmed Salem Alharbi - Executive Director\n      Department: N/A\n      Sector: Wellbeing Sector\n  • Sara Nadeem Hussain Alafeefi - Senior Specialist\n      Department: Health Department\n      Sector: Wellbeing Sector\n  • Nouf Ahmed Mohamed Alnuaimi - Junior Specialist\n      Department: Tourism and Culture Department\n      Sector: Economic Affairs Sector\n  • Nouf Mohamed Abdulla Baadheem - Specialist\n      Department: Special Intervention Department\n      Sector: N/A\n  • Ali Mohamed Shamekh Alshamsi - Senior Specialist\n      Department: EC and Committees Affairs Department\n      Sector: N/A\n  • Salem Ali Abdulla Alnuaimi - Assistant Advisor\n      Department: Economic Analysis Department\n      Sector: Economic Affairs Sector\n  • Khalifa Sameh Khalaf aldhaen - Senior Specialist\n      Department: Environment and Energy Department\n      Sector: Infrastructure and Sustainability Sector\n  • Rodah Mohamed Abdulla  Almazrouei - Specialist\n      Department: Special Intervention Department\n      Sector: N/A\n  • Dr.Hamda Musabah Ghanim Alremeithi - Assistant Advisor\n      Department: Health Department\n      Sector: Wellbeing Sector\n  • Rakan Salem Abdulla Almazrouei - Specialist\n      Department: Community Affairs and Education Department\n      Sector: Wellbeing Sector\n  • N/A - Senior Officer\n      Department: Tourism and Culture Department\n      Sector: Wellbeing Sector\n  • Ayesha Jumaa Mubarak Al Qubaisi - Senior Officer\n      Department: Tourism and Culture Department\n      Sector: Wellbeing Sector",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "NW-002",
+      "category": "narrow_then_wide",
+      "difficulty": "medium",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "What is Ayesha's email address?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Email Address"
+          ],
+          "forbidden_columns": [
+            "Department",
+            "Basic Salary",
+            "Leave Type"
+          ],
+          "answer": "Ayesha's email address is None.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "Show Ayesha's full profile: name, department, sector, job title, and basic salary.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Department",
+            "Sector",
+            "Job Title",
+            "Basic Salary"
+          ],
+          "forbidden_columns": [
+            "Email Address",
+            "Leave Type"
+          ],
+          "answer": "Employee Profile for Ayesha Jumaa Mubarak Al Qubaisi:\n  • Department: Tourism and Culture Department\n  • Sector: Wellbeing Sector\n  • Job Title: Senior Officer\n  • Basic Salary: N/A",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "WN-001",
+      "category": "wide_then_narrow",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "Show each employee's name, department, sector, job title, and basic salary.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Department",
+            "Sector",
+            "Job Title",
+            "Basic Salary"
+          ],
+          "forbidden_columns": [
+            "Leave Type",
+            "Email Address"
+          ],
+          "answer": "Employee Records:\n============================================================\n\nEmployee: Eisa Rames Khamis AlDhaheri\n  Department: N/A\n  Sector: N/A\n  Job Title: Manager\n  Basic Salary: 0\n\nEmployee: Shamma Salem Saeed Aldhaheri\n  Department: Business Environment and Investment Affairs Department\n  Sector: Economic Affairs Sector\n  Job Title: Junior Specialist\n  Basic Salary: 0\n\nEmployee: Afra Khalifa Shaheen Alghfeli\n  Department: Health Department\n  Sector: Wellbeing Sector\n  Job Title: Director\n  Basic Salary: 0\n\nEmployee: Noura Mubarak Saleh Almenhali\n  Department: Community Affairs and Education Department\n  Sector: Wellbeing Sector\n  Job Title: Junior Specialist\n  Basic Salary: 0\n\nEmployee: Sara Ahmed Salem Alharbi\n  Department: N/A\n  Sector: Wellbeing Sector\n  Job Title: Executive Director\n  Basic Salary: 0\n\nEmployee: Sara Nadeem Hussain Alafeefi\n  Department: Health Department\n  Sector: Wellbeing Sector\n  Job Title: Senior Specialist\n  Basic Salary: 0\n\nEmployee: Nouf Ahmed Mohamed Alnuaimi\n  Department: Tourism and Culture Department\n  Sector: Economic Affairs Sector\n  Job Title: Junior Specialist\n  Basic Salary: 0\n\nEmployee: Nouf Mohamed Abdulla Baadheem\n  Department: Special Intervention Department\n  Sector: N/A\n  Job Title: Specialist\n  Basic Salary: 0\n\nEmployee: Ali Mohamed Shamekh Alshamsi\n  Department: EC and Committees Affairs Department\n  Sector: N/A\n  Job Title: Senior Specialist\n  Basic Salary: 0\n\nEmployee: Salem Ali Abdulla Alnuaimi\n  Department: Economic Analysis Department\n  Sector: Economic Affairs Sector\n  Job Title: Assistant Advisor\n  Basic Salary: 0\n\nEmployee: Khalifa Sameh Khalaf aldhaen\n  Department: Environment and Energy Department\n  Sector: Infrastructure and Sustainability Sector\n  Job Title: Senior Specialist\n  Basic Salary: 0\n\nEmployee: Rodah Mohamed Abdulla  Almazrouei\n  Department: Special Intervention Department\n  Sector: N/A\n  Job Title: Specialist\n  Basic Salary: 0\n\nEmployee: Dr.Hamda Musabah Ghanim Alremeithi\n  Department: Health Department\n  Sector: Wellbeing Sector\n  Job Title: Assistant Advisor\n  Basic Salary: 0\n\nEmployee: Rakan Salem Abdulla Almazrouei\n  Department: Community Affairs and Education Department\n  Sector: Wellbeing Sector\n  Job Title: Specialist\n  Basic Salary: 0\n\nEmployee: None\n  Department: Tourism and Culture Department\n  Sector: Wellbeing Sector\n  Job Title: Senior Officer\n  Basic Salary: 0\n\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Department: Tourism and Culture Department\n  Sector: Wellbeing Sector\n  Job Title: Senior Officer\n  Basic Salary: 0\n\n============================================================\nTotal employees shown: 16",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is Ayesha's email address?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Email Address"
+          ],
+          "forbidden_columns": [
+            "Department",
+            "Sector",
+            "Job Title",
+            "Basic Salary"
+          ],
+          "answer": "Ayesha Jumaa Mubarak Al Qubaisi's email address is None.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "WN-002",
+      "category": "wide_then_narrow",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "Show all leave details: employee name, leave type, approval status, start date, end date, and duration.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Leave Type",
+            "Approval Status",
+            "Leave Start Date",
+            "Leave End Date",
+            "Leave Duration (Days)"
+          ],
+          "forbidden_columns": [
+            "Basic Salary",
+            "Department"
+          ],
+          "answer": "Found 66 leave record(s). Details:\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2025-05-16\n  End Date: 2025-05-16\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Training Leave\n  Duration: 5 days\n  Approval Status: Approved\n  Start Date: 2025-05-05\n  End Date: 2025-05-09\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 5 days\n  Approval Status: Approved\n  Start Date: 2025-04-28\n  End Date: 2025-05-02\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 2 days\n  Approval Status: Approved\n  Start Date: 2025-04-22\n  End Date: 2025-04-23\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 4 days\n  Approval Status: Approved\n  Start Date: 2025-03-17\n  End Date: 2025-03-20\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 10 days\n  Approval Status: Approved\n  Start Date: 2025-03-03\n  End Date: 2025-03-14\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2025-02-20\n  End Date: 2025-02-20\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 3 days\n  Approval Status: Approved\n  Start Date: 2025-02-17\n  End Date: 2025-02-19\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2025-02-03\n  End Date: 2025-02-03\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 6 days\n  Approval Status: Approved\n  Start Date: 2025-01-20\n  End Date: 2025-01-27\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 5 days\n  Approval Status: Approved\n  Start Date: 2025-01-13\n  End Date: 2025-01-17\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 7 days\n  Approval Status: Approved\n  Start Date: 2025-01-02\n  End Date: 2025-01-10\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 2 days\n  Approval Status: Approved\n  Start Date: 2024-12-30\n  End Date: 2024-12-31\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 2 days\n  Approval Status: Denied\n  Start Date: 2024-12-30\n  End Date: 2024-12-31\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 2 days\n  Approval Status: Approved\n  Start Date: 2024-12-12\n  End Date: 2024-12-13\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 2 days\n  Approval Status: Approved\n  Start Date: 2024-12-09\n  End Date: 2024-12-10\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-11-14\n  End Date: 2024-11-14\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-11-08\n  End Date: 2024-11-08\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-10-29\n  End Date: 2024-10-29\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-10-11\n  End Date: 2024-10-11\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 4 days\n  Approval Status: Approved\n  Start Date: 2024-10-07\n  End Date: 2024-10-10\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 4 days\n  Approval Status: Approved\n  Start Date: 2024-10-01\n  End Date: 2024-10-04\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-09-30\n  End Date: 2024-09-30\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Training Leave\n  Duration: 5 days\n  Approval Status: Approved\n  Start Date: 2024-09-23\n  End Date: 2024-09-27\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-09-20\n  End Date: 2024-09-20\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-09-06\n  End Date: 2024-09-06\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 2 days\n  Approval Status: Approved\n  Start Date: 2024-09-02\n  End Date: 2024-09-03\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-08-30\n  End Date: 2024-08-30\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 4 days\n  Approval Status: Approved\n  Start Date: 2024-08-26\n  End Date: 2024-08-29\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-08-23\n  End Date: 2024-08-23\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 2 days\n  Approval Status: Approved\n  Start Date: 2024-08-21\n  End Date: 2024-08-22\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-08-14\n  End Date: 2024-08-14\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-08-09\n  End Date: 2024-08-09\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-07-29\n  End Date: 2024-07-29\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-07-26\n  End Date: 2024-07-26\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-07-12\n  End Date: 2024-07-12\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-07-11\n  End Date: 2024-07-11\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-06-28\n  End Date: 2024-06-28\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-06-27\n  End Date: 2024-06-27\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 2 days\n  Approval Status: Approved\n  Start Date: 2024-06-13\n  End Date: 2024-06-14\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Training Leave\n  Duration: 5 days\n  Approval Status: Approved\n  Start Date: 2024-05-27\n  End Date: 2024-05-31\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-05-22\n  End Date: 2024-05-22\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-05-21\n  End Date: 2024-05-21\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 5 days\n  Approval Status: Approved\n  Start Date: 2024-05-13\n  End Date: 2024-05-17\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-05-09\n  End Date: 2024-05-09\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-05-07\n  End Date: 2024-05-07\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 2 days\n  Approval Status: Approved\n  Start Date: 2024-05-02\n  End Date: 2024-05-03\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 4 days\n  Approval Status: Approved\n  Start Date: 2024-04-16\n  End Date: 2024-04-19\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 5 days\n  Approval Status: Approved\n  Start Date: 2024-04-01\n  End Date: 2024-04-05\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 5 days\n  Approval Status: Approved\n  Start Date: 2024-03-25\n  End Date: 2024-03-29\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 5 days\n  Approval Status: Approved\n  Start Date: 2024-03-18\n  End Date: 2024-03-22\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-03-08\n  End Date: 2024-03-08\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 4 days\n  Approval Status: Approved\n  Start Date: 2024-03-04\n  End Date: 2024-03-07\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-03-01\n  End Date: 2024-03-01\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 4 days\n  Approval Status: Approved\n  Start Date: 2024-02-26\n  End Date: 2024-02-29\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 2 days\n  Approval Status: Approved\n  Start Date: 2024-02-22\n  End Date: 2024-02-23\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-02-12\n  End Date: 2024-02-12\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-02-09\n  End Date: 2024-02-09\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-02-08\n  End Date: 2024-02-08\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-02-02\n  End Date: 2024-02-02\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-01-29\n  End Date: 2024-01-29\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-01-26\n  End Date: 2024-01-26\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Non-Mandatory Leave\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-01-18\n  End Date: 2024-01-18\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-01-12\n  End Date: 2024-01-12\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Remote Work\n  Duration: 1 days\n  Approval Status: Approved\n  Start Date: 2024-01-09\n  End Date: 2024-01-09\n--------------------------------------------------\nEmployee: Ayesha Jumaa Mubarak Al Qubaisi\n  Leave Type: Wellbeing\n  Duration: 5 days\n  Approval Status: Approved\n  Start Date: 2024-01-02\n  End Date: 2024-01-08\n--------------------------------------------------\n",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "How many employees are in each department?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Department"
+          ],
+          "forbidden_columns": [
+            "Leave Type",
+            "Approval Status",
+            "Leave Duration (Days)",
+            "Basic Salary"
+          ],
+          "answer": "Employee count per department:\nHealth Department: 3 employees\nTourism and Culture Department: 3 employees\nCommunity Affairs and Education Department: 2 employees\nSpecial Intervention Department: 2 employees\nEconomic Analysis Department: 1 employee\nBusiness Environment and Investment Affairs Department: 1 employee\nEC and Committees Affairs Department: 1 employee\nEnvironment and Energy Department: 1 employee",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "WN-003",
+      "category": "wide_then_narrow",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "Show each employee with their name, gender, nationality, department, sector, division, job title, and basic salary.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Gender",
+            "Nationality",
+            "Department",
+            "Sector",
+            "Division",
+            "Job Title",
+            "Basic Salary"
+          ],
+          "forbidden_columns": [
+            "Leave Type",
+            "Email Address"
+          ],
+          "answer": "Employee Directory (16 total employees):\n================================================================================\n1. Eisa Rames Khamis AlDhaheri | Male | Emirati | Not Assigned | Not Assigned | Chairman | Manager | $Not Available\n2. Shamma Salem Saeed Aldhaheri | Female | Emirati | Business Environment and Investment Affairs Department | Economic Affairs Sector | Operational Affairs Division | Junior Specialist | $Not Available\n3. Afra Khalifa Shaheen Alghfeli | Female | Emirati | Health Department | Wellbeing Sector | Operational Affairs Division | Director | $Not Available\n4. Noura Mubarak Saleh Almenhali | Female | Emirati | Community Affairs and Education Department | Wellbeing Sector | Operational Affairs Division | Junior Specialist | $Not Available\n5. Sara Ahmed Salem Alharbi | Female | Emirati | Not Assigned | Wellbeing Sector | Operational Affairs Division | Executive Director | $Not Available\n6. Sara Nadeem Hussain Alafeefi | Female | Emirati | Health Department | Wellbeing Sector | Operational Affairs Division | Senior Specialist | $Not Available\n7. Nouf Ahmed Mohamed Alnuaimi | Female | Emirati | Tourism and Culture Department | Economic Affairs Sector | Operational Affairs Division | Junior Specialist | $Not Available\n8. Nouf Mohamed Abdulla Baadheem | Female | Emirati | Special Intervention Department | Not Assigned | Operational Affairs Division | Specialist | $Not Available\n9. Ali Mohamed Shamekh Alshamsi | Male | Emirati | EC and Committees Affairs Department | Not Assigned | Operational Affairs Division | Senior Specialist | $Not Available\n10. Salem Ali Abdulla Alnuaimi | Male | Emirati | Economic Analysis Department | Economic Affairs Sector | Operational Affairs Division | Assistant Advisor | $Not Available\n11. Khalifa Sameh Khalaf aldhaen | Male | Emirati | Environment and Energy Department | Infrastructure and Sustainability Sector | Operational Affairs Division | Senior Specialist | $Not Available\n12. Rodah Mohamed Abdulla  Almazrouei | Female | Emirati | Special Intervention Department | Not Assigned | Operational Affairs Division | Specialist | $Not Available\n13. Dr.Hamda Musabah Ghanim Alremeithi | Female | Emirati | Health Department | Wellbeing Sector | Operational Affairs Division | Assistant Advisor | $Not Available\n14. Rakan Salem Abdulla Almazrouei | Male | Emirati | Community Affairs and Education Department | Wellbeing Sector | Operational Affairs Division | Specialist | $Not Available\n15. None | Male | Emirati | Tourism and Culture Department | Wellbeing Sector | Operational Affairs Division | Senior Officer | $Not Available\n16. Ayesha Jumaa Mubarak Al Qubaisi | Female | Emirati | Tourism and Culture Department | Wellbeing Sector | Operational Affairs Division | Senior Officer | $Not Available",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is the gender ratio across the organization?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Gender"
+          ],
+          "forbidden_columns": [
+            "Nationality",
+            "Department",
+            "Sector",
+            "Division",
+            "Job Title",
+            "Basic Salary"
+          ],
+          "answer": "Gender Ratio: There are 6 male employees and 10 female employees (total: 16). The ratio is 6 male to 10 female (37.5% : 62.5%).",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "WN-004",
+      "category": "wide_then_narrow",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "List all employees with their assignment name, position title, and assignment start date.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Assignment Name",
+            "Position Title",
+            "Assignment Start Date"
+          ],
+          "forbidden_columns": [
+            "Basic Salary",
+            "Leave Type",
+            "Email Address"
+          ],
+          "answer": "Employee Assignments List:\n  - Shamma Salem Saeed Aldhaheri: Junior Specialist | Junior Specialist, Business Environment and Investment Affairs | Start: 2024-10-01\n  - Shamma Salem Saeed Aldhaheri: Junior Specialist, Business Environment and Investment Affairs | Junior Specialist, Business Environment and Investment Affairs | Start: 2025-09-22\n  - Sara Ahmed Salem Alharbi: Executive Director | Executive Director, Wellbeing Sector | Start: 2024-02-19\n  - Sara Ahmed Salem Alharbi: Executive Director, Wellbeing Sector | Executive Director, Wellbeing Sector | Start: 2025-05-22\n  - Khalifa Sameh Khalaf aldhaen: Senior Specialist | Senior Specialist, Energy | Start: 2024-07-09\n  - Khalifa Sameh Khalaf aldhaen: Senior Specialist, Energy | Senior Specialist, Energy | Start: 2025-08-01\n  - Ali Mohamed Shamekh Alshamsi: Senior Specialist, Agenda Management | Senior Specialist, Agenda Management | Start: 2025-04-08\n  - Nouf Ahmed Mohamed Alnuaimi: Junior Specialist, Tourism | Junior Specialist, Tourism | Start: 2025-02-04\n  - Nouf Mohamed Abdulla Baadheem: Specialist | Specialist, Special Projects | Start: 2025-04-08\n  - Nouf Mohamed Abdulla Baadheem: Specialist | Specialist, Special Intervention | Start: 2025-06-01\n  - Nouf Mohamed Abdulla Baadheem: Specialist, Special Intervention | Specialist, Special Intervention | Start: 2025-06-01\n  - Rakan Salem Abdulla Almazrouei: Specialist, Community Affairs | Specialist, Community Affairs | Start: 2025-08-26\n  - Sara Nadeem Hussain Alafeefi: Senior Specialist | Senior Specialist, Health | Start: 2024-11-26\n  - Sara Nadeem Hussain Alafeefi: Senior Specialist, Health | Senior Specialist, Health | Start: 2025-08-01\n  - Eisa Rames Khamis AlDhaheri: Manager, Public Relations | Manager, Public Relations | Start: 2023-05-09\n  - Afra Khalifa Shaheen Alghfeli: Director | Director, Health Operations | Start: 2024-02-06\n  - Afra Khalifa Shaheen Alghfeli: Director, Health Department | Director, Health Department | Start: 2024-03-07\n  - Rodah Mohamed Abdulla  Almazrouei: Specialist | Specialist, Special Projects | Start: 2024-09-03\n  - Rodah Mohamed Abdulla  Almazrouei: Specialist, Special Projects | Specialist, Special Projects | Start: 2025-08-01\n  - Rodah Mohamed Abdulla  Almazrouei: Specialist, Special Intervention | Specialist, Special Intervention | Start: 2025-09-01\n  - Noura Mubarak Saleh Almenhali: E1318 | Junior Specialist, Community Affairs | Start: 2024-04-16\n  - Noura Mubarak Saleh Almenhali: Junior Specialist, Community Affairs | Junior Specialist, Community Affairs | Start: 2025-08-01\n  - Salem Ali Abdulla Alnuaimi: Assistant Advisor | Assistant Advisor, Economic Analysis | Start: 2024-06-25\n  - Salem Ali Abdulla Alnuaimi: Assistant Advisor, Economic Analysis | Assistant Advisor, Economic Analysis | Start: 2025-09-22\n  - Dr.Hamda Musabah Ghanim Alremeithi: Assistant Advisor | Assistant Advisor, Health | Start: 2025-01-07\n  - Dr.Hamda Musabah Ghanim Alremeithi: Assistant Advisor, Health | Assistant Advisor, Health | Start: 2025-08-01",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is the average basic salary?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Basic Salary"
+          ],
+          "forbidden_columns": [
+            "Assignment Name",
+            "Position Title",
+            "Assignment Start Date"
+          ],
+          "answer": "The average basic salary is 0.00.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "TC-001",
+      "category": "three_turn_cascade",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "What is the average basic salary by department?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Department",
+            "Basic Salary"
+          ],
+          "forbidden_columns": [
+            "Leave Type",
+            "Email Address",
+            "Assignment Name"
+          ],
+          "answer": "Average basic salary by department:\nEC and Committees Affairs Department: 0.00\nEconomic Analysis Department: 0.00\nBusiness Environment and Investment Affairs Department: 0.00\nTourism and Culture Department: 0.00\nSpecial Intervention Department: 0.00\nEnvironment and Energy Department: 0.00\nHealth Department: 0.00\nCommunity Affairs and Education Department: 0.00",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What types of leave did Ayesha take?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Leave Type"
+          ],
+          "forbidden_columns": [
+            "Department",
+            "Basic Salary",
+            "Assignment Name"
+          ],
+          "answer": "Ayesha took the following types of leave: Wellbeing, Remote Work, Training Leave, Non-Mandatory Leave.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 3,
+          "query": "What are the different assignment names for Ali?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Assignment Name"
+          ],
+          "forbidden_columns": [
+            "Department",
+            "Basic Salary",
+            "Leave Type"
+          ],
+          "answer": "The different assignment names for Ali are: Senior Specialist, Director, Senior Specialist, Energy, Junior Specialist, Community Affairs, Assistant Advisor, Assistant Advisor, Economic Analysis, Director, Health Department, Senior Specialist, Agenda Management, E1318.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": true,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": [
+              "Step 2 LLM call has 2 history messages"
+            ]
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 6,
+        "user_messages": 3,
+        "assistant_messages": 3
+      }
+    },
+    {
+      "id": "TC-002",
+      "category": "three_turn_cascade",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "How many male and female employees are there?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Gender"
+          ],
+          "forbidden_columns": [
+            "Basic Salary",
+            "Leave Type",
+            "Department"
+          ],
+          "answer": "There are 6 Male employee(s) and 10 Female employee(s).",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is the total entitlement amount for each employee?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Total Entitlement Amount"
+          ],
+          "forbidden_columns": [
+            "Gender",
+            "Leave Type",
+            "Department"
+          ],
+          "answer": "Total Entitlement Amount by Employee (Found 16 employees):\n----------------------------------------------------------------------\n  Employee: Ayesha Jumaa Mubarak Al Qubaisi (0111)\n    Total Entitlement Amount: 0.00\n  Employee: None (1264)\n    Total Entitlement Amount: 0.00\n  Employee: Eisa Rames Khamis AlDhaheri (1269)\n    Total Entitlement Amount: 0.00\n  Employee: Afra Khalifa Shaheen Alghfeli (1314)\n    Total Entitlement Amount: 0.00\n  Employee: Sara Ahmed Salem Alharbi (1316)\n    Total Entitlement Amount: 0.00\n  Employee: Noura Mubarak Saleh Almenhali (1318)\n    Total Entitlement Amount: 0.00\n  Employee: Salem Ali Abdulla Alnuaimi (1334)\n    Total Entitlement Amount: 0.00\n  Employee: Khalifa Sameh Khalaf aldhaen (1336)\n    Total Entitlement Amount: 0.00\n  Employee: Rodah Mohamed Abdulla  Almazrouei (1362)\n    Total Entitlement Amount: 0.00\n  Employee: Shamma Salem Saeed Aldhaheri (1369)\n    Total Entitlement Amount: 0.00\n  Employee: Sara Nadeem Hussain Alafeefi (1378)\n    Total Entitlement Amount: 0.00\n  Employee: Dr.Hamda Musabah Ghanim Alremeithi (1395)\n    Total Entitlement Amount: 0.00\n  Employee: Nouf Ahmed Mohamed Alnuaimi (1402)\n    Total Entitlement Amount: 0.00\n  Employee: Nouf Mohamed Abdulla Baadheem (1403)\n    Total Entitlement Amount: 0.00\n  Employee: Ali Mohamed Shamekh Alshamsi (1421)\n    Total Entitlement Amount: 0.00\n  Employee: Rakan Salem Abdulla Almazrouei (1443)\n    Total Entitlement Amount: 0.00",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 3,
+          "query": "List all employees in the Economic Affairs sector.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Sector"
+          ],
+          "forbidden_columns": [
+            "Gender",
+            "Total Entitlement Amount",
+            "Leave Type"
+          ],
+          "answer": "Employees in Economic Affairs Sector: Shamma Salem Saeed Aldhaheri, Nouf Ahmed Mohamed Alnuaimi, Salem Ali Abdulla Alnuaimi.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": true,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": [
+              "Step 2 LLM call has 2 history messages"
+            ]
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 6,
+        "user_messages": 3,
+        "assistant_messages": 3
+      }
+    },
+    {
+      "id": "TC-003",
+      "category": "three_turn_cascade",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "Show Ayesha's full profile: name, department, job title, and basic salary.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Department",
+            "Job Title",
+            "Basic Salary"
+          ],
+          "forbidden_columns": [
+            "Leave Type",
+            "Email Address"
+          ],
+          "answer": "Full Profile for Ayesha Jumaa Mubarak Al Qubaisi:\n- Department: Tourism and Culture Department\n- Job Title: Senior Officer\n- Basic Salary: N/A",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What types of leave did Ayesha take?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Leave Type"
+          ],
+          "forbidden_columns": [
+            "Department",
+            "Job Title",
+            "Basic Salary"
+          ],
+          "answer": "Ayesha took the following types of leave: Training Leave, Wellbeing, Remote Work, Non-Mandatory Leave.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 3,
+          "query": "What is Ayesha's email address?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Email Address"
+          ],
+          "forbidden_columns": [
+            "Department",
+            "Job Title",
+            "Basic Salary",
+            "Leave Type"
+          ],
+          "answer": "Ayesha's email address is None.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": true,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": [
+              "Step 2 LLM call has 2 history messages"
+            ]
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 6,
+        "user_messages": 3,
+        "assistant_messages": 3
+      }
+    },
+    {
+      "id": "SD-001",
+      "category": "same_domain_refinement",
+      "difficulty": "medium",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "Show all compensation details: basic salary, housing allowance, and total entitlement.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Basic Salary",
+            "Housing Allowance",
+            "Total Entitlement Amount"
+          ],
+          "forbidden_columns": [
+            "Leave Type",
+            "Department"
+          ],
+          "answer": "Basic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0\nBasic Salary: 0, Housing Allowance: 0, Total Entitlement: 0",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is the average basic salary only?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Basic Salary"
+          ],
+          "forbidden_columns": [
+            "Housing Allowance",
+            "Total Entitlement Amount",
+            "Leave Type"
+          ],
+          "answer": "The average basic salary is 0.0.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "SD-002",
+      "category": "same_domain_refinement",
+      "difficulty": "hard",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "Show leave type and duration for Ayesha.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Leave Type",
+            "Leave Duration (Days)"
+          ],
+          "forbidden_columns": [
+            "Approval Status",
+            "Basic Salary"
+          ],
+          "answer": "Ayesha has 66 leave record(s): Remote Work - 1 days; Training Leave - 5 days; Wellbeing - 5 days; Non-Mandatory Leave - 2 days; Remote Work - 4 days; Remote Work - 10 days; Wellbeing - 1 days; Non-Mandatory Leave - 3 days; Non-Mandatory Leave - 1 days; Wellbeing - 6 days; Non-Mandatory Leave - 5 days; Wellbeing - 7 days; Wellbeing - 2 days; Wellbeing - 2 days; Non-Mandatory Leave - 2 days; Non-Mandatory Leave - 2 days; Non-Mandatory Leave - 1 days; Non-Mandatory Leave - 1 days; Non-Mandatory Leave - 1 days; Remote Work - 1 days; Wellbeing - 4 days; Non-Mandatory Leave - 4 days; Remote Work - 1 days; Training Leave - 5 days; Remote Work - 1 days; Remote Work - 1 days; Non-Mandatory Leave - 2 days; Remote Work - 1 days; Wellbeing - 4 days; Remote Work - 1 days; Non-Mandatory Leave - 2 days; Non-Mandatory Leave - 1 days; Remote Work - 1 days; Non-Mandatory Leave - 1 days; Remote Work - 1 days; Remote Work - 1 days; Non-Mandatory Leave - 1 days; Remote Work - 1 days; Non-Mandatory Leave - 1 days; Non-Mandatory Leave - 2 days; Training Leave - 5 days; Non-Mandatory Leave - 1 days; Remote Work - 1 days; Wellbeing - 5 days; Non-Mandatory Leave - 1 days; Non-Mandatory Leave - 1 days; Remote Work - 2 days; Remote Work - 4 days; Remote Work - 5 days; Remote Work - 5 days; Remote Work - 5 days; Remote Work - 1 days; Wellbeing - 4 days; Wellbeing - 1 days; Wellbeing - 4 days; Remote Work - 2 days; Remote Work - 1 days; Remote Work - 1 days; Remote Work - 1 days; Remote Work - 1 days; Wellbeing - 1 days; Remote Work - 1 days; Non-Mandatory Leave - 1 days; Remote Work - 1 days; Remote Work - 1 days; Wellbeing - 5 days",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "What is the approval status of Ayesha's leaves?",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Leave Type",
+            "Approval Status"
+          ],
+          "forbidden_columns": [
+            "Leave Duration (Days)",
+            "Basic Salary"
+          ],
+          "answer": "Ayesha's record found in the database (name: Ayesha Jumaa Mubarak Al Qubaisi), but leave approval status information is not available in the current dataset.",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    },
+    {
+      "id": "SD-003",
+      "category": "same_domain_refinement",
+      "difficulty": "medium",
+      "overall_passed": true,
+      "query_success": true,
+      "isolation_passed": true,
+      "leak_free": true,
+      "merge_back_ok": true,
+      "turns": [
+        {
+          "turn": 1,
+          "query": "List all employees with their sector and division.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Sector",
+            "Division"
+          ],
+          "forbidden_columns": [
+            "Department",
+            "Basic Salary",
+            "Leave Type"
+          ],
+          "answer": "List of all employees with their sector and division:\n\n- Eisa Rames Khamis AlDhaheri | Sector: N/A | Division: Chairman\n- Shamma Salem Saeed Aldhaheri | Sector: Economic Affairs Sector | Division: Operational Affairs Division\n- Afra Khalifa Shaheen Alghfeli | Sector: Wellbeing Sector | Division: Operational Affairs Division\n- Noura Mubarak Saleh Almenhali | Sector: Wellbeing Sector | Division: Operational Affairs Division\n- Sara Ahmed Salem Alharbi | Sector: Wellbeing Sector | Division: Operational Affairs Division\n- Sara Nadeem Hussain Alafeefi | Sector: Wellbeing Sector | Division: Operational Affairs Division\n- Nouf Ahmed Mohamed Alnuaimi | Sector: Economic Affairs Sector | Division: Operational Affairs Division\n- Nouf Mohamed Abdulla Baadheem | Sector: N/A | Division: Operational Affairs Division\n- Ali Mohamed Shamekh Alshamsi | Sector: N/A | Division: Operational Affairs Division\n- Salem Ali Abdulla Alnuaimi | Sector: Economic Affairs Sector | Division: Operational Affairs Division\n- Khalifa Sameh Khalaf aldhaen | Sector: Infrastructure and Sustainability Sector | Division: Operational Affairs Division\n- Rodah Mohamed Abdulla  Almazrouei | Sector: N/A | Division: Operational Affairs Division\n- Dr.Hamda Musabah Ghanim Alremeithi | Sector: Wellbeing Sector | Division: Operational Affairs Division\n- Rakan Salem Abdulla Almazrouei | Sector: Wellbeing Sector | Division: Operational Affairs Division\n- None | Sector: Wellbeing Sector | Division: Operational Affairs Division\n- Ayesha Jumaa Mubarak Al Qubaisi | Sector: Wellbeing Sector | Division: Operational Affairs Division",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        },
+        {
+          "turn": 2,
+          "query": "Show employees by department instead.",
+          "success": true,
+          "isolation_passed": true,
+          "leak_check_passed": true,
+          "leaked_columns": [],
+          "expected_columns": [
+            "Employee Name",
+            "Department"
+          ],
+          "forbidden_columns": [
+            "Sector",
+            "Division",
+            "Basic Salary",
+            "Leave Type"
+          ],
+          "answer": "Employees by Department:\n📁 Business Environment and Investment Affairs Department:   • Shamma Salem Saeed Aldhaheri\n📁 Community Affairs and Education Department:   • Noura Mubarak Saleh Almenhali   • Rakan Salem Abdulla Almazrouei\n📁 EC and Committees Affairs Department:   • Ali Mohamed Shamekh Alshamsi\n📁 Economic Analysis Department:   • Salem Ali Abdulla Alnuaimi\n📁 Environment and Energy Department:   • Khalifa Sameh Khalaf aldhaen\n📁 Health Department:   • Afra Khalifa Shaheen Alghfeli   • Dr.Hamda Musabah Ghanim Alremeithi   • Sara Nadeem Hussain Alafeefi\n📁 Special Intervention Department:   • Nouf Mohamed Abdulla Baadheem   • Rodah Mohamed Abdulla  Almazrouei\n📁 Tourism and Culture Department:   • Ayesha Jumaa Mubarak Al Qubaisi   • Nouf Ahmed Mohamed Alnuaimi   • None",
+          "error": "",
+          "isolation_details": {
+            "has_step2_prompt": true,
+            "prompt_has_last_code": false,
+            "prompt_has_history_messages": false,
+            "history_message_count": 0,
+            "isolation_passed": true,
+            "details": []
+          }
+        }
+      ],
+      "memory_info": {
+        "total_messages": 4,
+        "user_messages": 2,
+        "assistant_messages": 2
+      }
+    }
+  ]
+}

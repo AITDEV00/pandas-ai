@@ -3,6 +3,16 @@
 # 1. Navigate to the PandasAI project root directory
 cd /home/jyao/ait-projects/chat-excel-server/pandas-ai
 
+curl -sSL https://install.python-poetry.org | python3 -
+
+sudo apt update
+sudo apt install software-properties-common -y
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install python3.11 python3.11-venv -y
+
+
+
 # 2. Sync / Install the core PandasAI dependencies using your lock file
 poetry sync
 
