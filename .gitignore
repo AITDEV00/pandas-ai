@@ -48,3 +48,9 @@ pgdata/
 
 # datasets
 datasets/
+
+# run artifacts (e2e reports, temp files)
+run/e2e_reports/
+
+# scratch / temp
+scratch/

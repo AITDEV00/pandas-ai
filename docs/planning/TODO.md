@@ -1,21 +1,19 @@
-# PandasAI Chat Excel Server — To Do List
+# PandasAI Chat Excel Server — Planning & TODO
 
 ---
 
 ## TODO-1: Refactor Output Types to 3 Categories (snippet / artifact / mixed)
 
 ### Problem
-Current output types (`string`, `number`, `dataframe`, `plot`, `auto`) are too granular and don't reflect
-how clients actually consume responses. Small answers (counts, text) and large answers (200-row tables,
-chart images) need fundamentally different delivery mechanisms — inline vs. file download.
+Current output types (`string`, `number`, `dataframe`, `plot`, `auto`) are too granular and don't reflect how clients actually consume responses. Small answers (counts, text) and large answers (200-row tables, chart images) need fundamentally different delivery mechanisms — inline vs. file download.
 
 ### Proposed Model
 
-| Type       | Description                                                                                    | Delivery        |
-|------------|------------------------------------------------------------------------------------------------|-----------------|
-| `snippet`  | Small text/number — fits in LLM context window. Merges current `string` + `number`.            | Inline JSON     |
-| `artifact` | Large payload — dataframe rows, plot images, CSV exports. Can be multiple per turn.             | URL/link        |
-| `mixed`    | Combination — e.g. "give me a chart AND a summary of the trends". Both snippet + artifact(s).  | Inline + URLs   |
+| Type | Description | Delivery |
+|------|-------------|----------|
+| `snippet` | Small text/number — fits in LLM context window. Merges current `string` + `number`. | Inline JSON |
+| `artifact` | Large payload — dataframe rows, plot images, CSV exports. Can be multiple per turn. | URL/link |
+| `mixed` | Combination — e.g. "give me a chart AND a summary of the trends". Both snippet + artifact(s). | Inline + URLs |
 
 ### Source Code Context
 
@@ -71,14 +69,12 @@ chart images) need fundamentally different delivery mechanisms — inline vs. fi
 ## TODO-2: Abort In-Progress Chat on Same Conversation ID
 
 ### Problem
-When a new chat request arrives for a conversation that already has an in-progress request,
-both run concurrently on the same `Agent` object. This causes:
+When a new chat request arrives for a conversation that already has an in-progress request, both run concurrently on the same `Agent` object. This causes:
 - **Race condition** (see TODO-3) — shared `agent._state` is mutated by concurrent threads
 - **Wasted LLM calls** — the old request's result is discarded by the user anyway
 - **Poor UX** — user can't cancel a slow/hung request
 
-The desired behavior: a new request to the same `conversation_id` should **immediately abort** the
-current in-progress request and start the new one.
+The desired behavior: a new request to the same `conversation_id` should **immediately abort** the current in-progress request and start the new one.
 
 ### Source Code Context
 
@@ -131,9 +127,7 @@ current in-progress request and start the new one.
 ## TODO-3: Fix Race Condition on Same Conversation ID (CRITICAL)
 
 ### Problem
-Concurrent requests to the **same** `conversation_id` share a single `Agent` object and mutate
-its `_state` without isolation. This was **confirmed by testing** — all 5 concurrent requests
-on the same conv_id showed `gen_retry×1` in the logger, proving shared state corruption.
+Concurrent requests to the **same** `conversation_id` share a single `Agent` object and mutate its `_state` without isolation. This was **confirmed by testing** — all 5 concurrent requests on the same conv_id showed `gen_retry×1` in the logger, proving shared state corruption.
 
 ### Evidence
 Test: `tests/llm_behavior/test_concurrent_chat_inproc.py` — race condition test section
@@ -145,7 +139,7 @@ Test: `tests/llm_behavior/test_concurrent_chat_inproc.py` — race condition tes
 
 **Shared mutable state (the problem):**
 - `pandasai/agent/state.py` — `AgentState` dataclass holds:
-  - `config` — mutated per-query in handler (column_selection_enabled, threshold, budget_ratio)
+  - `config` — mutated per-query in handler (`column_selection_enabled`, `threshold`, `budget_ratio`)
   - `logger` — shared `Logger` instance, all threads write to same `_logs: List[Log]`
   - `memory` — shared `Memory` instance, `chat()` calls `start_new_conversation()` which CLEARS memory
   - `last_code_generated`, `last_code_executed`, `last_prompt_id`, `last_result`, `last_error` — all overwritten by each thread
@@ -171,8 +165,8 @@ Test: `tests/llm_behavior/test_concurrent_chat_inproc.py` — race condition tes
 
 **AgentStore returns the SAME object:**
 - `server/core/agent_store.py:32-38` — `get_agent()` returns the Agent reference (not a copy)
-  - All threads for the same conv_id get the exact same Python object
-  - No locking, no copy-on-write, no request-level isolation
+- All threads for the same conv_id get the exact same Python object
+- No locking, no copy-on-write, no request-level isolation
 
 ### Implementation Plan
 
@@ -201,9 +195,7 @@ Test: `tests/llm_behavior/test_concurrent_chat_inproc.py` — race condition tes
 ## TODO-4: Fix pandasai_litellm `memory.size` → `memory.memory_size` Bug (UPSTREAM)
 
 ### Problem
-`pandasai_litellm` v0.0.1 references `memory.size` but PandasAI v3's `Memory` class uses `memory_size`.
-This causes `AttributeError: 'Memory' object has no attribute 'size'` when the LiteLLM adapter tries
-to trim conversation history.
+`pandasai_litellm` v0.0.1 references `memory.size` but PandasAI v3's `Memory` class uses `memory_size`. This causes `AttributeError: 'Memory' object has no attribute 'size'` when the LiteLLM adapter tries to trim conversation history.
 
 ### Source Code Context
 - `.venv/lib/python3.11/site-packages/pandasai_litellm/litellm.py:78` — patched locally:
@@ -224,9 +216,7 @@ to trim conversation history.
 ## TODO-5: Investigate LLM API Latency Variability (LOW PRIORITY)
 
 ### Problem
-Concurrent testing showed that **LLM API endpoint variability** is the primary cause of latency spikes
-(10s+ outliers), NOT code generation retries. Only 2/75 requests (2.7%) had code gen retries, while the
-worst outliers all had single-attempt generation (G1 E1).
+Concurrent testing showed that **LLM API endpoint variability** is the primary cause of latency spikes (10s+ outliers), NOT code generation retries. Only 2/75 requests (2.7%) had code gen retries, while the worst outliers all had single-attempt generation (G1 E1).
 
 ### Evidence
 Test: `tests/llm_behavior/test_concurrent_chat_inproc.py` — code generation trace analysis
@@ -241,8 +231,7 @@ Test: `tests/llm_behavior/test_concurrent_chat_inproc.py` — code generation tr
   custom_httpx_client = httpx.Client(verify=verify_ssl)  # No timeout
   custom_openai_client = openai.OpenAI(api_key=api_key, base_url=base_url, http_client=custom_httpx_client)
   ```
-- `server/features/register/models.py:22-30` — `LLMConfigPayload` supports `temperature`, `top_p`, `seed`
-  but these are per-registration, not per-chat-request
+- `server/features/register/models.py:22-30` — `LLMConfigPayload` supports `temperature`, `top_p`, `seed` but these are per-registration, not per-chat-request
 - No request-level timeout configuration exists in the server
 
 ### Implementation Plan
@@ -254,4 +243,3 @@ Test: `tests/llm_behavior/test_concurrent_chat_inproc.py` — code generation tr
    - Use `asyncio.wait_for()` or `threading.Timer` to enforce per-request deadline
 3. **Consider `temperature=0` + `seed`** for determinism if the LLM supports it
 4. **Monitor LLM endpoint** — add Prometheus metrics or logging for LLM response times
-

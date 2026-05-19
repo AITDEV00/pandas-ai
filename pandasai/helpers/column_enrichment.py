@@ -104,6 +104,7 @@ class ColumnValueExtractor:
 
         from pandasai.helpers.semantic_matching import (
             _extract_short_name,
+            decompose_squashed_name,
             get_matching_schema_columns,
             match_column_details_to_schema,
         )
@@ -116,7 +117,33 @@ class ColumnValueExtractor:
             # from the semantic model), falling back to the raw pandas column
             # name if no schema match is found.
             schema_matches = get_matching_schema_columns(inner_col, df_schema)
+
+            # Filter out false-positive matches from get_matching_schema_columns:
+            # 1. An inner field of a struct cannot itself be list[struct].
+            #    If a schema match returns list[struct], it matched the parent
+            #    squashed column, not an actual inner field.
+            # 2. A squashed schema column (decomposes to >1 fields) is NOT a
+            #    valid match for a single inner field — it's the parent column
+            #    that contains multiple merged fields.
+            schema_matches = [
+                m for m in schema_matches
+                if getattr(m, 'type', None) != 'list[struct]'
+                and len(decompose_squashed_name(m.name)) <= 1
+            ]
+
             schema_key = schema_matches[0].name if schema_matches else inner_col
+
+            # Ensure schema_key uses bracket convention for struct inner fields.
+            # When there are no schema matches (individual columns were removed
+            # from the schema during register handler patching), schema_key falls
+            # back to the flat key from the data (e.g. "Parent[Field]").  We
+            # wrap it in outer brackets to produce "[Parent[Field]]" — the
+            # canonical bracket convention used by the column selector, the
+            # select_columns.tmpl template, and the samples dict keys.
+            # This ensures consistent naming across the entire pipeline.
+            if schema_key == inner_col and "[" in schema_key and not schema_key.startswith("["):
+                schema_key = f"[{schema_key}]"
+
             details = match_column_details_to_schema(inner_col, df_schema)
             inner_type = details["type"]
             inner_desc = details["description"]
@@ -148,10 +175,11 @@ class ColumnValueExtractor:
 
             if inner_samples:
                 # duckdb_key: the exact struct field key DuckDB expects in rec['...'].
-                # Strip outer brackets from schema_key if present (e.g.
-                # "[Employee Leave Details[Leave Type]]" -> "Employee Leave Details[Leave Type]").
-                # If no outer brackets, use schema_key as-is.
-                duckdb_key = schema_key[1:-1] if schema_key.startswith("[") and schema_key.endswith("]") else schema_key
+                # This is ALWAYS the flat key from the data (inner_col), because
+                # DuckDB uses the dict keys from parse_json_array_columns as struct
+                # field names. We do NOT derive it from the schema — the schema may
+                # have squashed column names that don't match the actual struct keys.
+                duckdb_key = inner_col
                 inner_entry = {
                     "type": inner_type,
                     "samples": inner_samples,

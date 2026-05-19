@@ -152,6 +152,28 @@ class ColumnSelector:
                                     result[parent].append(field_name)
                     else:
                         logger.debug("match_names_to_schema: no match for %r", name)
+                elif "[" in name and not name.startswith("["):
+                    # The LLM may return duckdb_key-style names like
+                    # "Employee Leave Details[Leave Type]" (Parent[Field]
+                    # without outer brackets).  Try wrapping in outer brackets
+                    # and matching as a struct inner field.
+                    bracket_wrapped = f"[{name}]"
+                    parent = extract_struct_parent(bracket_wrapped)
+                    has_real_data = bracket_wrapped in real_bracket_col_names
+                    if parent and (parent in struct_parent_names or has_real_data):
+                        decomposed = decompose_squashed_name(bracket_wrapped)
+                        logger.debug(
+                            "match: LLM=%r → duckdb_key style, wrapped=%r, parent=%r, decomposed=%s",
+                            name, bracket_wrapped, parent, decomposed,
+                        )
+                        if parent not in result:
+                            result[parent] = []
+                        if result[parent] is not None:
+                            for field_name in decomposed:
+                                if field_name not in result[parent]:
+                                    result[parent].append(field_name)
+                    else:
+                        logger.debug("match_names_to_schema: no match for %r", name)
                 else:
                     logger.debug("match_names_to_schema: no match for %r", name)
                 continue
@@ -506,13 +528,21 @@ class ColumnSelector:
                 if inner_fields is not None and col.type == "list[struct]":
                     trimmed_col = col.model_copy(deep=True)
                     if isinstance(trimmed_col.samples, dict):
-                        # Both inner_fields and samples keys now use the
-                        # canonical schema column names, so direct comparison
-                        # works without any name transformation.
+                        # Normalize inner_fields for comparison:
+                        # - Strip outer brackets: "[Parent[Field]]" → "Parent[Field]"
+                        # - This matches the flat keys used in the samples dict
+                        normalized_fields = set()
+                        for f in inner_fields:
+                            if f.startswith("[") and f.endswith("]"):
+                                normalized_fields.add(f[1:-1])
+                            else:
+                                normalized_fields.add(f)
+                        # Also keep original names for backward compatibility
+                        all_fields = set(inner_fields) | normalized_fields
                         trimmed_col.samples = {
                             k: v
                             for k, v in trimmed_col.samples.items()
-                            if k in inner_fields
+                            if k in all_fields
                         }
                     trimmed_schema_columns.append(trimmed_col)
                 else:
@@ -662,5 +692,29 @@ class ColumnSelector:
         return []
 
     def _validate_names(self, names: List[str]) -> List[str]:
-        """Basic validation — remove obviously invalid entries."""
-        return [n for n in names if n and len(n.strip()) > 0]
+        """Basic validation — remove obviously invalid entries.
+
+        Also sanitizes LLM-returned names that have stray single quotes
+        around the parent part (e.g. ``'Employee Leave Details'[Leave Type]``
+        instead of ``Employee Leave Details[Leave Type]``).  The LLM sometimes
+        adds these when it sees ``rec['Parent[Field]']`` in the prompt and
+        misinterprets the single quotes as SQL string delimiters.
+        """
+        sanitized = []
+        for n in names:
+            if not n or not n.strip():
+                continue
+            # Strip stray single quotes around the parent part of
+            # Parent[Field] names.  E.g.:
+            #   "'Employee Leave Details'[Leave Type]"
+            #   → "Employee Leave Details[Leave Type]"
+            # Only strip if the name starts with a single quote and
+            # contains brackets — this pattern indicates the LLM wrapped
+            # the parent in quotes it saw from rec['...'] syntax.
+            if n.startswith("'") and "[" in n:
+                # Remove leading/trailing single quotes around the parent
+                n = re.sub(r"^'+", "", n)
+                # Also remove any trailing single quotes before the bracket
+                n = re.sub(r"'+\[", "[", n)
+            sanitized.append(n)
+        return sanitized

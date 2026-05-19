@@ -92,6 +92,7 @@ The table schema contains a `"samples"` field. **This is your VOCABULARY DICTION
   ```
 - Apply Rules 1 and 2 INSIDE structs based on each field's semantic_type.
 - Fuzzy search inside structs: `jaro_winkler_similarity(LOWER(rec['Name']), 'search_term') > 0.85`
+- **CRITICAL: Struct field names may contain brackets like `rec['Parent[Field Name]']`. The ENTIRE string inside the single quotes is ONE field name — brackets are part of the name, NOT array indexing. Copy the field name EXACTLY as shown, including any brackets. Do NOT split it into `rec['Parent'][Field Name]` or add extra quotes.**
 
 **Rule 4: Text normalization**
 - Accent-insensitive: `lower(strip_accents("col")) ILIKE lower(strip_accents('%term%'))`

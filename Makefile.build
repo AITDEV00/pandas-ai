@@ -20,11 +20,6 @@ run:
 	@echo "Running $(IMAGE_NAME):$(VERSION) on port 8000 with hot reload..."
 	docker run -p 8000:8000 --env-file .env -v $(PWD):/app $(IMAGE_NAME):$(VERSION) uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload
 
-run-local:
-	@echo "Running server locally on port 8000 with .env loaded..."
-	bash -c 'set -a && . .env && set +a && . .venv/bin/activate && python -m uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload'
-
-
 push: tag
 	@echo "Pushing image to Dockerhub repository $(DOCKER_USER)/$(IMAGE_NAME):$(VERSION)..."
 	docker push $(DOCKER_USER)/$(IMAGE_NAME):$(VERSION)

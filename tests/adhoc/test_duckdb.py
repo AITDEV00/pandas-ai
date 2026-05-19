@@ -1,7 +1,8 @@
+import os
 import pandas as pd
 import duckdb
 
-df = pd.read_csv('/home/jyao/ADEO/services/ait-icarus/pandas-ai/emirati_employees_data.csv')
+df = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', 'data', 'emirati_employees_data.csv'))
 conn = duckdb.connect()
 conn.register('my_table', df)
 

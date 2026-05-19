@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 # Add project root to sys.path so we can import pandasai
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import pandas as pd
 from pandasai.config import ConfigManager
@@ -14,7 +14,7 @@ def main():
     
     # 1. Test BOM Handling (Fix A)
     print("\n--- 1. Testing BOM Handling ---")
-    df = pd.read_csv("emirati_employees_data.csv", encoding="utf-8-sig")
+    df = pd.read_csv(Path(__file__).parent.parent.parent / "examples" / "data" / "emirati_employees_data.csv", encoding="utf-8-sig")
     print(f"Columns: {list(df.columns)}")
     if "English Name" in df.columns:
         print("✅ BOM handling successful")
