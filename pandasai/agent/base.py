@@ -1,7 +1,9 @@
+import os
 import traceback
 import warnings
 from typing import Any, List, Optional, Union
 
+import numpy as np
 import pandas as pd
 
 from pandasai.core.code_execution.code_executor import CodeExecutor
@@ -171,10 +173,52 @@ class Agent:
 
         final_query = SQLParser.replace_table_and_column_names(query, table_mapping)
 
-        if not df_executor:
-            return db_manager.sql(final_query).df()
-        else:
-            return df_executor(final_query)
+        # Track SQL query for debug logging
+        sql_entry = {
+            "original_sql": query,
+            "final_sql": final_query,
+            "table_mapping": table_mapping,
+            "error": None,
+        }
+        try:
+            if not df_executor:
+                result_df = db_manager.sql(final_query).df()
+            else:
+                result_df = df_executor(final_query)
+        except Exception as e:
+            sql_entry["error"] = f"{type(e).__name__}: {e}"
+            self._state.sql_queries.append(sql_entry)
+            raise
+
+        # DuckDB returns STRUCT[] columns as numpy ndarrays inside the
+        # pandas DataFrame cells.  LLM-generated code commonly tests
+        # truthiness with ``if value and len(value) > 0:`` which raises
+        # ``ValueError: The truth value of an array with more than one
+        # element is ambiguous`` on multi-element ndarrays.  Converting
+        # ndarrays to native Python lists fixes this and keeps dict
+        # element access (``comp['key']``) working identically.
+        for col in result_df.columns:
+            sample = result_df[col].iloc[0] if len(result_df) > 0 else None
+            if isinstance(sample, np.ndarray):
+                result_df[col] = result_df[col].apply(
+                    lambda v: v.tolist() if isinstance(v, np.ndarray) else v
+                )
+
+        # Capture result info for debug logging
+        sql_entry["result_shape"] = list(result_df.shape)
+        sql_entry["result_columns"] = list(result_df.columns)
+        # Preview: first 5 rows as string (truncated for log size)
+        try:
+            preview_df = result_df.head(5)
+            preview_str = preview_df.to_string(max_colwidth=50, max_rows=5)
+            if len(preview_str) > 2000:
+                preview_str = preview_str[:2000] + "\n... (truncated)"
+            sql_entry["result_preview"] = preview_str
+        except Exception:
+            sql_entry["result_preview"] = "(preview unavailable)"
+        self._state.sql_queries.append(sql_entry)
+
+        return result_df
 
     def generate_code_with_retries(self, query: str) -> Any:
         """Generate code with retry logic.
@@ -184,16 +228,38 @@ class Agent:
         max_retries = self._state.config.max_retries
         exception = None
 
+        # Reset per-query retry tracking
+        self._state.code_attempts = []
+
         for attempt in range(1 + max_retries):
             try:
                 if attempt == 0:
-                    return self.generate_code(query)
+                    code = self.generate_code(query)
                 else:
-                    return self._regenerate_code_after_error(
+                    code = self._regenerate_code_after_error(
                         self._state.last_code_generated, exception
                     )
+                # Capture raw LLM response for debug logging
+                self._state.code_generation_raw_llm_response = code
+                self._state.code_attempts.append({
+                    "phase": "generation",
+                    "attempt": attempt + 1,
+                    "code": code,
+                    "error": None,
+                })
+                return code
             except Exception as e:
                 exception = e
+                error_tb = traceback.format_exc()
+                self._state.last_error_traceback = error_tb
+                self._state.code_attempts.append({
+                    "phase": "generation",
+                    "attempt": attempt + 1,
+                    "code": self._state.last_code_generated,
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                    "error_traceback": error_tb,
+                })
                 if attempt >= max_retries:
                     self._state.logger.log(
                         f"Maximum retry attempts exceeded. Last error: {e}"
@@ -215,10 +281,28 @@ class Agent:
                 result = self.execute_code(code)
                 # Track the code that actually executed successfully
                 self._state.last_code_executed = code
+                # Capture raw execution result for debug logging
+                self._state.raw_execution_result = result
                 # Issue 9 L2: Pass output_type to ResponseParser before parsing
                 self._response_parser._output_type = self._state.output_type
+                self._state.code_attempts.append({
+                    "phase": "execution",
+                    "attempt": attempt + 1,
+                    "code": code,
+                    "error": None,
+                })
                 return self._response_parser.parse(result, code)
             except Exception as e:
+                error_tb = traceback.format_exc()
+                self._state.last_error_traceback = error_tb
+                self._state.code_attempts.append({
+                    "phase": "execution",
+                    "attempt": attempt + 1,
+                    "code": code,
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                    "error_traceback": error_tb,
+                })
                 if attempt >= max_retries:
                     self._state.logger.log(f"Max retries reached. Error: {e}")
                     raise
@@ -307,6 +391,32 @@ class Agent:
 
         # Reset per-query state
         self._state.last_selected_names = None
+        self._state.code_attempts = []
+        self._state.column_selection_log = []
+        self._state.column_selection_raw_llm_response = None
+        self._state.column_selection_prompt = None
+        self._state.code_generation_raw_llm_response = None
+        self._state.sql_queries = []
+        self._state.last_error_traceback = None
+        self._state.raw_execution_result = None
+        self._state.trimmed_df_info = []
+        self._state.retrieval_mode = None
+        self._state.retrieval_mode_reasoning = None
+        self._state.retrieval_mode_source = None
+
+        # Snapshot key config values for debugging
+        cfg = self._state.config
+        self._state.config_snapshot = {
+            "llm_type": getattr(cfg.llm, 'type', None) if cfg.llm else None,
+            "max_retries": cfg.max_retries,
+            "column_selection_enabled": cfg.column_selection_enabled,
+            "column_selection_threshold": cfg.column_selection_threshold,
+            "column_selection_memory_size": cfg.column_selection_memory_size,
+            "column_values_budget_ratio": cfg.column_values_budget_ratio,
+            "output_type": output_type,
+            "save_logs": cfg.save_logs,
+            "verbose": cfg.verbose,
+        }
 
         self._state.output_type = output_type
         self._state.assign_prompt_id()
@@ -327,6 +437,17 @@ class Agent:
                 if hasattr(df, 'schema') and df.schema:
                     schema_names = [c.name for c in df.schema.columns]
                     self._state.logger.log(f"[Column Selection] Trimmed DF[{i}] schema: {schema_names}")
+            # Capture trimmed DF info for debug logging
+            for i, (orig_df, trimmed_df) in enumerate(zip(original_dfs, self._state.dfs)):
+                self._state.trimmed_df_info.append({
+                    "df_index": i,
+                    "original_columns": list(orig_df.columns) if hasattr(orig_df, 'columns') else [],
+                    "trimmed_columns": list(trimmed_df.columns) if hasattr(trimmed_df, 'columns') else [],
+                    "original_shape": getattr(orig_df, 'shape', None),
+                    "trimmed_shape": getattr(trimmed_df, 'shape', None),
+                    "original_schema_names": [c.name for c in orig_df.schema.columns] if hasattr(orig_df, 'schema') and orig_df.schema else [],
+                    "trimmed_schema_names": [c.name for c in trimmed_df.schema.columns] if hasattr(trimmed_df, 'schema') and trimmed_df.schema else [],
+                })
         else:
             reason = ("forced off" if self._state.config.column_selection_enabled is False
                       else f"{total_cols} cols < threshold ({self._state.config.column_selection_threshold})")
@@ -350,6 +471,30 @@ class Agent:
             )
             self._state.memory = step2_memory
             self._state.last_code_generated = None
+
+        # === Step 1 Only mode ===
+        # When STEP1_ONLY env var is set (or step1_only flag is True),
+        # stop after column selection and return the selected columns
+        # without running Step 2 (code generation). Useful for debugging
+        # and testing the column selection pipeline in isolation.
+        step1_only = os.environ.get("STEP1_ONLY", "").strip().lower() in ("1", "true", "yes")
+        step1_only = step1_only or self._state.step1_only
+        if step1_only:
+            self._state.logger.log("[Step 1 Only] Skipping Step 2 (code generation). Returning column selection results only.")
+            # Restore original DataFrames and memory (same as finally block)
+            if saved_memory is not None:
+                for msg in self._state.memory.all():
+                    saved_memory.add(msg["message"], msg["is_user"])
+                self._state.memory = saved_memory
+                self._state.last_code_generated = saved_last_code
+            if original_dfs is not None:
+                self._state.dfs = original_dfs
+            # Return a special result indicating Step 1 only
+            from pandasai.core.response.string import StringResponse
+            selected = self._state.last_selected_names or []
+            return StringResponse(
+                value=f"[STEP1_ONLY] Column selection complete. {len(selected)} columns selected.",
+            )
 
         # Step 2: Code Generation
         code = ""
@@ -481,10 +626,16 @@ class Agent:
         The original DataFrames are preserved in ``_process_query``'s
         ``original_dfs`` variable and restored in the ``finally`` block.
         """
+        # Reset per-query column selection log
+        self._state.column_selection_log = []
+
         try:
             from pandasai.core.column_selector import ColumnSelector
 
             selector = ColumnSelector(self._state)
+
+            # Capture the column selection prompt for debug logging
+            self._state.column_selection_prompt = str(selector._build_prompt(query))
 
             # Use a temporary Memory with reduced size for Step 1
             original_memory = self._state.memory
@@ -496,26 +647,56 @@ class Agent:
                 # Always restore the full memory for Step 2
                 self._state.memory = original_memory
 
+            # Capture the raw LLM response for column selection
+            # (The ColumnSelector.select() method parses the LLM response internally;
+            #  we capture the raw response from the last LLM call via the state)
+            if hasattr(selector, '_last_raw_response'):
+                self._state.column_selection_raw_llm_response = selector._last_raw_response
+
             if not selected_names:
                 self._state.logger.log("[Column Selection] LLM returned empty list — using all columns")
+                self._state.column_selection_log.append({
+                    "step": "llm_selection", "detail": {"selected_names": [], "result": "empty_fallback"}
+                })
                 return
 
             # Store the raw LLM-selected names on state for API response
             self._state.last_selected_names = selected_names
             self._state.logger.log(f"[Column Selection] LLM selected {len(selected_names)} columns: "
                   f"{selected_names}")
+            self._state.column_selection_log.append({
+                "step": "llm_selection",
+                "detail": {
+                    "selected_names": selected_names,
+                    "count": len(selected_names),
+                }
+            })
+
+            # ── Concept-based missing struct group detection ──
+            # Warn if the LLM missed struct groups that should be selected
+            # based on concept keywords in the query.
+            self._detect_missing_struct_groups(query, selected_names)
 
             trimmed_dfs = []
             for i, df in enumerate(self._state.dfs):
                 matched = selector.match_names_to_schema(selected_names, df)
                 self._state.logger.log(f"[Column Selection] DF[{i}] matched after LLM: {matched}")
+                self._state.column_selection_log.append({
+                    "step": "schema_matching", "detail": {"df_index": i, "matched": matched}
+                })
                 if matched:
                     matched = selector.ensure_essential_columns(matched, df, query)
                     self._state.logger.log(f"[Column Selection] DF[{i}] matched after essential: {matched}")
+                    self._state.column_selection_log.append({
+                        "step": "essential_columns", "detail": {"df_index": i, "matched": matched}
+                    })
                     trimmed_df = selector.build_trimmed_dataframe(df, matched)
                     trimmed_dfs.append(trimmed_df)
                 else:
                     self._state.logger.log(f"[Column Selection] DF[{i}] no matches — keeping all columns")
+                    self._state.column_selection_log.append({
+                        "step": "no_matches_fallback", "detail": {"df_index": i}
+                    })
                     trimmed_dfs.append(df)
 
             self._state.dfs = trimmed_dfs
@@ -525,6 +706,146 @@ class Agent:
         except Exception as e:
             self._state.logger.log(f"[Column Selection] Failed: {e} — using all columns")
             return
+
+    def _detect_missing_struct_groups(self, query: str, selected_names: list):
+        """Log warnings when the LLM misses struct groups that should be selected
+        based on concept keywords in the query.
+
+        Uses the 5-path expansion framework (direct, measurement, evidence,
+        summary, foundation) to detect gaps. This is diagnostic only —
+        it does NOT modify the selection.
+        """
+        import re
+
+        query_lower = query.lower()
+
+        # Concept → (keyword patterns, 5-path expansion hints)
+        # Each path describes WHAT to look for in struct group names/fields,
+        # not specific struct group names — making this data-agnostic.
+        CONCEPT_PATHS = {
+            "skills": {
+                "patterns": [r'\bskill\b', r'\bcompetenc', r'\babilit', r'\bproficien'],
+                "paths": {
+                    "direct": ["competenc", "skill"],
+                    "measurement": ["rating", "proficien", "assessment", "score"],
+                    "evidence": ["experience", "responsibilit", "duties", "achievement", "award"],
+                    "summary": ["summary", "profile", "overview"],
+                    "foundation": ["qualificat", "educat", "certificat", "degree"],
+                },
+            },
+            "projects": {
+                "patterns": [r'\bproject\b', r'\bassignment\b', r'\binitiative\b'],
+                "paths": {
+                    "direct": ["assignment", "project", "objective"],
+                    "measurement": ["rating", "competenc", "performance"],
+                    "evidence": ["experience", "achievement", "award", "responsibilit"],
+                    "summary": ["summary", "profile"],
+                    "foundation": [],
+                },
+            },
+            "performance": {
+                "patterns": [r'\bperformance\b', r'\bappraisal\b', r'\bevaluation\b'],
+                "paths": {
+                    "direct": ["performance", "rating"],
+                    "measurement": ["competenc", "rating", "score"],
+                    "evidence": ["objective", "achievement"],
+                    "summary": ["summary"],
+                    "foundation": [],
+                },
+            },
+            "experience": {
+                "patterns": [r'\bexperience\b', r'\bwork history\b', r'\bprevious employer\b'],
+                "paths": {
+                    "direct": ["experience", "employer"],
+                    "measurement": [],
+                    "evidence": ["assignment", "responsibilit"],
+                    "summary": ["summary", "profile"],
+                    "foundation": [],
+                },
+            },
+            "education": {
+                "patterns": [r'\beducat', r'\bqualificat', r'\bdegree\b', r'\bdiploma\b', r'\bacademic\b'],
+                "paths": {
+                    "direct": ["educat", "qualificat"],
+                    "measurement": [],
+                    "evidence": [],
+                    "summary": [],
+                    "foundation": ["degree", "certificat", "institut"],
+                },
+            },
+            "leave": {
+                "patterns": [r'\bleave\b', r'\bsick\b', r'\babsenc', r'\bholiday\b', r'\bvacation\b'],
+                "paths": {
+                    "direct": ["leave", "entitlement", "absence"],
+                    "measurement": [],
+                    "evidence": [],
+                    "summary": [],
+                    "foundation": [],
+                },
+            },
+        }
+
+        # Build a map of struct group names from the actual DataFrame schema
+        struct_groups_in_schema = {}  # name → [inner_field_names]
+        for df in self._state.dfs:
+            if hasattr(df, 'schema') and df.schema and df.schema.columns:
+                for col in df.schema.columns:
+                    if col.type and 'list' in str(col.type) and 'struct' in str(col.type):
+                        inner_fields = []
+                        if hasattr(col, 'inner_fields') and col.inner_fields:
+                            inner_fields = [f.name for f in col.inner_fields]
+                        struct_groups_in_schema[col.name] = inner_fields
+
+        if not struct_groups_in_schema:
+            return  # No struct groups to check
+
+        selected_str = " ".join(str(n) for n in selected_names).lower()
+
+        for concept_name, concept_def in CONCEPT_PATHS.items():
+            # Check if query matches this concept
+            if not any(re.search(p, query_lower) for p in concept_def["patterns"]):
+                continue
+
+            # For each expansion path, find struct groups that match
+            missing_by_path = {}
+            for path_name, keywords in concept_def["paths"].items():
+                if not keywords:
+                    continue
+                # Find struct groups whose name or inner fields contain any keyword
+                expected_groups = set()
+                for group_name, inner_fields in struct_groups_in_schema.items():
+                    group_lower = group_name.lower()
+                    fields_lower = " ".join(str(f) for f in inner_fields).lower()
+                    if any(kw in group_lower or kw in fields_lower for kw in keywords):
+                        expected_groups.add(group_name)
+
+                # Check which expected groups are missing from the selection
+                for group in expected_groups:
+                    group_bracket = f"[{group.lower()}["
+                    group_paren = f"{group.lower()}["
+                    if group_bracket not in selected_str and group_paren not in selected_str:
+                        missing_by_path.setdefault(path_name, []).append(group)
+
+            if missing_by_path:
+                all_missing = []
+                for groups in missing_by_path.values():
+                    all_missing.extend(groups)
+                all_missing = list(dict.fromkeys(all_missing))  # dedupe, preserve order
+
+                self._state.logger.log(
+                    f"[Column Selection] ⚠ CONCEPT='{concept_name}' — "
+                    f"missing struct groups by expansion path: {missing_by_path}. "
+                    f"Selected: {selected_names}"
+                )
+                self._state.column_selection_log.append({
+                    "step": "concept_gap_warning",
+                    "detail": {
+                        "concept": concept_name,
+                        "missing_struct_groups": all_missing,
+                        "missing_by_path": missing_by_path,
+                        "selected_names": selected_names,
+                    }
+                })
 
     @property
     def last_generated_code(self):

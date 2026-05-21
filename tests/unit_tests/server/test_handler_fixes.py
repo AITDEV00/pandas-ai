@@ -51,7 +51,7 @@ class TestValidateOutputType:
         assert exc_info.value.status_code == 400
 
     def test_supported_types_constant(self):
-        assert SUPPORTED_OUTPUT_TYPES == {"string", "number", "dataframe", "plot", "auto"}
+        assert SUPPORTED_OUTPUT_TYPES == {"string", "number", "dataframe", "plot", "evidence", "auto"}
 
 
 class TestCoerceResponseType:

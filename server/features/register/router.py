@@ -1,3 +1,4 @@
+import asyncio
 import os
 import tempfile
 import uuid
@@ -12,14 +13,19 @@ router = APIRouter(prefix="/register", tags=["Registration"])
 
 @router.post("/base64", response_model=RegisterResponse)
 async def register_base64(payload: Base64UploadRequest):
-    """Register endpoints using pure JSON base64 payloads."""
+    """Register endpoints using pure JSON base64 payloads.
+    
+    Offloaded to a thread pool so the event loop stays responsive
+    for /health and /chat requests while registration is in progress.
+    """
     try:
-        response = handle_base64_upload(
+        response = await asyncio.to_thread(
+            handle_base64_upload,
             payload.base64_data,
             payload.mimetype,
             semantic_model=payload.semantic_model,
             pandasai_config=payload.pandasai_config,
-            llm_config=payload.llm_config
+            llm_config=payload.llm_config,
         )
         return response
     except HTTPException:

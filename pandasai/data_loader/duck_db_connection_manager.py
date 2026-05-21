@@ -1,9 +1,13 @@
+import logging
 from typing import Optional
 
 import duckdb
 import pandas as pd
 
+from pandasai.helpers.type_determination import cast_struct_field_types
 from pandasai.query_builders.sql_parser import SQLParser
+
+logger = logging.getLogger(__name__)
 
 
 class DuckDBConnectionManager:
@@ -20,7 +24,22 @@ class DuckDBConnectionManager:
             pass  # Prevent exceptions during garbage collection
 
     def register(self, name: str, df: pd.DataFrame):
-        """Registers a DataFrame as a DuckDB table."""
+        """Registers a DataFrame as a DuckDB table.
+
+        Before registering, applies the semantic model's declared types to struct
+        inner-field values.  ``duckdb.connection.register()`` infers SQL types
+        from the Python objects in the DataFrame — it has no type-hint parameter.
+        Without this step, struct fields parsed from JSON remain as Python ``str``
+        (because ``json.loads`` has no native date type), causing DuckDB to infer
+        ``VARCHAR`` instead of ``DATE``/``DOUBLE``/``INTEGER``.
+
+        The semantic model is the source of truth: each caster tries the declared
+        type first and falls back to the original value on error, so invalid or
+        unparseable values are preserved rather than silently dropped.
+        """
+        schema = getattr(df, "schema", None)
+        if schema:
+            cast_struct_field_types(df, schema)
         self.connection.register(name, df)
         self._registered_tables.add(name)
 

@@ -1,0 +1,73 @@
+You are a data analyst. Given a user question and a table schema, select ONLY the columns/fields needed to answer the question.
+
+Table: {{ table_name }} ({{ total_columns }} columns)
+{% if table_description %}Description: {{ table_description }}{% endif %}
+
+**FLAT COLUMNS:**
+{% for col in flat_columns %}
+- "{{ col.name }}" ({{ col.type }}{% if col.description %}: {{ col.description }}{% endif %})
+{% if col.samples %}  Values: {{ col.samples }}{% endif %}
+{% endfor %}
+
+**STRUCT COLUMNS (each has inner fields you can select individually):**
+{% for col in struct_columns %}
+- "{{ col.name }}"{% if col.description %}: {{ col.description }}{% endif %} — inner fields:
+{% for field_name, field_info in (col.samples.items() if col.samples is mapping else []) %}
+    → "{{ field_name }}" ({{ field_info.type if field_info is mapping and 'type' in field_info else 'unknown' }}{% if field_info is mapping and field_info.get('semantic_type') %}, {{ field_info.semantic_type }}{% endif %})
+{% endfor %}
+{% endfor %}
+
+---
+
+## COLUMN SELECTION GUIDELINES
+
+### Core Principle: Select what the question ASKS for
+
+Read the question carefully. Select columns that directly answer what was asked — no more, no less.
+
+### Selection Rules
+
+1. **Filtering columns** — If the question filters on a value (e.g. "employees in HR", "salary of Senior Specialists"), include the column(s) needed for that filter.
+
+2. **Display columns** — If the question explicitly lists attributes to show (e.g. "show name, grade, department"), include exactly those columns.
+
+3. **Calculation columns** — If the question asks for a computed value (e.g. "average salary", "count of leaves"), include the raw data columns needed for that calculation.
+
+4. **Identity columns** — When the question refers to a specific entity (e.g. "employee 1137"), always include BOTH the primary identifier (e.g. Employee Number) AND the human-readable name column (e.g. Employee Name). Users need to see who the data belongs to.
+
+5. **Struct column groups** — When a question asks about data stored in a struct column group:
+   - Include the struct group that directly contains the requested data
+   - Include ALL inner fields of that struct group (the data is relational — you need all fields to make sense of it)
+   - Do NOT include other struct groups that are merely "related" or "could provide context"
+
+### Exclusion Rules
+
+6. **Do NOT select columns just because they exist** — A column's presence in the schema does not make it relevant. Ask: "Does the question explicitly or implicitly need this column?"
+
+7. **Do NOT select demographic/context columns unless asked** — Columns like Nationality, Gender, Marital Status, Phone Number, etc. should only be included if the question specifically asks for them.
+
+8. **Do NOT select redundant columns** — If two columns contain the same information (e.g. "Grade" and "Employee Grade"), select only one unless the question needs both.
+
+9. **Do NOT select breakdown columns when a total exists** — If the question asks about "salary" and a "Total Entitlement Amount" column exists, select that rather than selecting every individual allowance component. Only select allowance breakdowns if the question specifically asks about them.
+
+10. **Do NOT expand scope beyond the question** — If the question asks about "skills", do NOT include education, work experience, objectives, or achievements. These are different concepts. Only include columns that directly contain the requested data type.
+
+### Breadth Guidelines
+
+- **Narrow questions** (e.g. "How many sick leaves?", "Average salary?", "Who has longest service?") → Select the minimum columns needed. Typically 5-12 columns.
+- **Broad questions** (e.g. "Show all details about employee X", "Compare employees Y and Z across all dimensions") → Select generously across relevant column groups. Typically 15-30 columns.
+- **Medium questions** (e.g. "List employees in department X with their details") → Select the explicitly requested columns plus essential identity columns. Typically 7-15 columns.
+
+---
+
+**User question:** {{ query }}
+
+Respond in JSON format:
+{
+  "selected": [
+    "Column Name 1",
+    "Column Name 2",
+    "Struct Inner Field Name"
+  ],
+  "reasoning": "brief explanation: what the question asks for, which columns provide that data, and why excluded columns were not needed"
+}

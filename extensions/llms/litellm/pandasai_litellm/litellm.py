@@ -48,7 +48,7 @@ class LiteLLM(LLM):
             str: The type of the model."""
         return "litellm"
 
-    def call(self, instruction: BasePrompt, context: AgentState = None) -> str:
+    def call(self, instruction: BasePrompt, context: AgentState = None, sampling_params: dict = None) -> str:
         """Generates a completion response based on the provided instruction.
 
         This method converts the given instruction into a user prompt string and
@@ -58,6 +58,10 @@ class LiteLLM(LLM):
         Args:
             instruction (BasePrompt): The instruction to convert into a prompt.
             context (AgentState, optional): An optional state of the agent. Defaults to None.
+            sampling_params (dict, optional): Per-call sampling parameters that override
+                the instance-level ``self.params``. Keys here take precedence over
+                ``self.params`` for this call only. Useful for setting different
+                temperature/penalties for column selection vs code generation.
 
         Returns:
             str: The content of the model's response to the user prompt."""
@@ -81,10 +85,16 @@ class LiteLLM(LLM):
                 f"LLM PROMPT ({len(messages)} messages, ~{len(self.last_prompt)} chars)"
             )
 
+        # Merge instance params with per-call sampling_params.
+        # Per-call params take precedence (override) over instance params.
+        merged_params = {**self.params}
+        if sampling_params:
+            merged_params.update(sampling_params)
+
         response = completion(
             model=self.model,
             messages=messages,
-            **self.params,
+            **merged_params,
         ).choices[0].message.content
 
         if context and context.logger:

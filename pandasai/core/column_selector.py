@@ -49,9 +49,42 @@ class ColumnSelector:
         Returns a flat list of column/field names relevant to *query*.
         """
         prompt = self._build_prompt(query)
-        response = self._state.config.llm.call(prompt, self._state)
+
+        # Build per-call sampling params for column selection.
+        # These override the LLM's default settings for this call only,
+        # reducing variance on ambiguous column-selection queries.
+        sampling_params = self._get_sampling_params()
+
+        response = self._state.config.llm.call(prompt, self._state, sampling_params=sampling_params)
+        # Store raw LLM response for debug logging
+        self._last_raw_response = response
         selected = self._parse_response(response)
         return self._validate_names(selected)
+
+    def _get_sampling_params(self) -> Optional[dict]:
+        """Build per-call sampling params from config for column selection.
+
+        Returns None if no column-selection-specific params are configured,
+        so the LLM's default settings are used.
+        """
+        cfg = self._state.config
+        params = {}
+        if cfg.column_selection_temperature is not None:
+            params["temperature"] = cfg.column_selection_temperature
+        if getattr(cfg, "column_selection_top_p", None) is not None:
+            params["top_p"] = cfg.column_selection_top_p
+        if getattr(cfg, "column_selection_top_k", None) is not None:
+            params["top_k"] = cfg.column_selection_top_k
+        if getattr(cfg, "column_selection_min_p", None) is not None:
+            params["min_p"] = cfg.column_selection_min_p
+        if cfg.column_selection_repetition_penalty is not None:
+            params["repetition_penalty"] = cfg.column_selection_repetition_penalty
+        if cfg.column_selection_presence_penalty is not None:
+            params["presence_penalty"] = cfg.column_selection_presence_penalty
+        # JSON mode forces structured JSON output from the LLM
+        if getattr(cfg, "column_selection_json_mode", False):
+            params["response_format"] = {"type": "json_object"}
+        return params if params else None
 
     def match_names_to_schema(
         self, names: List[str], df
@@ -663,9 +696,11 @@ class ColumnSelector:
         """Parse LLM response into flat list of names.
 
         Handles multiple JSON formats:
-          - ``{"selected": ["col1", "col2"]}``
+          - ``{"selected": ["col1", "col2"], "reasoning": "..."}``
           - ``{"selected_columns": ["col1", "col2"]}``
           - ``{"Parent": ["field1", "field2"]}``
+          - ``{"priming_keywords": [...], "struct_audit": [...], "selected": [...]}``
+            (v31+ KV-Primed Sandwich format with struct audit post-processing)
         """
         json_match = re.search(r"\{.*\}", response, re.DOTALL)
         if json_match:
@@ -674,6 +709,35 @@ class ColumnSelector:
             except json.JSONDecodeError:
                 logger.warning("Column selection: failed to parse JSON from LLM")
                 return []
+
+            # v31+ format: struct_audit post-processing
+            # Mechanically union any struct marked k:true (and not NONE) into
+            # the selected list. This catches cases where the LLM marks a struct
+            # as relevant in the audit but forgets to add it to `selected`.
+            struct_audit = data.get("struct_audit", [])
+            if struct_audit:
+                selected = data.get("selected", data.get("selected_columns", []))
+                if isinstance(selected, list):
+                    selected_set = set(str(s) for s in selected)
+                    audit_additions = []
+                    for entry in struct_audit:
+                        if (
+                            isinstance(entry, dict)
+                            and entry.get("k") is True
+                            and entry.get("r") != "NONE"
+                            and entry.get("n")
+                        ):
+                            name = str(entry["n"])
+                            if name not in selected_set:
+                                selected_set.add(name)
+                                audit_additions.append(name)
+                    if audit_additions:
+                        logger.info(
+                            "struct_audit post-processor: added %d struct(s) from audit to selected: %s",
+                            len(audit_additions), audit_additions,
+                        )
+                    selected = sorted(selected_set)
+                    data["selected"] = selected
 
             # Standard format: {"selected": [...]}
             selected = data.get("selected", data.get("selected_columns", []))

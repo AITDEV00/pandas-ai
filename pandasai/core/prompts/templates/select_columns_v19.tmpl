@@ -1,0 +1,120 @@
+You are a data analyst. Given a user question and a table schema, select the columns/fields needed to answer the question.
+
+Table: {{ table_name }} ({{ total_columns }} columns)
+{% if table_description %}Description: {{ table_description }}{% endif %}
+
+**FLAT COLUMNS:**
+{% for col in flat_columns %}
+- "{{ col.name }}" ({{ col.type }}{% if col.description %}: {{ col.description }}{% endif %})
+{% if col.samples %}  Values: {{ col.samples }}{% endif %}
+{% endfor %}
+
+**STRUCT COLUMNS (each has inner fields you can select individually):**
+{% for col in struct_columns %}
+- "{{ col.name }}"{% if col.description %}: {{ col.description }}{% endif %} — inner fields:
+{% for field_name, field_info in (col.samples.items() if col.samples is mapping else []) %}
+    → "{{ field_name }}" ({{ field_info.type if field_info is mapping and 'type' in field_info else 'unknown' }}{% if field_info is mapping and field_info.get('semantic_type') %}, {{ field_info.semantic_type }}{% endif %})
+{% endfor %}
+{% endfor %}
+
+---
+
+## STEP 1: ANALYZE THE QUESTION
+
+Identify every concept the question asks about. For EACH concept, list ALL possible data sources that could contain information about it.
+
+**A concept rarely maps to just one column.** Before selecting, ask: "What real-world data would contain information about this concept?" For example:
+- "skills" or "competencies" → competency lists, competency ratings, job duties/responsibilities, work experience, education, professional summaries
+- "projects" → objectives, assignments, achievements, work history, responsibilities
+- "performance" → ratings, objectives, achievements, reviews
+- "experience" → job history, assignments, tenure, previous employment, work experience
+
+**Important inference rules:**
+- Job duties and responsibilities describe what someone does → they imply what skills they have
+- Work experience entries contain job titles and responsibilities → they indicate skills used in practice
+- Performance assessments and comments → may reference project work or skill demonstrations
+- Education history → informs what knowledge and skills someone possesses
+- Competency names and ratings → directly describe skills and proficiency levels
+- If a struct column's description or inner fields mention "responsibilities", "duties", "projects", or "achievements" → it is relevant to questions about skills, projects, or performance
+- If a struct column's description or inner fields mention "objectives" or "goals" → it may contain project or performance information
+
+## STEP 2: SCAN ALL COLUMNS — Select every column that could be relevant
+
+Go through EVERY column in the schema. For each column, decide: "Does this column's name or description relate to any concept in the question?"
+
+**2A. Select explicitly requested columns** — columns whose names or descriptions directly match what the question asks for.
+
+**2B. Select concept-expanding struct columns** — Check EACH struct column group: does its description or inner field names/descriptions signal relevance to ANY concept in the question? If yes, include the entire struct group with all its inner fields.
+
+**⚠️ A single concept often spans MULTIPLE struct groups.** After finding the first matching struct group, check ALL remaining struct groups — do not stop after one match. For example:
+- A "skills" question may need BOTH a competency struct AND a work experience struct (responsibilities = skills in practice) AND an education struct (education = knowledge base)
+- A "projects" question may need BOTH an objectives struct AND an assignment history struct AND a work experience struct (CV projects) AND an achievements struct
+
+**Why struct columns matter:** Struct columns contain detailed, multi-field records. A struct with "responsibilities" or "duties" in its description is a richer source of skill information than a single flat column. A struct with "objectives" or "achievements" in its description may contain project-related data. Always prefer including a relevant struct group over a single flat column.
+
+**2C. Select flat columns that provide additional context** — flat columns whose descriptions mention the concept (e.g., a "professional summary" flat column for a "skills" question).
+
+**When in doubt, include rather than exclude** — the code-generation step will ignore irrelevant data.
+
+## STEP 3: APPLY SELECTION RULES
+
+### When to INCLUDE
+
+1. **Filtering** — Columns needed to apply filters the question specifies.
+2. **Display** — Columns whose data the question explicitly asks to show.
+3. **Calculation** — Raw data columns needed for any computation the question requests.
+4. **Identity** — When the question refers to a specific entity, include BOTH the primary identifier AND the human-readable name.
+5. **Struct groups** — When you include a struct column group, include ALL its inner fields. Select multiple struct groups if their descriptions each signal relevance.
+6. **Summary + Detail** — When a question asks for comprehensive information about a concept, include BOTH summary/aggregate columns AND detail/breakdown columns that cover the same concept.
+7. **Broad scope** — When the question asks for "ALL", "everything about", or "compare", err on the side of including more columns.
+
+### When to EXCLUDE
+
+8. **No concept match** — If a column's name and description do NOT relate to any concept in the question, exclude it.
+9. **Demographic/context** — Exclude personal attributes (gender, nationality, marital status, contact info) unless the question specifically asks for them.
+10. **Duplicate meaning** — If two columns have the SAME meaning, select ONLY the one that most precisely matches what the question asks for.
+11. **Breakdown vs total** — CRITICAL: If a TOTAL or AGGREGATE column exists that already summarizes the data, do NOT also select individual component/breakdown columns UNLESS the question specifically names those components. For example:
+    - If "Total Entitlement Amount" exists, do NOT select "Housing Allowance", "Social Allowance", "Child Allowance", etc. — the total already covers them
+    - If "Total Revenue" exists, do NOT select "Product Revenue", "Service Revenue", etc.
+    - ONLY select breakdowns if the question says "show me the breakdown of..." or "how much is the housing allowance?"
+
+### How many columns to select
+
+- **Narrow question** (specific count, specific filter) → 5–12 columns
+- **Medium question** (list with specified attributes) → 8–15 columns
+- **Broad question** (compare, "all details", "everything about") → 12–25 columns
+
+---
+
+## WORKED EXAMPLE
+
+**Question**: "Which suppliers have the highest quality rating?"
+
+**Step 1 — Analyze**: Primary concept = "quality rating". Secondary = "suppliers". What data sources could contain quality information? Quality scores, defect rates, inspection results, compliance records, audit outcomes.
+
+**Step 2A — Explicit**: `Supplier Name` (suppliers ✅), `Quality Score` (quality rating ✅).
+
+**Step 2B — Struct columns** (check EACH struct group, do not stop after one match):
+- `Inspection Records` struct (contains inspection results → quality measure ✅ INCLUDE)
+- `Compliance Audits` struct (contains compliance records → quality measure ✅ INCLUDE)
+- `Quality Dimensions` struct (contains individual dimension scores → covered by Total Quality Score, exclude per Rule 11)
+- `Supplier Contact Info` struct (not quality-related ❌ EXCLUDE)
+- `Product Catalog` struct (not quality-related ❌ EXCLUDE)
+
+**Step 2C — Flat context**: `Defect Count` (defects are a quality measure ✅), `Total Quality Score` (aggregate quality ✅).
+
+**Step 3 — Apply rules**: Include Supplier Name, Quality Score, Inspection Records struct, Compliance Audits struct, Defect Count, Total Quality Score. Exclude Quality Dimensions struct (breakdowns covered by Total). Exclude address/phone (not relevant).
+
+---
+
+**User question:** {{ query }}
+
+Respond in JSON format:
+{
+  "selected": [
+    "Column Name 1",
+    "Column Name 2",
+    "Struct Inner Field Name"
+  ],
+  "reasoning": "Step 1: [concepts and data sources]. Step 2: [which columns match and why]. Step 3: [rules applied, especially exclusions]."
+}

@@ -38,6 +38,39 @@ class ChatRequest(BaseModel):
             "null = use Config default (0.10)."
         ),
     )
+    # Per-query sampling param overrides (null = use config default)
+    column_selection_temperature: Optional[float] = Field(
+        None,
+        description="Override column selection temperature for this query. null = use config default (0.6).",
+    )
+    column_selection_top_p: Optional[float] = Field(
+        None,
+        description="Override column selection top_p for this query. null = use config default (0.95).",
+    )
+    column_selection_top_k: Optional[int] = Field(
+        None,
+        description="Override column selection top_k for this query. null = use config default (20).",
+    )
+    code_generation_temperature: Optional[float] = Field(
+        None,
+        description="Override code generation temperature for this query. null = use config default (0.7).",
+    )
+    code_generation_top_p: Optional[float] = Field(
+        None,
+        description="Override code generation top_p for this query. null = use config default (0.95).",
+    )
+    code_generation_top_k: Optional[int] = Field(
+        None,
+        description="Override code generation top_k for this query. null = use config default (20).",
+    )
+    step1_only: Optional[bool] = Field(
+        None,
+        description=(
+            "When true, stop after Step 1 (column selection) and return selected columns "
+            "without running Step 2 (code generation). Useful for debugging and testing "
+            "the column selection pipeline in isolation. null = use env STEP1_ONLY or False."
+        ),
+    )
 
 class ChatResponse(BaseModel):
     response: Any
@@ -48,5 +81,31 @@ class ChatResponse(BaseModel):
         description=(
             "List of column names selected by Step 1 column selection. "
             "Null if column selection was not triggered."
+        ),
+    )
+    # Strategy 4: Dual-mode column selection fields
+    retrieval_mode: Optional[str] = Field(
+        None,
+        description=(
+            "Retrieval mode from Step 1 LLM classification. "
+            "One of: 'direct' (LLM synthesizes answer), "
+            "'evidence' (return DataFrame), 'hybrid' (compound query + DataFrame). "
+            "Null if column selection was not triggered."
+        ),
+    )
+    retrieval_mode_reasoning: Optional[str] = Field(
+        None,
+        description="LLM's reasoning for the chosen retrieval mode. Null if not available.",
+    )
+    retrieval_mode_source: Optional[str] = Field(
+        None,
+        description="Source of the retrieval_mode decision. Currently 'step1_llm'. Null if not available.",
+    )
+    pipeline: Optional[dict] = Field(
+        None,
+        description=(
+            "Full pipeline trace including column selection log, raw LLM responses, "
+            "prompt text, and trimmed DataFrame info. Only populated when step1_only=True "
+            "or when CONVERSATION_LOG_DIR is set."
         ),
     )

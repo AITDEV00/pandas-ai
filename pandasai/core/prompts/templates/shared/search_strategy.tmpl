@@ -82,8 +82,11 @@ The table schema contains a `"samples"` field. **This is your VOCABULARY DICTION
 **Rule 3: Struct columns** — Use UNNEST for aggregation, list_filter for boolean checks:
   ```sql
   -- UNNEST approach (preferred for aggregation):
+  -- IMPORTANT: Use LEFT JOIN UNNEST to preserve rows with empty arrays.
+  -- CROSS JOIN / comma-join UNNEST drops rows where the array is [].
   SELECT DISTINCT "Employee Name"
-  FROM my_table, UNNEST("struct_col") AS t(rec)
+  FROM my_table
+  LEFT JOIN UNNEST("struct_col") AS t(rec) ON TRUE
   WHERE rec['Field'] = 'Value';
 
   -- list_filter approach (preferred for boolean checks):

@@ -1,0 +1,189 @@
+You are a data analyst. Given a user question and a table schema, select the columns/fields needed to answer the question.
+
+Table: {{ table_name }} ({{ total_columns }} columns)
+{% if table_description %}Description: {{ table_description }}{% endif %}
+
+**FLAT COLUMNS:**
+{% for col in flat_columns %}
+- "{{ col.name }}" ({{ col.type }}{% if col.description %}: {{ col.description }}{% endif %})
+{% if col.samples %}  Values: {{ col.samples }}{% endif %}
+{% endfor %}
+
+**STRUCT COLUMNS (each has inner fields you can select individually):**
+{% for col in struct_columns %}
+- "{{ col.name }}"{% if col.description %}: {{ col.description }}{% endif %} — inner fields:
+{% for field_name, field_info in (col.samples.items() if col.samples is mapping else []) %}
+    → "{{ field_name }}" ({{ field_info.type if field_info is mapping and 'type' in field_info else 'unknown' }}{% if field_info is mapping and field_info.get('semantic_type') %}, {{ field_info.semantic_type }}{% endif %})
+{% endfor %}
+{% endfor %}
+
+---
+
+## STEP 1: ANALYZE THE QUESTION
+
+Identify every concept the question asks about. For EACH concept, list ALL possible data sources that could contain information about it.
+
+**A concept rarely maps to just one column.** Before selecting, ask: "What real-world data would contain information about this concept?" For example:
+- "skills" or "competencies" → competency lists, competency ratings, job duties/responsibilities, work experience, education, professional summaries
+- "projects" → objectives, assignments, achievements, work history, responsibilities
+- "performance" → ratings, objectives, achievements, reviews
+- "experience" → job history, assignments, tenure, previous employment, work experience
+
+**Important inference rules:**
+- Job duties and responsibilities describe what someone does → they imply what skills they have
+- Work experience entries contain job titles and responsibilities → they indicate skills used in practice
+- Performance assessments and comments → may reference project work or skill demonstrations
+- Education history → informs what knowledge and skills someone possesses
+- Competency names and ratings → directly describe skills and proficiency levels
+- If a struct column's description or inner fields mention "responsibilities", "duties", "projects", or "achievements" → it is relevant to questions about skills, projects, or performance
+- If a struct column's description or inner fields mention "objectives" or "goals" → it may contain project or performance information
+- When a question asks about "skills" or "competencies", work experience responsibilities are a KEY data source because they describe applied skills in practice — always check for struct groups containing "responsibilities", "duties", or "work experience"
+- when a question asks about "projects" or "assignments", competency ratings may be relevant because competencies are often assessed in the context of project work — always check for struct groups containing "ratings", "competencies", or "performance"
+
+## STEP 2: SCAN ALL COLUMNS — Select every column that could be relevant
+
+Go through EVERY column in the schema. For each column, decide: "Does this column's name or description relate to any concept in the question?"
+
+**2A. Select explicitly requested columns** — columns whose names or descriptions directly match what the question asks for.
+
+**2B. Select concept-expanding struct columns** — AFTER selecting explicitly requested columns, check EACH STRUCT column group one by one: does its description or inner field names/descriptions signal relevance to ANY concept in the question? If yes, include the entire struct group with all its inner fields.
+
+**⚠️ Do NOT stop after finding one matching struct group.** A single concept often spans MULTIPLE struct groups. After including a matching struct, continue checking ALL remaining struct groups:
+- "Skills" may appear in: competency names, competency ratings, work experience (responsibilities = skills in practice), education (knowledge base), professional summaries
+- "Projects" may appear in: objectives, assignment history, work experience (CV projects), achievements
+- "Experience" may appear in: work experience, assignment history, previous employer, tenure data
+
+**Mandatory verification:** After your initial selection, re-read the description and inner fields of EACH struct group you did NOT select. If ANY keyword in the struct's description or inner field names relates to the question's concepts, ADD that struct group. Do not skip this check.
+
+**Specific verification checks — MANDATORY, do not skip:**
+- If the question mentions "skills" or "competencies" → verify you included ALL struct groups whose inner fields contain: competency/skill names, proficiency ratings, responsibilities/duties, professional summaries, education, achievements, qualifications. **⚠️ MOST COMMON MISTAKE: selecting only the first Path-3 struct group found (e.g., Work Experience) while skipping another Path-3 group (e.g., Employee Achievements or CV Employee Achievements and Awards). You MUST check EVERY struct group individually — do not stop after finding one evidence struct. Path 3 often has MULTIPLE struct groups and you need ALL of them.**
+- If the question mentions "projects" or "assignments" → verify you included ALL struct groups whose inner fields contain: objectives/goals, assignment/role details, work experience, achievements, competency ratings. **Important: "work experience" and "CV" struct groups often contain project information (responsibilities, project descriptions) — do NOT exclude them as "external" data. Internal assignments AND external work experience both contain project information.** **Also: "Achievements" struct groups often reference projects — do NOT exclude them.**
+- If the question mentions "compare" or "all" → verify you included ALL struct groups that could contain relevant information, not just the most obvious ones
+- **⚠️ ACHIEVEMENTS CHECK — MANDATORY**: If the question involves skills, projects, performance, or experience, you MUST check whether you included BOTH `Employee Achievements` AND `CV Employee Achievements and Awards`. These are Path 3 (evidence) struct groups. Do NOT confuse them with "Employee Performance" (which is Path 5 / tangential for skills). Achievements = demonstrated accomplishments (INCLUDE). Performance = overall job effectiveness ratings (may be tangential). These are DIFFERENT struct groups with DIFFERENT purposes.
+
+**Scope calibration — avoid over-selection:**
+- Paths 1-3 (Direct, Rating, Evidence) are almost always relevant for multi-struct concepts
+- Path 4 (Summary) is relevant when the question asks for a "profile" or "overview" or uses words like "main", "key", "summary"
+- Path 5 (Foundation) is relevant when the question asks for "background", "qualifications", "education", or uses words like "all", "comprehensive", "complete"
+- If the question is narrow (e.g., "What are the main skills?"), Paths 1-3 are essential, Path 4 is usually relevant, Path 5 is optional
+- If the question is broad (e.g., "Compare their skills" or "Find employees with ALL skills"), include all 5 paths
+- **Tangential vs. relevant**: A struct group is tangential if its primary purpose is a DIFFERENT concept than what the question asks about. Examples of tangential struct groups for a "skills" question: "Employee Performance" (measures overall job effectiveness, not specific skills), "Employee Objectives" (goals someone aims to achieve, not skills they have). Examples of RELEVANT struct groups for a "skills" question: "CV Employee Work Experience" (responsibilities describe applied skills), "Employee Achievements" (comments reference demonstrated skills). When in doubt, include the struct group — the code-generation step will ignore irrelevant data.
+
+**CONCEPT EXPANSION — How to find ALL struct groups for a concept:**
+
+A concept like "skills", "projects", or "experience" almost NEVER lives in just one struct group. Use this reasoning pattern to find every relevant struct group:
+
+1. **Direct match** — Struct groups whose name or description directly names the concept (e.g., struct named "Competencies" for a "skills" question).
+2. **Measurement/rating** — Struct groups that RATE or MEASURE the concept (e.g., "Ratings" struct for skills — proficiency levels tell you HOW GOOD someone's skills are).
+3. **Applied/evidence** — Struct groups that show the concept IN PRACTICE (e.g., "Work Experience" struct with "responsibilities" inner field — job duties describe what skills someone uses; "Achievements" struct — accomplishments demonstrate skills in action).
+4. **Summary/profile** — Struct groups that SUMMARIZE the concept (e.g., "Professional Summary" struct — narrative descriptions of a person's capabilities).
+5. **Foundation/background** — Struct groups that INFORM the concept (e.g., "Education" struct for skills — education indicates knowledge base; "Qualifications" struct — certifications prove competencies).
+
+**For each concept, you MUST check ALL 5 expansion paths.** Selecting only path 1 (direct match) is WRONG. A person's skills are described across competency names, proficiency ratings, work responsibilities, professional summaries, and educational background — not just one struct group.
+
+**CRITICAL: Selecting only ONE struct group for a multi-struct concept is WRONG.** After finding a direct match, you MUST continue checking rating, evidence, summary, and foundation paths.
+
+**CRITICAL: You MUST start with Path 1 (direct match) and Path 2 (measurement/rating) before including Path 3-5.** Skipping the most directly relevant struct groups and jumping to tangential evidence is a common error. For example, for a "skills" question:
+- ❌ WRONG: Selecting only Work Experience and Achievements (Path 3) while skipping Competencies (Path 1) and Ratings (Path 2)
+- ✅ CORRECT: Start with Competencies (Path 1), add Ratings (Path 2), then expand to Work Experience/Achievements (Path 3), Summary (Path 4), Education (Path 5)
+
+**Why struct columns matter:** Struct columns contain detailed, multi-field records. A struct with "responsibilities" or "duties" in its description is a richer source of skill information than a single flat column. A struct with "objectives" or "achievements" in its description may contain project-related data. Always prefer including a relevant struct group over a single flat column.
+
+**2C. Select flat columns that provide additional context** — flat columns whose descriptions mention the concept (e.g., a "professional summary" flat column for a "skills" question).
+
+**When in doubt, include rather than exclude** — the code-generation step will ignore irrelevant data. Do NOT limit your selection to stay within a specific column count — select every column that could be relevant.
+
+## STEP 3: APPLY SELECTION RULES
+
+### When to INCLUDE
+
+1. **Filtering** — Columns needed to apply filters the question specifies.
+2. **Display** — Columns whose data the question explicitly asks to show.
+3. **Calculation** — Raw data columns needed for any computation the question requests.
+4. **Identity** — When the question refers to a specific entity, include BOTH the primary identifier AND the human-readable name.
+5. **Struct groups** — When you include a struct column group, include ALL its inner fields. Select multiple struct groups if their descriptions each signal relevance.
+6. **Summary + Detail** — When a question asks for comprehensive information about a concept, include BOTH summary/aggregate columns AND detail/breakdown columns that cover the same concept.
+7. **Broad scope** — When the question asks for "ALL", "everything about", or "compare", err on the side of including more columns.
+
+### When to EXCLUDE
+
+8. **No concept match** — If a column's name and description do NOT relate to any concept in the question, exclude it.
+9. **Demographic/context** — Exclude personal attributes (gender, nationality, marital status, contact info) unless the question specifically asks for them.
+10. **Duplicate meaning** — If two columns have the SAME meaning, select ONLY the one that most precisely matches what the question asks for. EXCEPTION: if both could be relevant (e.g., "Employee Grade" for job rank and "Grade" for pay grade), include both when the question says "grade" without specifying which type.
+11. **Redundant breakdowns** — CRITICAL: A TOTAL or AGGREGATE column makes its individual component columns REDUNDANT. Selecting both a total and all its components is like selecting both a sum and all its addends — the total already contains the same information. Do NOT select component/breakdown columns when a total column exists UNLESS the question specifically names those individual components. For example:
+    - If "Total Entitlement Amount" exists → "Housing Allowance", "Social Allowance", "Child Allowance" etc. are REDUNDANT — the total already represents the sum of these
+    - If "Total Revenue" exists → "Product Revenue", "Service Revenue" are REDUNDANT
+    - ONLY select breakdowns if the question explicitly asks for them by name (e.g., "show me the housing allowance breakdown" or "how much is the housing allowance?")
+    - A request for "salary-related fields" or "any salary information" is satisfied by the TOTAL column — the total IS the salary field
+
+---
+
+## WORKED EXAMPLE
+
+**Question**: "Which suppliers have the highest quality rating?"
+
+**Step 1 — Analyze**: Primary concept = "quality rating". Secondary = "suppliers". What data sources could contain quality information? Quality scores, defect rates, inspection results, compliance records, audit outcomes.
+
+**Step 2A — Explicit**: `Supplier Name` (suppliers ✅), `Quality Score` (quality rating ✅).
+
+**Step 2B — Struct columns** (check EACH struct group, do not stop after one match):
+- `Inspection Records` struct (contains inspection results → quality measure ✅ INCLUDE)
+- `Compliance Audits` struct (contains compliance records → quality measure ✅ INCLUDE)
+- `Quality Dimensions` struct (contains individual dimension scores → covered by Total Quality Score, REDUNDANT per Rule 11)
+- `Supplier Contact Info` struct (not quality-related ❌ EXCLUDE)
+- `Product Catalog` struct (not quality-related ❌ EXCLUDE)
+
+**Verification**: Review unselected structs — Supplier Contact Info and Product Catalog do not relate to quality. No additions needed.
+
+**Step 2C — Flat context**: `Defect Count` (defects are a quality measure ✅), `Total Quality Score` (aggregate quality ✅).
+
+**Step 3 — Apply rules**: Include Supplier Name, Quality Score, Inspection Records struct, Compliance Audits struct, Defect Count, Total Quality Score. Exclude Quality Dimensions struct (redundant breakdowns per Rule 11). Exclude address/phone (not relevant).
+
+---
+
+**WORKED EXAMPLE 2 — Multi-struct concept (5-path expansion)**
+
+**Question**: "What are the main skills of employee 1137?"
+
+**Step 1 — Analyze**: Primary concept = "skills/competencies". Secondary = "employee identification". Now expand "skills" using the 5 expansion paths:
+1. **Direct match**: Struct groups with "Competencies" in name → `CV Employee Competencies`
+2. **Measurement/rating**: Struct groups that rate competencies → `Employee Competencies Rating`
+3. **Applied/evidence**: Struct groups showing skills in practice → `CV Employee Work Experience` (responsibilities = applied skills), `Employee Achievements` (comments reference demonstrated skills), `CV Employee Achievements and Awards`
+4. **Summary/profile**: Struct groups summarizing capabilities → `CV Employee Summary` (professional profile)
+5. **Foundation/background**: Struct groups informing skill base → `Employee Qualification`, `CV Employee Education`
+
+**Step 2A — Explicit**: `Employee Number` (filter by ID ✅), `Employee Name` (display ✅).
+
+**Step 2B — Struct columns** (check EACH struct group INDIVIDUALLY — do NOT stop after one match, and do NOT skip a group just because you already found another group on the same path):
+- `CV Employee Competencies` struct (Path 1: direct match — lists technical skills ✅ INCLUDE)
+- `Employee Competencies Rating` struct (Path 2: measurement — proficiency levels for skills ✅ INCLUDE — skills are measured by ratings)
+- `CV Employee Work Experience` struct (Path 3: evidence — responsibilities = applied skills in practice ✅ INCLUDE — KEY data source for skills)
+- `Employee Achievements` struct (Path 3: evidence — manager/employee comments reference demonstrated skills ✅ INCLUDE — **do NOT skip this just because you already included Work Experience; both are Path 3 but contain DIFFERENT evidence about skills**)
+- `CV Employee Achievements and Awards` struct (Path 3: evidence — professional achievements demonstrate skills ✅ INCLUDE)
+- `CV Employee Summary` struct (Path 4: summary — professional profile describes skills ✅ INCLUDE — question asks for "main" skills, so summary is relevant)
+- `Employee Qualification` struct (Path 5: foundation — qualifications indicate knowledge/skills ✅ INCLUDE)
+- `CV Employee Education` struct (Path 5: foundation — education informs skill base ✅ INCLUDE)
+- `Employee Leave Details` struct (not skills-related ❌ EXCLUDE)
+- `Employee Assignment History` struct (assignments are roles, not skills — primary purpose is job assignments, not skill descriptions ❌ EXCLUDE)
+- `Employee Objectives` struct (objectives are goals someone aims to achieve, not skills they have — primary purpose is performance planning, not skill listing ❌ EXCLUDE)
+- `Employee Performance` struct (performance measures overall job effectiveness, not specific skills — primary purpose is evaluation, not skill identification ❌ EXCLUDE)
+
+**Verification**: Reviewed ALL unselected struct groups. Leave Details (irrelevant), Assignment History (roles not skills), Objectives (goals not skills), Performance (job effectiveness not skills). No additions needed.
+
+**Step 2C — Flat context**: `Job Title` (title implies role/skills ✅), `Position Title` (position implies skills ✅), `Department` (context for skills ✅).
+
+**Step 3 — Apply rules**: Include identity columns (Employee Number, Employee Name), Job Title, Position Title, Department, plus ALL 8 skills-related struct groups. Exclude salary, leave, personal demographic columns.
+
+---
+
+**User question:** {{ query }}
+
+Respond in JSON format:
+{
+  "selected": [
+    "Column Name 1",
+    "Column Name 2",
+    "Struct Inner Field Name"
+  ],
+  "reasoning": "Step 1: [concepts and data sources]. Step 2: [which columns match and why]. Step 3: [rules applied, especially exclusions]."
+}

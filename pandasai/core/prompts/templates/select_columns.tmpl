@@ -1,5 +1,4 @@
-You are a data analyst. Given a table schema and a user question, select ONLY the
-columns and struct inner fields needed to answer the question.
+You are a data analyst. Given a user question and a table schema, select the columns/fields needed to answer the question.
 
 Table: {{ table_name }} ({{ total_columns }} columns)
 {% if table_description %}Description: {{ table_description }}{% endif %}
@@ -18,7 +17,38 @@ Table: {{ table_name }} ({{ total_columns }} columns)
 {% endfor %}
 {% endfor %}
 
-User question: {{ query }}
+---
+
+## COLUMN SELECTION GUIDELINES
+
+Select columns adaptively based on the question's scope:
+
+1. **Specific/focused questions** (e.g. "What is the average salary?", "How many sick leaves did employee X take?")
+   → Select ONLY the columns directly needed. Minimize column count. Do NOT pad with extra columns.
+
+2. **Entity detail questions** (e.g. "What are the skills of employee 1137?", "Show leave details for employee 1333")
+   → Select the core data columns PLUS all related context columns (identifiers, organizational context, dates, titles)
+   that help the user understand the data. Always include identifying columns for the entity.
+   
+   **CRITICAL — Attribute dispersion**: Real-world attributes like "skills", "performance", "career", or "background" are rarely stored in a single column. They are typically **dispersed across multiple related column groups** — each capturing a different facet (self-assessments, manager evaluations, demonstrated outcomes, historical progression, current goals, formal qualifications, etc.). When a question asks about such an attribute:
+   - Do NOT stop at columns whose names directly match the query term (e.g. "skills" → only skill columns)
+   - Instead, scan EVERY column group in the schema and ask: "Could this group reveal something about the requested attribute?"
+   - Include the group if the answer is yes — even indirectly (e.g. achievements reveal applied skills, assignments reveal career trajectory, objectives reveal current skill application)
+   - When you identify a relevant struct column group, include ALL of its inner fields (ratings, descriptions, dates) — not just the name field
+
+3. **Broad/exploratory questions** (e.g. "List all employees in IT", "Compare HR vs IT departments",
+   "Give me employees who speak Chinese and have AI skills")
+   → Be GENEROUS — include all potentially relevant columns. More columns do NOT increase code
+   complexity because the query is always a simple SELECT. Include context columns alongside
+   the core data columns. Apply the same attribute-dispersion principle: if the question
+   touches on a multi-faceted attribute, review and select from column groups that could contribute.
+
+**When in doubt, include the column.** It's better to return more data than to miss relevant information.
+Extra columns just add names to a SELECT statement; missing columns lose information permanently.
+
+---
+
+**User question:** {{ query }}
 
 Respond in JSON format:
 {
@@ -27,5 +57,5 @@ Respond in JSON format:
     "Column Name 2",
     "Struct Inner Field Name"
   ],
-  "reasoning": "brief explanation of why these columns are relevant"
+  "reasoning": "brief explanation of why these columns are relevant and why this breadth was chosen"
 }

@@ -9,6 +9,9 @@
 **Result type selection:**
 {% if output_type %}
 You MUST use type "{{output_type}}" — this is non-negotiable. Do NOT choose a different type regardless of what the query seems to ask for. Reformulate the data as needed to match this type.
+{% if output_type == "evidence" %}
+**Evidence retrieval mode:** The user wants to SEE the raw data. Return type "dataframe" with the relevant rows. Keep the code simple: SELECT the relevant columns, filter as needed, and return the DataFrame directly. Do NOT compute aggregates or summaries.
+{% endif %}
 {% else %}
 Choose the most appropriate type for the user's question:
 - `"string"` → for natural language answers, summaries, comparisons
@@ -49,15 +52,41 @@ unique = int(df_b.iloc[0]["cnt"])
 result = {"type": "string", "value": f"There are {total} matching rows across {unique} groups."}
 
 # Example 4: String answer from struct fields (UNNEST)
+# IMPORTANT: Use LEFT JOIN UNNEST to preserve rows with empty arrays.
+# CROSS JOIN / comma-join UNNEST drops rows where the array is [].
 import pandas as pd
 df = execute_sql_query('''
     SELECT "col_name", rec['field_name'] AS field_val
-    FROM enterprise_data, UNNEST("struct_col") AS t(rec)
-    WHERE rec['field_name'] = 'VALUE'
+    FROM enterprise_data
+    LEFT JOIN UNNEST("struct_col") AS t(rec) ON TRUE
+    WHERE "col_name" = 'VALUE'
     LIMIT 1
 ''')
 name = df.iloc[0]["col_name"]
 val = df.iloc[0]["field_val"]
 result = {"type": "string", "value": f"Found: {name} with value {val}."}
+
+# Example 5: Evidence retrieval — return DataFrame directly
+# Use this pattern when output_type is "evidence" or "hybrid".
+# The user wants to SEE the data, not a summary.
+import pandas as pd
+df = execute_sql_query('''
+    SELECT "Employee Name", "Department", "Basic Salary"
+    FROM enterprise_data
+    WHERE "Department" = 'IT'
+    ORDER BY "Basic Salary" DESC
+''')
+result = {"type": "dataframe", "value": df}
+
+# Example 6: Evidence retrieval with struct fields (UNNEST)
+import pandas as pd
+df = execute_sql_query('''
+    SELECT "Employee Name", rec['Leave Type'] AS "Leave Type",
+           rec['Duration (Days)'] AS "Duration (Days)"
+    FROM enterprise_data
+    LEFT JOIN UNNEST("Employee Leave Details") AS t(rec) ON TRUE
+    WHERE "Employee Name" = 'VALUE'
+''')
+result = {"type": "dataframe", "value": df}
 ```
 </code_strategy>

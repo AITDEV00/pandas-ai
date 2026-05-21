@@ -12,6 +12,12 @@ IMPORTANT: Even if the query seems to ask for a count or number, you MUST return
 type (must be "dataframe"), value must be pd.DataFrame or pd.Series. Example: { "type": "dataframe", "value": pd.DataFrame({...}) }
 
 IMPORTANT: Even if the query asks for a count or summary, you MUST return type "dataframe" with the data in a DataFrame. For example, if the query is "how many are female?", return the count in a DataFrame: { "type": "dataframe", "value": pd.DataFrame({"female_count": [count]}) } — NOT { "type": "number", "value": count }
+{% elif output_type == "evidence" %}
+type (must be "dataframe"), value must be pd.DataFrame or pd.Series. Example: { "type": "dataframe", "value": pd.DataFrame({...}) }
+
+IMPORTANT: You are in evidence retrieval mode. The user wants to SEE the data, not a synthesized answer. You MUST return type "dataframe" with the relevant data. For example, if the query is "list employees in IT", return: { "type": "dataframe", "value": df_it_employees } — NOT { "type": "string", "value": "There are 5 employees in IT." }
+
+Keep the code simple: SELECT the relevant columns, filter as needed, and return the DataFrame directly. Do NOT compute aggregates or summaries — return the raw data rows.
 {% elif output_type == "plot" %}
 type (must be "plot"), value must be a string file path. Example: { "type": "plot", "value": "temp_chart.png" }
 

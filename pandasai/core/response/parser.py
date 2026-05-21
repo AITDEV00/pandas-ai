@@ -50,11 +50,15 @@ class ResponseParser:
             )
 
         # Issue 9 L2: Check if generated type matches requested type
-        if self._output_type and result["type"] != self._output_type:
+        # Strategy 4: "evidence" output_type accepts "dataframe" as valid
+        effective_type = self._output_type
+        if effective_type == "evidence":
+            effective_type = "dataframe"  # evidence mode → expect dataframe
+        if effective_type and result["type"] != effective_type:
             raise InvalidLLMOutputType(
                 f"Output type mismatch: requested '{self._output_type}' "
                 f"but generated '{result['type']}'. "
-                f"The result type MUST be '{self._output_type}'. "
+                f"The result type MUST be '{effective_type}'. "
                 f"Reformulate the data to match the requested type."
             )
 

@@ -1,0 +1,104 @@
+You are a data analyst. Given a user question and a table schema, select the columns/fields needed to answer the question.
+
+Table: {{ table_name }} ({{ total_columns }} columns)
+{% if table_description %}Description: {{ table_description }}{% endif %}
+
+**FLAT COLUMNS:**
+{% for col in flat_columns %}
+- "{{ col.name }}" ({{ col.type }}{% if col.description %}: {{ col.description }}{% endif %})
+{% if col.samples %}  Values: {{ col.samples }}{% endif %}
+{% endfor %}
+
+**STRUCT COLUMNS (each has inner fields you can select individually):**
+{% for col in struct_columns %}
+- "{{ col.name }}"{% if col.description %}: {{ col.description }}{% endif %} — inner fields:
+{% for field_name, field_info in (col.samples.items() if col.samples is mapping else []) %}
+    → "{{ field_name }}" ({{ field_info.type if field_info is mapping and 'type' in field_info else 'unknown' }}{% if field_info is mapping and field_info.get('semantic_type') %}, {{ field_info.semantic_type }}{% endif %})
+{% endfor %}
+{% endfor %}
+
+---
+
+## STEP 1: ANALYZE THE QUESTION
+
+Identify every concept the question asks about. For EACH concept, think about multiple data sources that could contain information about it.
+
+**A concept rarely maps to just one column.** Before selecting, ask: "What real-world data would contain information about this concept?" For example:
+- "skills" → competency lists, job duties/responsibilities, work experience, education, professional summaries
+- "projects" → objectives, assignments, achievements, work history, responsibilities
+- "performance" → ratings, objectives, achievements, reviews
+- "experience" → job history, assignments, tenure, previous employment
+
+**Important inference rules:**
+- Job duties and responsibilities describe what someone does → they imply what skills they have
+- Work experience entries contain job titles and responsibilities → they indicate skills used in practice
+- Performance assessments and comments → may reference project work or skill demonstrations
+- Education history → informs what knowledge and skills someone possesses
+
+## STEP 2: SCAN ALL COLUMNS
+
+For EACH concept from Step 1, scan EVERY column description — not just columns whose names match. A column is relevant when:
+- Its description explicitly names the concept, OR
+- Its description describes a data source that would naturally contain information about the concept, OR
+- Its description mentions activities, duties, responsibilities, or assessments related to the concept
+
+**Critical**: If a column's description mentions the concept or a closely related term, INCLUDE it. Do not assume two columns with similar names cover the same thing — they may contain different data.
+
+**When in doubt, include rather than exclude** — the code-generation step will ignore irrelevant data.
+
+## STEP 3: APPLY SELECTION RULES
+
+### When to INCLUDE
+
+1. **Filtering** — Columns needed to apply filters the question specifies.
+2. **Display** — Columns whose data the question explicitly asks to show.
+3. **Calculation** — Raw data columns needed for any computation the question requests.
+4. **Identity** — When the question refers to a specific entity, include BOTH the primary identifier AND the human-readable name.
+5. **Struct groups** — When you include a struct column group, include ALL its inner fields. Select multiple struct groups if their descriptions each signal relevance.
+6. **Summary + Detail** — When a question asks for comprehensive information about a concept, include BOTH summary/aggregate columns AND detail/breakdown columns that cover the same concept.
+7. **Broad scope** — When the question asks for "ALL", "everything about", or "compare", err on the side of including more columns.
+
+### When to EXCLUDE
+
+8. **No concept match** — If a column's name and description do NOT relate to any concept in the question, exclude it.
+9. **Demographic/context** — Exclude personal attributes (gender, nationality, marital status, contact info) unless the question specifically asks for them.
+10. **Duplicate meaning** — If two columns have the SAME meaning, select ONLY the one that most precisely matches what the question asks for.
+11. **Breakdown when total exists** — If a total column exists, select it instead of individual components. Only select breakdowns if the question specifically asks about them.
+
+### How many columns to select
+
+- **Narrow question** (specific count, specific filter) → 5–12 columns
+- **Medium question** (list with specified attributes) → 8–15 columns
+- **Broad question** (compare, "all details", "everything about") → 12–25 columns
+
+---
+
+## WORKED EXAMPLE
+
+**Question**: "Which suppliers have the highest quality rating?"
+
+**Step 1 — Analyze**: Primary concept = "quality rating". Secondary = "suppliers". What data sources could contain quality information? Quality scores, defect rates, inspection results, compliance records, audit outcomes.
+
+**Step 2 — Scan ALL columns**:
+- `Supplier Name` → matches "suppliers" (identity)
+- `Quality Score` → matches "quality rating" (direct)
+- `Inspection Result` → description says "quality inspection outcome" — contains "quality" → INCLUDE
+- `Defect Count` → description says "number of defects found" — defects are a quality measure → INCLUDE
+- `Compliance Status` → description says "regulatory compliance rating" — compliance relates to quality → INCLUDE
+- `Supplier Location` → no relation to quality → EXCLUDE
+
+**Step 3 — Apply rules**: Include all 5 relevant columns. No duplicates, no unnecessary breakdowns.
+
+---
+
+**User question:** {{ query }}
+
+Respond in JSON format:
+{
+  "selected": [
+    "Column Name 1",
+    "Column Name 2",
+    "Struct Inner Field Name"
+  ],
+  "reasoning": "Step 1: [concepts and what data sources could contain them]. Step 2: [how each selected column's description relates to a concept]. Step 3: [rules applied]."
+}

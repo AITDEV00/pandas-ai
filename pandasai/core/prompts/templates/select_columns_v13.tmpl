@@ -1,0 +1,104 @@
+You are a data analyst. Given a user question and a table schema, select the columns/fields needed to answer the question.
+
+Table: {{ table_name }} ({{ total_columns }} columns)
+{% if table_description %}Description: {{ table_description }}{% endif %}
+
+**FLAT COLUMNS:**
+{% for col in flat_columns %}
+- "{{ col.name }}" ({{ col.type }}{% if col.description %}: {{ col.description }}{% endif %})
+{% if col.samples %}  Values: {{ col.samples }}{% endif %}
+{% endfor %}
+
+**STRUCT COLUMNS (each has inner fields you can select individually):**
+{% for col in struct_columns %}
+- "{{ col.name }}"{% if col.description %}: {{ col.description }}{% endif %} — inner fields:
+{% for field_name, field_info in (col.samples.items() if col.samples is mapping else []) %}
+    → "{{ field_name }}" ({{ field_info.type if field_info is mapping and 'type' in field_info else 'unknown' }}{% if field_info is mapping and field_info.get('semantic_type') %}, {{ field_info.semantic_type }}{% endif %})
+{% endfor %}
+{% endfor %}
+
+---
+
+## STEP 1: ANALYZE THE QUESTION
+
+Identify every concept the question asks about. For EACH concept, think about multiple data sources that could contain information about it.
+
+**A concept rarely maps to just one column.** Before selecting, ask: "What real-world data would contain information about this concept?" For example:
+- "skills" → competency lists, job duties/responsibilities, work experience, education, professional summaries
+- "projects" → objectives, assignments, achievements, work history, responsibilities
+- "performance" → ratings, objectives, achievements, reviews
+- "experience" → job history, assignments, tenure, previous employment
+
+**Important inference rules:**
+- Job duties and responsibilities describe what someone does → they imply what skills they have
+- Work experience entries contain job titles and responsibilities → they indicate skills used in practice
+- Performance assessments and comments → may reference project work or skill demonstrations
+- Education history → informs what knowledge and skills someone possesses
+
+## STEP 2: FIRST PASS — Select directly matching columns
+
+Select columns whose names or descriptions directly match the question's concepts.
+
+## STEP 3: SECOND PASS — Check for indirectly relevant columns
+
+Review ALL remaining columns. For each one, ask: "Could this column's data contain information relevant to any concept in the question, even if the column name doesn't match?"
+
+Include a column in the second pass if:
+- Its description mentions activities, duties, or responsibilities related to the question's concept
+- Its description describes a data source that would naturally contain information about the concept
+- The concept could reasonably appear in this type of data (e.g., skills can appear in work experience; projects can appear in objectives or achievements)
+
+**When in doubt, include rather than exclude** — the code-generation step will ignore irrelevant data.
+
+## STEP 4: APPLY SELECTION RULES
+
+### When to INCLUDE
+
+1. **Filtering** — Columns needed to apply filters the question specifies.
+2. **Display** — Columns whose data the question explicitly asks to show.
+3. **Calculation** — Raw data columns needed for any computation the question requests.
+4. **Identity** — When the question refers to a specific entity, include BOTH the primary identifier AND the human-readable name.
+5. **Struct groups** — When you include a struct column group, include ALL its inner fields. Select multiple struct groups if their descriptions each signal relevance.
+6. **Summary + Detail** — When a question asks for comprehensive information about a concept, include BOTH summary/aggregate columns AND detail/breakdown columns that cover the same concept.
+7. **Broad scope** — When the question asks for "ALL", "everything about", or "compare", err on the side of including more columns.
+
+### When to EXCLUDE
+
+8. **No concept match** — If a column's name and description do NOT relate to any concept in the question, exclude it.
+9. **Demographic/context** — Exclude personal attributes (gender, nationality, marital status, contact info) unless the question specifically asks for them.
+10. **Duplicate meaning** — If two columns have the SAME meaning, select ONLY the one that most precisely matches what the question asks for.
+11. **Breakdown vs total** — If a TOTAL or AGGREGATE column exists that already summarizes the data, do NOT also select individual component/breakdown columns UNLESS the question specifically names those components. For example, if "Total Entitlement Amount" exists, do NOT also select "Housing Allowance", "Social Allowance", etc. unless the question asks about specific allowances.
+
+### How many columns to select
+
+- **Narrow question** (specific count, specific filter) → 5–12 columns
+- **Medium question** (list with specified attributes) → 8–15 columns
+- **Broad question** (compare, "all details", "everything about") → 12–25 columns
+
+---
+
+## WORKED EXAMPLE
+
+**Question**: "Which suppliers have the highest quality rating?"
+
+**Step 1 — Analyze**: Primary concept = "quality rating". Secondary = "suppliers". What data sources could contain quality information? Quality scores, defect rates, inspection results, compliance records, audit outcomes.
+
+**Step 2 — First pass**: `Supplier Name` (suppliers), `Quality Score` (quality rating — direct match).
+
+**Step 3 — Second pass**: `Inspection Result` (description says "quality inspection outcome" — contains "quality"), `Defect Count` (description says "number of defects found" — defects are a quality measure), `Compliance Status` (description says "regulatory compliance rating" — compliance relates to quality).
+
+**Step 4 — Apply rules**: Include all 5 relevant columns. No duplicates, no unnecessary breakdowns. `Total Quality Score` exists, so do NOT also select individual quality sub-scores.
+
+---
+
+**User question:** {{ query }}
+
+Respond in JSON format:
+{
+  "selected": [
+    "Column Name 1",
+    "Column Name 2",
+    "Struct Inner Field Name"
+  ],
+  "reasoning": "Step 1: [concepts and data sources]. Step 2: [direct matches]. Step 3: [indirect matches from second pass]. Step 4: [rules applied]."
+}

@@ -1,0 +1,107 @@
+You are a data analyst. Given a user question and a table schema, select the columns/fields needed to answer the question.
+
+Table: {{ table_name }} ({{ total_columns }} columns)
+{% if table_description %}Description: {{ table_description }}{% endif %}
+
+**FLAT COLUMNS:**
+{% for col in flat_columns %}
+- "{{ col.name }}" ({{ col.type }}{% if col.description %}: {{ col.description }}{% endif %})
+{% if col.samples %}  Values: {{ col.samples }}{% endif %}
+{% endfor %}
+
+**STRUCT COLUMNS (each has inner fields you can select individually):**
+{% for col in struct_columns %}
+- "{{ col.name }}"{% if col.description %}: {{ col.description }}{% endif %} — inner fields:
+{% for field_name, field_info in (col.samples.items() if col.samples is mapping else []) %}
+    → "{{ field_name }}" ({{ field_info.type if field_info is mapping and 'type' in field_info else 'unknown' }}{% if field_info is mapping and field_info.get('semantic_type') %}, {{ field_info.semantic_type }}{% endif %})
+{% endfor %}
+{% endfor %}
+
+---
+
+## SELECTION PROCESS
+
+### STEP 1: Identify the question's core concepts
+
+List every concept the question asks about. For EACH concept, identify ALL possible data sources.
+
+**A concept rarely maps to just one column.** Ask: "What real-world data would contain information about this concept?"
+
+| Concept | Possible data sources |
+|---------|----------------------|
+| skills/competencies | competency lists, competency ratings, job duties/responsibilities, work experience, education, professional summaries |
+| projects | objectives, assignments, achievements, work history, responsibilities |
+| performance | ratings, objectives, achievements, reviews |
+| experience | job history, assignments, tenure, previous employment, work experience |
+| education | degrees, qualifications, institutions, study dates, GPA |
+
+**Inference rules — these columns IMPLY information about the concept:**
+- Job duties and responsibilities → imply what skills someone has
+- Work experience entries → indicate skills used in practice
+- Competency names and ratings → directly describe skills and proficiency levels
+- Education history → informs what knowledge and skills someone possesses
+- Performance assessments → may reference project work or skill demonstrations
+
+### STEP 2: Select columns in TWO independent rounds
+
+**Round A — Explicitly requested columns**: Select columns whose names match the specific display/filter/calculation attributes the question lists (e.g., "name", "ID", "department", "grade", "date of joining").
+
+**Round B — Concept-expanding columns**: For EACH core concept from Step 1, scan ALL remaining columns. Include any column whose description relates to that concept, EVEN IF the question did not explicitly name that column. This is critical — the question may ask for "skills" but not mention "work experience" by name, yet work experience contains skill information.
+
+**⚠️ Round B is NOT optional.** Many questions ask about a concept (like "skills" or "projects") without naming every data source that contains information about it. You MUST check for concept-expanding columns independently.
+
+### STEP 3: Apply selection rules
+
+#### When to INCLUDE
+
+1. **Filtering** — Columns needed to apply filters the question specifies.
+2. **Display** — Columns whose data the question explicitly asks to show.
+3. **Calculation** — Raw data columns needed for any computation the question requests.
+4. **Identity** — When the question refers to a specific entity, include BOTH the primary identifier AND the human-readable name.
+5. **Struct groups** — When you include a struct column group, include ALL its inner fields. Select multiple struct groups if their descriptions each signal relevance.
+6. **Summary + Detail** — When a question asks for comprehensive information about a concept, include BOTH summary/aggregate columns AND detail/breakdown columns that cover the same concept.
+7. **Broad scope** — When the question asks for "ALL", "everything about", or "compare", err on the side of including more columns.
+
+#### When to EXCLUDE
+
+8. **No concept match** — If a column's name and description do NOT relate to any concept in the question, exclude it.
+9. **Demographic/context** — Exclude personal attributes (gender, nationality, marital status, contact info) unless the question specifically asks for them.
+10. **Duplicate meaning** — If two columns have the SAME meaning, select ONLY the one that most precisely matches what the question asks for.
+11. **Breakdown vs total** — CRITICAL: If a TOTAL or AGGREGATE column exists that already summarizes the data, do NOT also select individual component/breakdown columns UNLESS the question specifically names those components. For example:
+    - If "Total Entitlement Amount" exists, do NOT select "Housing Allowance", "Social Allowance", "Child Allowance", etc.
+    - If "Total Revenue" exists, do NOT select "Product Revenue", "Service Revenue", etc.
+    - ONLY select breakdowns if the question says "show me the breakdown of..." or "how much is the housing allowance?"
+
+#### How many columns to select
+
+- **Narrow question** (specific count, specific filter) → 5–12 columns
+- **Medium question** (list with specified attributes) → 8–15 columns
+- **Broad question** (compare, "all details", "everything about") → 12–25 columns
+
+---
+
+## WORKED EXAMPLE
+
+**Question**: "Which suppliers have the highest quality rating?"
+
+**Step 1 — Core concepts**: Primary concept = "quality rating". Secondary = "suppliers". Possible data sources for quality: quality scores, defect rates, inspection results, compliance records, audit outcomes.
+
+**Round A — Explicit**: `Supplier Name` (suppliers), `Quality Score` (quality rating — direct match).
+
+**Round B — Concept-expanding**: `Inspection Result` (description: "quality inspection outcome" — relates to quality ✅), `Defect Count` (description: "number of defects found" — defects are a quality measure ✅), `Compliance Status` (description: "regulatory compliance rating" — compliance relates to quality ✅), `Total Quality Score` (aggregate quality ✅), `Quality Dimension A Score` (breakdown ❌ — Total Quality Score covers it per Rule 11), `Supplier Address` (not quality-related ❌).
+
+**Step 3 — Apply rules**: Final selection: Supplier Name, Quality Score, Inspection Result, Defect Count, Compliance Status, Total Quality Score. Exclude breakdowns and irrelevant columns.
+
+---
+
+**User question:** {{ query }}
+
+Respond in JSON format:
+{
+  "selected": [
+    "Column Name 1",
+    "Column Name 2",
+    "Struct Inner Field Name"
+  ],
+  "reasoning": "Step 1: [core concepts and data sources]. Round A: [explicitly requested columns]. Round B: [concept-expanding columns and why]. Step 3: [rules applied]."
+}

@@ -17,6 +17,11 @@ You are writing **DuckDB SQL** — NOT PostgreSQL, MySQL, or T-SQL. Key differen
    - ❌ `AS t1(pp)` then `pp.rec['field']` ← `pp` IS the struct, `.rec` is NOT a sub-field
    - ❌ `AS t1` then `t1['field']` ← missing `(var)` destructuring causes "unnest" wrapper
 
+   **CRITICAL: UNNEST drops rows with empty arrays!** `CROSS JOIN UNNEST` and `, UNNEST(...)` act as INNER JOINs — they eliminate rows where the array is `[]`. Use `LEFT JOIN UNNEST` to preserve rows with empty arrays:
+   - ✅ `LEFT JOIN UNNEST("struct_col") AS t(rec) ON TRUE` — keeps base row even if array is empty (struct fields will be NULL)
+   - ✅ Use LEFT JOIN when you need the employee/parent row regardless of whether the struct array has entries
+   - ✅ Use CROSS JOIN / comma-join only when you ONLY want rows that HAVE struct entries
+
 4. **Copy names exactly**: Column names and struct field names from the listings must be copied character-for-character. Do NOT abbreviate, shorten, or reformat them.
 
 5. **Flat columns vs struct fields**: Flat (top-level) columns are `"column_name"` directly — NOT inside any UNNEST. Struct fields are `rec['field_name']` ONLY after UNNEST.

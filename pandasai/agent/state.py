@@ -43,6 +43,56 @@ class AgentState:
     last_selected_names: Optional[List[str]] = None
     last_query: Optional[str] = None
 
+    # Retry tracking — accumulated across code generation & execution retries
+    code_attempts: List[Dict[str, Any]] = field(default_factory=list)
+    # Each entry: {"phase": "generation"|"execution", "attempt": int, "code": str, "error": str|None}
+
+    # Column selection detail log — populated during _apply_column_selection
+    column_selection_log: List[Dict[str, Any]] = field(default_factory=list)
+    # Each entry: {"step": str, "detail": Any}
+
+    # ── Debug / diagnostic tracking ──────────────────────────────────────
+    # Populated during _process_query() and extracted by the server's
+    # conversation logger.  All fields are reset at the start of each query.
+
+    # Raw LLM response text (before parsing) for column selection Step 1
+    column_selection_raw_llm_response: Optional[str] = None
+
+    # The prompt sent to LLM for column selection Step 1
+    column_selection_prompt: Optional[str] = None
+
+    # Raw LLM response text (before cleaning) for code generation Step 2
+    code_generation_raw_llm_response: Optional[str] = None
+
+    # SQL queries executed by _execute_sql_query() during code execution
+    # Each entry: {"sql": str, "result_shape": tuple, "result_columns": list,
+    #              "result_preview": str, "error": str|None}
+    sql_queries: List[Dict[str, Any]] = field(default_factory=list)
+
+    # Full error traceback (not just str(e)) for the last error
+    last_error_traceback: Optional[str] = None
+
+    # Config snapshot at query time (key values only)
+    config_snapshot: Optional[Dict[str, Any]] = None
+
+    # Trimmed DataFrame info (only when column selection is active)
+    # Each entry: {"df_index": int, "original_columns": list, "trimmed_columns": list,
+    #              "original_shape": tuple, "trimmed_shape": tuple}
+    trimmed_df_info: List[Dict[str, Any]] = field(default_factory=list)
+
+    # Code execution result before parsing (the raw result dict)
+    raw_execution_result: Optional[Any] = None
+
+    # Strategy 4: Dual-mode column selection — retrieval mode from Step 1 LLM
+    # retrieval_mode: "direct" | "evidence" | "hybrid" — set by _apply_column_selection
+    retrieval_mode: Optional[str] = None
+    retrieval_mode_reasoning: Optional[str] = None
+    retrieval_mode_source: Optional[str] = None  # "step1_llm" or future "api_override"
+
+    # Step 1 only mode — when True, skip Step 2 (code generation) and return
+    # column selection results only. Useful for debugging and testing.
+    step1_only: bool = False
+
     def __post_init__(self):
         if isinstance(self.config, dict):
             self.config = Config(**self.config)

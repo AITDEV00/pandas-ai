@@ -106,10 +106,25 @@ def _is_inner_column_of(schema_name: str, df_col_name: str) -> bool:
         schema_name  = '[Employee Achievements[Customary Name]]'
         df_col_name  = '[Employee Achievements[Customary Name][Manager OA Comments]]'
         -> True, because 'Customary Name' appears as a bracket group in df_col_name.
+
+    IMPORTANT: Also checks that the parent struct name matches, preventing
+    cross-contamination between struct columns that share inner field names.
+    For example, ``[CV Employee Work Experience[CV End Date]]`` should NOT
+    match ``[CV Employee Education[...[CV End Date]]]`` because the parents
+    differ.
     """
     short = _extract_short_name(schema_name)
     if short == schema_name:
         return False  # Not in bracket convention, skip
+
+    # Check parent struct matches — prevents cross-contamination between
+    # struct columns that share inner field names (e.g. "CV End Date"
+    # appears in both CV Employee Education and CV Employee Work Experience).
+    schema_parent = extract_struct_parent(schema_name)
+    df_parent = extract_struct_parent(df_col_name)
+    if schema_parent and df_parent and schema_parent != df_parent:
+        return False
+
     return f"[{short}]" in df_col_name
 
 

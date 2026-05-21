@@ -189,17 +189,21 @@ class LLM:
         """
         raise MethodNotImplementedError("Call method has not been implemented")
 
-    def generate_code(self, instruction: BasePrompt, context: AgentState) -> str:
+    def generate_code(self, instruction: BasePrompt, context: AgentState, sampling_params: dict = None) -> str:
         """
         Generate the code based on the instruction and the given prompt.
 
         Args:
             instruction (BasePrompt): Prompt with instruction for LLM.
             context (AgentState): Context to pass.
+            sampling_params (dict, optional): Per-call sampling parameters that
+                override the LLM's default settings for this call only.
 
         Returns:
             str: A string of Python code.
 
         """
-        response = self.call(instruction, context)
+        response = self.call(instruction, context, sampling_params=sampling_params)
+        # Store the raw LLM response for debug logging
+        self._last_raw_response = response
         return self._extract_code(response)

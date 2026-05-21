@@ -27,10 +27,18 @@ class CodeGenerator:
             Exception: If any step fails during the process.
         """
         try:
+            # Build per-call sampling params for code generation.
+            # These override the LLM's default settings for this call only.
+            sampling_params = self._get_sampling_params()
+
             # Generate the code
-            code = self._context.config.llm.generate_code(prompt, self._context)
+            code = self._context.config.llm.generate_code(prompt, self._context, sampling_params=sampling_params)
             # Store the original generated code (for logging purposes)
             self._context.last_code_generated = code
+            # Capture the raw LLM response for code generation debug logging
+            raw_response = getattr(self._context.config.llm, '_last_raw_response', None)
+            if raw_response is not None:
+                self._context.code_generation_raw_llm_response = raw_response
             self._context.logger.log(f"Code Generated:\n{code}")
 
             # Validate and clean the code
@@ -48,6 +56,28 @@ class CodeGenerator:
             self._context.logger.log(f"Stack Trace:\n{stack_trace}")
 
             raise e
+
+    def _get_sampling_params(self) -> dict | None:
+        """Build per-call sampling params from config for code generation.
+
+        Returns None if no code-generation-specific params are configured,
+        so the LLM's default settings are used.
+        """
+        cfg = self._context.config
+        params = {}
+        if getattr(cfg, "code_generation_temperature", None) is not None:
+            params["temperature"] = cfg.code_generation_temperature
+        if getattr(cfg, "code_generation_top_p", None) is not None:
+            params["top_p"] = cfg.code_generation_top_p
+        if getattr(cfg, "code_generation_top_k", None) is not None:
+            params["top_k"] = cfg.code_generation_top_k
+        if getattr(cfg, "code_generation_min_p", None) is not None:
+            params["min_p"] = cfg.code_generation_min_p
+        if getattr(cfg, "code_generation_repetition_penalty", None) is not None:
+            params["repetition_penalty"] = cfg.code_generation_repetition_penalty
+        if getattr(cfg, "code_generation_presence_penalty", None) is not None:
+            params["presence_penalty"] = cfg.code_generation_presence_penalty
+        return params if params else None
 
     def validate_and_clean_code(self, code: str) -> str:
         # Validate code requirements
