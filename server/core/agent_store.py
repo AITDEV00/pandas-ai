@@ -36,6 +36,16 @@ class AgentStore:
             self._store[conversation_id] = (agent, time.time())
             return agent
 
+    def exists(self, conversation_id: str) -> bool:
+        """Check whether a conversation is currently held in memory.
+
+        Non-mutating: unlike ``get_agent``, this does **not** refresh the
+        TTL.  A status check that is not followed by a chat should not keep
+        an idle conversation alive indefinitely.
+        """
+        with self._lock:
+            return conversation_id in self._store
+
     def remove_agent(self, conversation_id: str) -> bool:
         with self._lock:
             if conversation_id in self._store:

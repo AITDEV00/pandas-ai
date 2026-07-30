@@ -1,7 +1,7 @@
 import os
 import logging
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from server.core.llm_setup import setup_global_llm
 from server.core.agent_store import agent_store
@@ -43,6 +43,23 @@ def create_app() -> FastAPI:
     @app.get("/health")
     def health_check():
         return {"status": "ok", "active_sessions": agent_store.active_count}
+
+    @app.get("/api/conversations/{conversation_id}")
+    def get_conversation_status(conversation_id: str):
+        """Check whether a conversation still exists in memory.
+
+        Non-mutating: does not refresh the session TTL.
+        Returns 200 if the conversation is alive, 404 otherwise.
+        """
+        if agent_store.exists(conversation_id):
+            return {"exists": True, "conversation_id": conversation_id}
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "exists": False,
+                "message": "Conversation not found or expired.",
+            },
+        )
 
     @app.post("/api/admin/evict")
     def evict_expired_sessions():
