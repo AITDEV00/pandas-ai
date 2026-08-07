@@ -52,5 +52,8 @@ datasets/
 # run artifacts (e2e reports, temp files)
 run/e2e_reports/
 
+# per-conversation chat run summaries (markdown)
+run/conv_logs/
+
 # scratch / temp
 scratch/
