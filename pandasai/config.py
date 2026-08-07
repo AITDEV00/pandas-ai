@@ -12,6 +12,10 @@ class Config(BaseModel):
     verbose: bool = False
     max_retries: int = 3
     llm: Optional[LLM] = None
+    # Dedicated LLM for structured JSON calls (column selection, description
+    # auto-fill).  When set, the ColumnSelector and description filler use this
+    # instead of ``llm``.  Falls back to ``llm`` when None.
+    structured_llm: Optional[LLM] = None
     file_manager: FileManager = Field(default_factory=DefaultFileManager)
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

@@ -379,6 +379,32 @@ def _coerce_response_type(
     return None
 
 
+def _make_json_safe(obj):
+    """Recursively convert non-JSON-serializable objects to strings.
+
+    The pipeline can contain LLM prompt objects, numpy scalars, DataFrames,
+    etc. that FastAPI/Pydantic cannot serialize. This recursively converts
+    anything non-serializable into its string form so the pipeline can be
+    returned safely in the API response.
+    """
+    import json as _json
+
+    if isinstance(obj, dict):
+        return {k: _make_json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple, set)):
+        return [_make_json_safe(v) for v in obj]
+    if obj is None or isinstance(obj, (bool, int, float, str)):
+        return obj
+    # Try direct serialization (dict/list/primitive cases)
+    try:
+        _json.dumps(obj)
+        return obj
+    except (TypeError, ValueError):
+        pass
+    # Fall back to string form for exotic objects (pandas, prompt objects, etc.)
+    return str(obj)
+
+
 def _extract_pipeline_log(agent) -> dict:
     """Extract the full pipeline trace from the agent's internal state.
 
@@ -468,6 +494,38 @@ def _extract_pipeline_log(agent) -> dict:
         pipeline["retrieval_mode_source"] = state.retrieval_mode_source
 
     return pipeline
+
+
+def _extract_error_trace(agent) -> dict:
+    """Extract a lightweight, error-focused pipeline for the API response.
+
+    The full `_extract_pipeline_log()` can be very large (raw execution
+    results, full prompts, memory, raw LLM responses), which makes serializing
+    it into EVERY chat response slow and bloaty. For the API response we only
+    need the fields that answer "why did code generation/execution fail?" —
+    the per-attempt code + error + traceback. The full detail is still written
+    to the per-conversation Markdown log via `_extract_pipeline_log()`.
+    """
+    state = agent._state
+    trace = {}
+
+    # Code attempts — the essential error-relevant data (code + error + traceback)
+    if state.code_attempts:
+        trace["code_attempts"] = state.code_attempts
+
+    # Full error traceback if a fatal error occurred
+    if state.last_error_traceback:
+        trace["last_error_traceback"] = state.last_error_traceback
+
+    # Column selection log (small, helps understand which columns were picked)
+    if state.column_selection_log:
+        trace["column_selection_log"] = state.column_selection_log
+
+    # SQL queries (with per-query error/results), keep small
+    if state.sql_queries:
+        trace["sql_queries"] = state.sql_queries
+
+    return trace
 
 
 def handle_chat_query(
@@ -585,6 +643,7 @@ def handle_chat_query(
                     "retrieval_mode_reasoning": agent._state.retrieval_mode_reasoning,
                     "retrieval_mode_source": agent._state.retrieval_mode_source,
                 }
+                result["pipeline"] = _make_json_safe(_extract_error_trace(agent))
                 _log_conversation(conversation_id, {"query": query, "result": result})
                 return result
         else:
@@ -603,9 +662,11 @@ def handle_chat_query(
             "retrieval_mode_reasoning": agent._state.retrieval_mode_reasoning,
             "retrieval_mode_source": agent._state.retrieval_mode_source,
         }
-        # Include pipeline trace when step1_only mode is active
-        if step1_only:
-            result["pipeline"] = _extract_pipeline_log(agent)
+        # Include the pipeline trace (code_attempts, tracebacks, retries) so
+        # code-generation/execution failures are visible in the API response.
+        # This is always included so downstream clients (e.g. e2e reports) can
+        # capture per-attempt errors without grepping server logs.
+        result["pipeline"] = _make_json_safe(_extract_error_trace(agent))
         _log_conversation(conversation_id, {
             "query": query,
             "result": result,

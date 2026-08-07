@@ -333,3 +333,91 @@ def cast_struct_field_types(df: pd.DataFrame, schema: Any) -> pd.DataFrame:
     )
 
     return df
+
+
+# ---------------------------------------------------------------------------
+# Flat (top-level) column type casting
+# ---------------------------------------------------------------------------
+# The semantic model declares flat columns too (e.g. ``datetime`` for a
+# ``[Employee Master[Date of Joining]]`` column).  But when a CSV is loaded,
+# pandas keeps these as ``object``/string dtype, and DuckDB infers ``VARCHAR``.
+#
+# The prompt tells the LLM the column is ``datetime``, so it writes pandas
+# datetime code (``.dt.date``, ``.dt.days``, ``(today - doj.date())``), which
+# crashes at runtime because the value is actually a string.  Casting flat
+# columns to their declared type BEFORE DuckDB registration makes the runtime
+# dtype match the prompt, eliminating this whole error class.
+#
+# ``cast_struct_field_types`` above only handles struct inner-fields. This
+# function handles the top-level columns so both are covered.
+# ---------------------------------------------------------------------------
+
+
+def _build_flat_field_type_map(df: pd.DataFrame, schema: Any) -> Dict[str, str]:
+    """Build a mapping of flat column name → declared type from the schema.
+
+    Only includes top-level (non-list[struct]) columns whose declared type is
+    in ``_TYPE_CASTERS`` (datetime, float, integer, boolean).  Columns that are
+    already the correct dtype are skipped.
+
+    Returns:
+        Dict mapping ``column_name → type_string``.
+    """
+    if not schema or not hasattr(schema, "columns") or not schema.columns:
+        return {}
+
+    flat_type_map: Dict[str, str] = {}
+
+    for schema_col in schema.columns:
+        col_name = schema_col.name
+        declared_type = schema_col.type
+        if not declared_type or declared_type not in _TYPE_CASTERS:
+            continue
+        # Skip struct columns — handled by cast_struct_field_types
+        if col_name not in df.columns:
+            continue
+        if is_list_struct_column(df[col_name]):
+            continue
+        flat_type_map[col_name] = declared_type
+
+    return flat_type_map
+
+
+def cast_flat_field_types(df: pd.DataFrame, schema: Any) -> pd.DataFrame:
+    """Cast flat (top-level) columns to their declared types from the schema.
+
+    The semantic model declares types for flat columns (datetime, integer,
+    float, boolean), but CSV-loaded data keeps them as ``object``/string.
+    ``duckdb.connection.register()`` infers SQL types from Python objects, so
+    without this step a ``datetime``-declared column stays ``VARCHAR`` in
+    DuckDB, causing LLM-generated datetime code (``.dt.*``, ``.date()``) to
+    fail at runtime.
+
+    Uses the same per-type caster functions as the struct path, so behaviour is
+    consistent (each caster falls back to the original value on parse failure).
+
+    Args:
+        df: DataFrame with flat columns that may hold string values.
+        schema: A SemanticLayerSchema with declared column types.
+
+    Returns:
+        The DataFrame with flat column values cast to their declared types.
+    """
+    flat_type_map = _build_flat_field_type_map(df, schema)
+    if not flat_type_map:
+        return df
+
+    for col_name, declared_type in flat_type_map.items():
+        caster = _TYPE_CASTERS[declared_type]
+        series = df[col_name]
+        # For datetime columns, cast element-wise so we return datetime.date
+        # values (DuckDB DATE, not TIMESTAMP), consistent with struct fields.
+        df[col_name] = series.apply(caster)
+
+    logger.info(
+        "Cast flat field types for %d column(s): %s",
+        len(flat_type_map),
+        flat_type_map,
+    )
+
+    return df

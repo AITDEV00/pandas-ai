@@ -28,6 +28,7 @@ from pandasai.helpers.type_determination import (
     _cast_datetime,
     _cast_float,
     _cast_integer,
+    cast_flat_field_types,
     cast_struct_field_types,
     parse_json_array_columns,
 )
@@ -667,3 +668,103 @@ class TestNumpyArrayToListConversion:
                     if "chinese" in name.lower() or "python" in name.lower():
                         skills.append(name)
             assert skills == ["Chinese", "Python"]
+
+
+# ---------------------------------------------------------------------------
+# Regression: flat (top-level) column type casting
+# ---------------------------------------------------------------------------
+
+
+class TestFlatFieldCasting:
+    """
+    Regression guard for the "datetime-declared but VARCHAR at runtime" bug.
+
+    The semantic model declares flat columns like
+    ``[Employee Master[Date of Joining]]`` as ``datetime``, but CSV-loaded
+    data keeps them as ``object``/string. ``duckdb.connection.register()``
+    infers types from the Python objects, so without casting the column stays
+    ``VARCHAR`` in DuckDB. The prompt tells the LLM it's ``datetime``, so it
+    writes ``.dt.date`` / ``.dt.days`` / ``CURRENT_DATE - col`` code that
+    crashes at runtime.
+
+    ``cast_flat_field_types`` casts flat columns to their declared type before
+    registration, so the runtime dtype matches the prompt.
+    """
+
+    def _make_flat_df(self):
+        """DataFrame with flat date, integer, float, and bool columns as strings."""
+        return pd.DataFrame({
+            "[Employee Info[Date of Joining]]": ["2024-09-17", "2023-01-01", "not a date"],
+            "[Employee Info[Salary]]": ["34", "45", "xx"],
+            "[Employee Info[Score]]": ["9.5", "8.0", "bad"],
+            "[Employee Info[Active]]": ["true", "false", "zz"],
+            "[Employee Info[Name]]": ["Alice", "Bob", "Carol"],   # string stays string
+        })
+
+    def _make_clean_flat_df(self):
+        """Clean version — all values parseable, so DuckDB can infer DATE/etc."""
+        return pd.DataFrame({
+            "[Employee Info[Date of Joining]]": ["2024-09-17", "2023-01-01", "2022-05-10"],
+            "[Employee Info[Salary]]": ["34", "45", "28"],
+            "[Employee Info[Score]]": ["9.5", "8.0", "7.0"],
+            "[Employee Info[Active]]": ["true", "false", "true"],
+            "[Employee Info[Name]]": ["Alice", "Bob", "Carol"],
+        })
+
+    def _make_flat_schema(self):
+        return SemanticLayerSchema(
+            name="flat_data",
+            source={"type": "csv", "path": "x.csv"},
+            columns=[
+                {"name": "[Employee Info[Date of Joining]]", "type": "datetime"},
+                {"name": "[Employee Info[Salary]]", "type": "integer"},
+                {"name": "[Employee Info[Score]]", "type": "float"},
+                {"name": "[Employee Info[Active]]", "type": "boolean"},
+                {"name": "[Employee Info[Name]]", "type": "string"},
+            ],
+        )
+
+    def _cast(self):
+        df = self._make_flat_df()
+        df.schema = self._make_flat_schema()
+        cast_flat_field_types(df, df.schema)
+        return df
+
+    def test_flat_datetime_cast_to_date(self):
+        """A flat datetime-declared column is cast to datetime.date."""
+        df = self._cast()
+        col = df["[Employee Info[Date of Joining]]"]
+        assert col.iloc[0] == date(2024, 9, 17)
+        assert col.iloc[1] == date(2023, 1, 1)
+        # Unparseable value falls back to original string
+        assert col.iloc[2] == "not a date"
+
+    def test_flat_integer_float_boolean_cast(self):
+        """Flat integer/float/boolean columns are cast; string stays string."""
+        df = self._cast()
+        assert df["[Employee Info[Salary]]"].iloc[0] == 34
+        assert df["[Employee Info[Salary]]"].iloc[1] == 45
+        assert df["[Employee Info[Salary]]"].iloc[2] == "xx"  # fallback
+        assert df["[Employee Info[Score]]"].iloc[0] == 9.5
+        assert df["[Employee Info[Score]]"].iloc[1] == 8.0
+        assert df["[Employee Info[Score]]"].iloc[2] == "bad"  # fallback
+        assert df["[Employee Info[Active]]"].iloc[0] is True
+        assert df["[Employee Info[Active]]"].iloc[1] is False
+        assert df["[Employee Info[Active]]"].iloc[2] == "zz"  # invalid → fallback
+        # String column is not cast
+        assert df["[Employee Info[Name]]"].iloc[0] == "Alice"
+
+    def test_register_infers_date_not_varchar(self):
+        """After register(), a datetime-declared flat column is DATE in DuckDB."""
+        df = self._make_clean_flat_df()
+        df.schema = self._make_flat_schema()
+        db = DuckDBConnectionManager()
+        db.register("enterprise_data", df)
+        rows = db.connection.execute("DESCRIBE enterprise_data").fetchall()
+        db.close()
+        types = {r[0]: r[1] for r in rows}
+        assert types["[Employee Info[Date of Joining]]"] == "DATE"
+        assert types["[Employee Info[Salary]]"] == "BIGINT"
+        assert types["[Employee Info[Score]]"] == "DOUBLE"
+        assert types["[Employee Info[Active]]"] == "BOOLEAN"
+        assert types["[Employee Info[Name]]"] == "VARCHAR"

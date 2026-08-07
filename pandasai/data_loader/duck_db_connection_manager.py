@@ -4,7 +4,10 @@ from typing import Optional
 import duckdb
 import pandas as pd
 
-from pandasai.helpers.type_determination import cast_struct_field_types
+from pandasai.helpers.type_determination import (
+    cast_flat_field_types,
+    cast_struct_field_types,
+)
 from pandasai.query_builders.sql_parser import SQLParser
 
 logger = logging.getLogger(__name__)
@@ -40,6 +43,7 @@ class DuckDBConnectionManager:
         schema = getattr(df, "schema", None)
         if schema:
             cast_struct_field_types(df, schema)
+            cast_flat_field_types(df, schema)
         self.connection.register(name, df)
         self._registered_tables.add(name)
 

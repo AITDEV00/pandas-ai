@@ -55,7 +55,9 @@ class ColumnSelector:
         # reducing variance on ambiguous column-selection queries.
         sampling_params = self._get_sampling_params()
 
-        response = self._state.config.llm.call(prompt, self._state, sampling_params=sampling_params)
+        # Use the dedicated structured LLM if configured, otherwise the main LLM.
+        target_llm = getattr(self._state.config, "structured_llm", None) or self._state.config.llm
+        response = target_llm.call(prompt, self._state, sampling_params=sampling_params)
         # Store raw LLM response for debug logging
         self._last_raw_response = response
         selected = self._parse_response(response)

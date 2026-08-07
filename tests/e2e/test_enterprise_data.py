@@ -248,6 +248,10 @@ def _run_single_question(
                 "selected_columns": response.get("selected_columns"),
                 "chat_elapsed_seconds": round(chat_elapsed, 2),
                 "register_elapsed_seconds": round(register_elapsed, 2),
+                # Capture code-generation/execution errors + full tracebacks from
+                # the server pipeline trace so failures are reproducible from
+                # the report alone (without grepping conv_logs).
+                "pipeline": response.get("pipeline"),
                 "hc_result": q["hc_result"],
                 "issue": q["issue"],
                 "n8n_observations": q["n8n_observations"],
