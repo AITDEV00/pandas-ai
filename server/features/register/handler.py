@@ -94,6 +94,21 @@ def create_agent_from_file_path(
             errors = [{"field": ".".join(map(str, err["loc"])), "error": err["msg"]} for err in e.errors()]
             raise HTTPException(status_code=400, detail={"message": "Semantic Model Validation Failed", "errors": errors})
 
+    # --- 2a. Cast struct inner-fields to declared types BEFORE schema patching ---
+    # ``cast_struct_field_types`` resolves each struct inner-field's declared
+    # type from the *individual* inner-field schema columns (e.g.
+    # ``[Employee Leave Details[Leave Start Date]]`` -> datetime). Step 2b below
+    # REMOVES those inner-field columns from the schema once the combined struct
+    # column is added. So the cast must run here, while the full schema is still
+    # present, otherwise it is silently skipped and struct dates stay VARCHAR
+    # (causing ``date_part(STRING_LITERAL, VARCHAR)`` errors at query time).
+    # The cast is idempotent — DuckDBConnectionManager.register() still applies
+    # it again (a no-op on already-cast values).
+    if df.schema and df.schema.columns:
+        from pandasai.helpers.type_determination import cast_struct_field_types
+
+        cast_struct_field_types(df, df.schema)
+
     # --- 2b. Patch schema columns to reflect actual data types ---
     # After JSON array parsing, some columns that the user declared as "string"
     # are actually list[struct]. The serializer handles this in its col_dict,

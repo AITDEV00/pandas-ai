@@ -337,6 +337,89 @@ class TestStructFieldCastingPipeline:
         )
         db.close()
 
+    def test_empty_struct_strings_become_null_not_mixed(self):
+        """Empty/whitespace struct string values become None (NULL in DuckDB).
+
+        Without this, a struct date field with some '' values becomes a mixed
+        ``date|str`` list and DuckDB widens the whole field to VARCHAR, which
+        breaks ``EXTRACT(YEAR FROM ...)`` / date arithmetic.
+        """
+        data = {
+            "id": ["1136"],
+            "[Employee Leave Details[Leave Type][Leave Duration (Days)][Approval Status][Leave Start Date][Leave End Date]]": [
+                json.dumps([
+                    {
+                        "Employee Leave Details[Leave Type]": "Sick",
+                        "Employee Leave Details[Leave Duration (Days)]": "5",
+                        "Employee Leave Details[Approval Status]": "Approved",
+                        "Employee Leave Details[Leave Start Date]": "2025-01-15",
+                        "Employee Leave Details[Leave End Date]": "2025-01-20",
+                    },
+                    {
+                        "Employee Leave Details[Leave Type]": "Sick",
+                        "Employee Leave Details[Leave Duration (Days)]": "3",
+                        "Employee Leave Details[Approval Status]": "Approved",
+                        # Empty date string — must become NULL, not stay str
+                        "Employee Leave Details[Leave Start Date]": "",
+                        "Employee Leave Details[Leave End Date]": "",
+                    },
+                ]),
+            ],
+        }
+        df = pd.DataFrame(data)
+        parse_json_array_columns(df)
+        df.schema = _make_leave_schema()
+
+        db = DuckDBConnectionManager()
+        db.register("enterprise_data", df)
+
+        describe = db.sql("DESCRIBE enterprise_data").fetchall()
+        struct_type = next(row[1] for row in describe if "Leave" in row[0])
+        # With empty strings converted to NULL, the date field must stay DATE
+        assert "Leave Start Date]\" DATE" in struct_type, (
+            f"Expected DATE for Leave Start Date (empty strings -> NULL), got: {struct_type}"
+        )
+        assert "Leave End Date]\" DATE" in struct_type, (
+            f"Expected DATE for Leave End Date (empty strings -> NULL), got: {struct_type}"
+        )
+
+        # Verify NULLs round-trip correctly (no crash, valid rows still query)
+        rows = db.sql("""
+            SELECT rec['Employee Leave Details[Leave Start Date]']
+            FROM enterprise_data,
+                 UNNEST("[Employee Leave Details[Leave Type][Leave Duration (Days)][Approval Status][Leave Start Date][Leave End Date]]") AS t(rec)
+            WHERE rec['Employee Leave Details[Leave Start Date]'] IS NOT NULL
+        """).fetchall()
+        assert rows, "Expected at least one non-NULL leave start date"
+        db.close()
+
+    def test_empty_struct_strings_become_none(self):
+        """Unit-level: cast_struct_field_types maps '' -> None for struct fields."""
+        data = {
+            "id": ["1"],
+            "[Employee Leave Details[Leave Type][Leave Duration (Days)][Approval Status][Leave Start Date][Leave End Date]]": [
+                json.dumps([
+                    {
+                        "Employee Leave Details[Leave Type]": "Sick",
+                        "Employee Leave Details[Leave Duration (Days)]": "5",
+                        "Employee Leave Details[Approval Status]": "Approved",
+                        "Employee Leave Details[Leave Start Date]": "",
+                        "Employee Leave Details[Leave End Date]": "2025-01-20",
+                    },
+                ]),
+            ],
+        }
+        df = pd.DataFrame(data)
+        parse_json_array_columns(df)
+        df.schema = _make_leave_schema()
+
+        cast_struct_field_types(df, df.schema)
+        col = "[Employee Leave Details[Leave Type][Leave Duration (Days)][Approval Status][Leave Start Date][Leave End Date]]"
+        rec = df[col].iloc[0][0]
+        # Empty start date -> None; non-empty end date -> date
+        assert rec["Employee Leave Details[Leave Start Date]"] is None
+        assert rec["Employee Leave Details[Leave End Date]"] == date(2025, 1, 20)
+
 
 class TestDurationSumNotConcatenated:
     """

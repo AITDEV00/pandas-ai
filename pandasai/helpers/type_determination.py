@@ -286,6 +286,14 @@ def _make_row_caster(casters: Dict[str, Any]) -> Any:
                 continue
             cast_dict = {}
             for k, v in struct_dict.items():
+                # Empty/whitespace strings have no meaningful type. Converting
+                # them to None (-> NULL in DuckDB) keeps a struct field from
+                # becoming a mixed ``date|str`` list, which would otherwise
+                # force DuckDB to infer VARCHAR for the whole field (e.g. a
+                # date field with some '' values).
+                if isinstance(v, str) and not v.strip():
+                    cast_dict[k] = None
+                    continue
                 caster = casters.get(k)
                 cast_dict[k] = caster(v) if caster else v
             result.append(cast_dict)

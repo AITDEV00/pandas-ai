@@ -1,9 +1,30 @@
+import datetime
 import json
 import random
 import typing
 
 if typing.TYPE_CHECKING:
     from ..dataframe.base import DataFrame
+
+
+def _json_default(obj):
+    """JSON serializer for non-natively-serializable objects.
+
+    Struct fields are cast to their declared types (datetime -> ``datetime.date``,
+    etc.) before DuckDB registration. When the DataFrame is serialized back into
+    the LLM prompt (e.g. the error-correction template), these objects must
+    serialize to JSON without raising ``TypeError``. Dates become ISO strings.
+    """
+    if isinstance(obj, (datetime.date, datetime.datetime)):
+        return obj.isoformat()
+    if isinstance(obj, (set, frozenset)):
+        return list(obj)
+    if hasattr(obj, "tolist"):  # numpy scalars/arrays
+        try:
+            return obj.tolist()
+        except Exception:
+            pass
+    return str(obj)
 
 
 class DataframeSerializer:
@@ -94,7 +115,7 @@ class DataframeSerializer:
             if config.enrich_column_values and any("samples" in c for c in columns):
                 columns = cls._apply_token_budget(columns, config)
 
-            dataframe_info += f' columns="{json.dumps(columns, ensure_ascii=False)}"'
+            dataframe_info += f' columns="{json.dumps(columns, ensure_ascii=False, default=_json_default)}"'
 
         dataframe_info += f' dimensions="{df.rows_count}x{df.columns_count}">'
 
@@ -130,13 +151,13 @@ class DataframeSerializer:
                 total = 0
                 for inner_col, inner_data in samples.items():
                     if isinstance(inner_data, dict):
-                        total += len(json.dumps(inner_data, ensure_ascii=False)) // 4
+                        total += len(json.dumps(inner_data, ensure_ascii=False, default=_json_default)) // 4
                     else:
-                        total += len(json.dumps({inner_col: inner_data}, ensure_ascii=False)) // 4
+                        total += len(json.dumps({inner_col: inner_data}, ensure_ascii=False, default=_json_default)) // 4
                 return total
             
             # Rough estimate: ~4 chars per token
-            return len(json.dumps({"samples": samples}, ensure_ascii=False)) // 4
+            return len(json.dumps({"samples": samples}, ensure_ascii=False, default=_json_default)) // 4
 
         costs = {i: _token_cost(col) for i, col in enumerate(columns)}
         total = sum(costs.values())
@@ -213,7 +234,7 @@ class DataframeSerializer:
 
         def truncate_value(value):
             if isinstance(value, (dict, list)):  # Convert JSON-like objects to strings
-                value = json.dumps(value, ensure_ascii=False)
+                value = json.dumps(value, ensure_ascii=False, default=_json_default)
 
             if isinstance(value, str) and len(value) > cls.MAX_COLUMN_TEXT_LENGTH:
                 return f"{value[: cls.MAX_COLUMN_TEXT_LENGTH]}…"

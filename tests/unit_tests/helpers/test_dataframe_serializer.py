@@ -1,4 +1,4 @@
-from pandasai.helpers.dataframe_serializer import DataframeSerializer
+from pandasai.helpers.dataframe_serializer import DataframeSerializer, _json_default
 
 
 class TestDataframeSerializer:
@@ -52,3 +52,45 @@ A,B
 
         # Normalize line endings before asserting
         assert result.replace("\r\n", "\n") == expected.replace("\r\n", "\n")
+
+
+class TestJsonDefault:
+    """``_json_default`` serializes non-JSON-native values (e.g. struct dates).
+
+    Struct fields are cast to ``datetime.date`` before DuckDB registration. When
+    the DataFrame is re-serialized into a prompt (error-correction template), the
+    date objects must serialize without raising ``TypeError``.
+    """
+
+    def test_date_serializes_to_iso(self):
+        import json
+        from datetime import date
+
+        out = json.dumps({"d": date(2025, 1, 15)}, default=_json_default)
+        assert '"2025-01-15"' in out
+
+    def test_struct_with_date_and_none(self):
+        import json
+        from datetime import date
+
+        struct = [{"type": "Sick", "start": date(2025, 1, 15), "end": None}]
+        out = json.loads(json.dumps(struct, default=_json_default))
+        assert out[0]["start"] == "2025-01-15"
+        assert out[0]["end"] is None
+
+    def test_datetime_serializes(self):
+        import json
+        from datetime import datetime
+
+        out = json.dumps(datetime(2025, 1, 15, 10, 30), default=_json_default)
+        assert '"2025-01-15T10:30:00"' in out
+
+    def test_non_serializable_falls_back_to_str(self):
+        import json
+
+        class Weird:
+            def __str__(self):
+                return "weird"
+
+        out = json.dumps({"v": Weird()}, default=_json_default)
+        assert '"weird"' in out
