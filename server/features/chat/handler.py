@@ -194,6 +194,7 @@ def _write_readable_log(log_dir: Path, conversation_id: str, payload: dict) -> N
                         error = entry.get("error")
                         error_type = entry.get("error_type", "")
                         error_tb = entry.get("error_traceback", "")
+                        thinking = entry.get("thinking_trace", "")
                         icon = "✅" if error is None else "❌"
                         f.write(f"#### {icon} Generation Attempt {attempt}\n\n")
                         if error:
@@ -205,6 +206,10 @@ def _write_readable_log(log_dir: Path, conversation_id: str, payload: dict) -> N
                                 f.write("</details>\n\n")
                         if code:
                             f.write(f"```python\n{code}\n```\n\n")
+                        if thinking:
+                            f.write("<details>\n<summary>LLM Thinking Trace (this attempt)</summary>\n\n")
+                            f.write(f"```\n{thinking}\n```\n\n")
+                            f.write("</details>\n\n")
 
                 if exec_attempts:
                     f.write(f"### Step 2b — Code Execution ({len(exec_attempts)} attempt(s))\n\n")
@@ -214,6 +219,7 @@ def _write_readable_log(log_dir: Path, conversation_id: str, payload: dict) -> N
                         error = entry.get("error")
                         error_type = entry.get("error_type", "")
                         error_tb = entry.get("error_traceback", "")
+                        thinking = entry.get("thinking_trace", "")
                         icon = "✅" if error is None else "❌"
                         f.write(f"#### {icon} Execution Attempt {attempt}\n\n")
                         if error:
@@ -225,6 +231,10 @@ def _write_readable_log(log_dir: Path, conversation_id: str, payload: dict) -> N
                                 f.write("</details>\n\n")
                         if code:
                             f.write(f"```python\n{code}\n```\n\n")
+                        if thinking:
+                            f.write("<details>\n<summary>LLM Thinking (this attempt)</summary>\n\n")
+                            f.write(f"```\n{thinking}\n```\n\n")
+                            f.write("</details>\n\n")
 
             # ── 3d. Code Generation Raw LLM Response ──
             code_gen_raw = pipeline.get("code_generation_raw_llm_response", "")

@@ -246,6 +246,9 @@ class Agent:
                     "attempt": attempt + 1,
                     "code": code,
                     "error": None,
+                    # Snapshot the thinking trace produced by THIS generation
+                    # call, before a later retry can overwrite it.
+                    "thinking_trace": self._state.code_generation_thinking_trace,
                 })
                 return code
             except Exception as e:
@@ -259,6 +262,7 @@ class Agent:
                     "error": str(e),
                     "error_type": type(e).__name__,
                     "error_traceback": error_tb,
+                    "thinking_trace": self._state.code_generation_thinking_trace,
                 })
                 if attempt >= max_retries:
                     self._state.logger.log(
@@ -290,6 +294,8 @@ class Agent:
                     "attempt": attempt + 1,
                     "code": code,
                     "error": None,
+                    # Snapshot the thinking trace that produced this code.
+                    "thinking_trace": self._state.code_generation_thinking_trace,
                 })
                 return self._response_parser.parse(result, code)
             except Exception as e:
@@ -302,6 +308,7 @@ class Agent:
                     "error": str(e),
                     "error_type": type(e).__name__,
                     "error_traceback": error_tb,
+                    "thinking_trace": self._state.code_generation_thinking_trace,
                 })
                 if attempt >= max_retries:
                     self._state.logger.log(f"Max retries reached. Error: {e}")

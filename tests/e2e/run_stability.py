@@ -12,10 +12,26 @@ Usage:
     # Use the curated enterprise questions (imports helpers from test_enterprise_data)
     python tests/e2e/run_stability.py --question Q19 --runs 5
 
+    # Bypass server-side response caching: append a subtle punctuation variant
+    # to each run's query so the LLM sees a (slightly) different prompt and can't
+    # return a cached identical response.  The variation is word/meaning-neutral.
+    python tests/e2e/run_stability.py --question Q19 --runs 5 --no-cache
+
 Prerequisites:
     - Server running locally (make -f Makefile.build run-local)
     - .env configured
 """
+
+# Tiny punctuation suffixes to defeat prompt-level response caching without
+# changing the query's meaning.  Each run gets a different suffix.
+_CACHE_BUST_SUFFIXES = [
+    "",
+    ".",
+    "  ",
+    ":",
+    " .",
+    "  .",
+]
 
 import argparse
 import base64
@@ -94,25 +110,39 @@ def _chat(client: httpx.Client, conversation_id: str, query: str) -> dict:
     return resp.json()
 
 
-def run_stability(query: str, runs: int = 5, question_id: Optional[str] = None) -> None:
+def run_stability(
+    query: str,
+    runs: int = 5,
+    question_id: Optional[str] = None,
+    no_cache: bool = False,
+) -> None:
     if not query and question_id not in STABILITY_QUESTIONS:
         print(f"❌ Unknown question {question_id}. Choose from {list(STABILITY_QUESTIONS)}")
         return
 
     label = question_id or "custom"
-    query = query or STABILITY_QUESTIONS[question_id]
+    base_query = query or STABILITY_QUESTIONS[question_id]
 
     semantic_model = _load_semantic_model(SEMANTIC_MODEL_FILE)
     print(f"Server: {BASE_URL}")
     print(f"Question: {label}")
     print(f"Runs: {runs}")
-    print(f"Query: {query[:120]}...")
+    print(f"Cache-bypass: {'ON' if no_cache else 'OFF'}")
+    print(f"Query: {base_query[:120]}...")
     print("=" * 70)
 
     results = []
     types = {}
     with httpx.Client(timeout=300) as client:
         for i in range(1, runs + 1):
+            # If cache-bypass is on, append a distinct punctuation suffix to
+            # each run so the prompt differs slightly and the backend can't
+            # return a cached identical response.  Meaning-neutral.
+            if no_cache:
+                suffix = _CACHE_BUST_SUFFIXES[(i - 1) % len(_CACHE_BUST_SUFFIXES)]
+                query = base_query + suffix
+            else:
+                query = base_query
             print(f"\n--- Run {i}/{runs} ---")
             try:
                 t0 = time.time()
@@ -135,6 +165,7 @@ def run_stability(query: str, runs: int = 5, question_id: Optional[str] = None) 
                     "selected_columns": sel,
                     "chat_elapsed_seconds": chat_s,
                     "register_elapsed_seconds": reg_s,
+                    "cache_bust_suffix": suffix if no_cache else None,
                 })
             except Exception as e:
                 print(f"  ❌ failed: {e}")
@@ -166,5 +197,6 @@ if __name__ == "__main__":
     parser.add_argument("--question", help="One of Q13a/Q19/Q28/Q30")
     parser.add_argument("--query", help="Custom query string")
     parser.add_argument("--runs", type=int, default=5)
+    parser.add_argument("--no-cache", action="store_true", help="Append punctuation variant to bypass server-side response caching")
     args = parser.parse_args()
-    run_stability(args.query, args.runs, args.question)
+    run_stability(args.query, args.runs, args.question, no_cache=args.no_cache)
