@@ -23,6 +23,11 @@ from pydantic import BaseModel, Field
 
 from pandasai.agent.state import AgentState
 from pandasai.core.prompts.base import BasePrompt
+from pandasai.helpers.concept_registry import (
+    collect_struct_groups,
+    concepts_for_query,
+    missing_groups,
+)
 from pandasai.helpers.semantic_matching import (
     _extract_short_name,
     bracket_col_has_any_field,
@@ -400,66 +405,6 @@ class ColumnSelector:
 
         return result
 
-    def add_missing_struct_groups(
-        self, selected_names: List[str], missing_groups: List[str], dfs: List
-    ) -> List[str]:
-        """Inject whole struct groups that the LLM missed back into the selection.
-
-        ``missing_groups`` are struct *parent* group names (e.g. ``"CV Employee
-        Summary"``) returned by ``Agent._detect_missing_struct_groups``.  This
-        method expands each into its canonical bracket-form inner-field names
-        (e.g. ``"[CV Employee Summary[CV Employee Summary]]"``) and appends
-        them to ``selected_names`` so ``match_names_to_schema`` picks up the
-        entire struct.
-
-        Generic — no hardcoded column names.  The parent name is matched
-        against the actual DataFrame schema.
-        """
-        # Build a lookup of struct parent group name → its df columns.
-        # Struct groups are represented in df.columns as bracket-style names,
-        # either one column per inner field (``[Parent[Field1]]``) or combined
-        # (``[Parent[Field1][Field2]]``).  We record the df column name(s) for
-        # each parent so an entire group can be re-injected verbatim.
-        parent_to_df_cols: Dict[str, List[str]] = {}
-        for df in dfs:
-            df_cols = df.columns if hasattr(df, 'columns') else []
-            for col_name in df_cols:
-                if not (isinstance(col_name, str) and col_name.startswith("[")):
-                    continue
-                parent = extract_struct_parent(col_name)
-                if not parent:
-                    continue
-                # Only treat as a struct group if the schema confirms it as
-                # list[struct] OR the column has multiple bracket groups.
-                if parent not in parent_to_df_cols:
-                    parent_to_df_cols[parent] = []
-                if col_name not in parent_to_df_cols[parent]:
-                    parent_to_df_cols[parent].append(col_name)
-
-        added = []
-        for group in missing_groups:
-            # ``group`` may be a bracket-form schema name or a bare parent
-            # name.  Normalize to the bare parent.
-            bare = extract_struct_parent(group) or group
-            df_cols = parent_to_df_cols.get(bare) or []
-            if df_cols:
-                for col in df_cols:
-                    if col not in selected_names:
-                        added.append(col)
-            elif group not in selected_names:
-                # No df columns known for this parent — inject the bare name so
-                # match_names_to_schema can try to resolve it.
-                added.append(group)
-
-        # Dedupe preserving order
-        seen = set(selected_names)
-        final = list(selected_names)
-        for a in added:
-            if a not in seen:
-                final.append(a)
-                seen.add(a)
-        return final
-
     def _repair_missing_struct_groups(
         self, query: str, selected_names: List[str]
     ) -> List[str]:
@@ -473,98 +418,27 @@ class ColumnSelector:
         Fully generic: struct groups are matched by concept keyword — no
         hardcoded column names.  Operates on ``df.columns`` bracket-style
         struct groups, which is the source of truth for what can be queried.
+
+        Concept definitions live in ``pandasai.helpers.concept_registry``
+        (single source of truth shared with the diagnostic path).
         """
-        import re
-
-        query_lower = query.lower()
-
-        # Concept → (keyword patterns, per-path keywords).  Paths with no
-        # keywords are ignored.  Every keyword is matched case-insensitively
-        # against the struct parent name AND its inner field names.
-        CONCEPT_PATHS = {
-            "skills": {
-                "patterns": [r'\bskill\b', r'\bcompetenc', r'\babilit', r'\bproficien'],
-                "paths": ["competenc", "skill", "rating", "experience",
-                          "responsibilit", "achievement", "award", "summary",
-                          "profile", "qualificat", "educat", "certificat"],
-            },
-            "projects": {
-                "patterns": [r'\bproject\b', r'\bassignment\b', r'\binitiative\b'],
-                "paths": ["assignment", "project", "objective", "rating",
-                          "experience", "achievement", "award", "summary"],
-            },
-            "performance": {
-                "patterns": [r'\bperformance\b', r'\bappraisal\b', r'\bevaluation\b'],
-                "paths": ["performance", "rating", "competenc", "objective",
-                          "achievement", "summary"],
-            },
-            "experience": {
-                "patterns": [r'\bexperience\b', r'\bwork history\b', r'\bprevious employer\b'],
-                "paths": ["experience", "employer", "assignment", "responsibilit",
-                          "summary", "profile"],
-            },
-            "education": {
-                "patterns": [r'\beducat', r'\bqualificat', r'\bdegree\b', r'\bdiploma\b', r'\bacademic\b'],
-                "paths": ["educat", "qualificat", "degree", "certificat", "institut"],
-            },
-        }
-
-        # Collect struct groups from the actual df.columns (source of truth).
-        # Collect struct groups from the actual df.columns (source of truth).
-        # parent → list of (df column name, inner field short names)
-        struct_parents: Dict[str, List[str]] = {}
-        for df in self._state.dfs:
-            df_cols = df.columns if hasattr(df, 'columns') else []
-            for col_name in df_cols:
-                if not (isinstance(col_name, str) and col_name.startswith("[")):
-                    continue
-                parent = extract_struct_parent(col_name)
-                if not parent:
-                    continue
-                inner = col_name[1:-1]
-                fields = re.findall(r'\[([^\[\]]+)\]', inner)
-                # Only treat as a real struct group if the parent has ≥1
-                # inner field (i.e. it is not a flat bracket-named column).
-                if fields:
-                    struct_parents.setdefault(parent, []).append(col_name)
-
+        struct_parents = collect_struct_groups(self._state.dfs)
         if not struct_parents:
             return selected_names
 
-        selected_str = " ".join(str(n) for n in selected_names).lower()
+        # First matching concept (in CONCEPTS order) drives the repair log.
+        concepts = concepts_for_query(query)
+        if not concepts:
+            return selected_names
 
         missing_cols: List[str] = []
         healing_concept = None
-        for concept_name, concept_def in CONCEPT_PATHS.items():
-            if not any(re.search(p, query_lower) for p in concept_def["patterns"]):
-                continue
-            keywords = concept_def["paths"]
-            healing_concept = concept_name
-
-            # Every struct parent whose name OR any inner field matches a
-            # keyword is EXPECTED for this multi-struct concept.  Inject any
-            # that were missed.
-            for parent, df_cols in struct_parents.items():
-                parent_lower = parent.lower()
-                # All inner field names for this parent, lowercased
-                col_fields_lower = " ".join(
-                    fld for c in df_cols
-                    for fld in [f.lower() for f in re.findall(r'\[([^\[\]]+)\]', c[1:-1])]
-                )
-                haystack = parent_lower + " " + col_fields_lower
-                if not any(kw in haystack for kw in keywords):
-                    continue
-                # This parent is expected — check if it was selected.
-                # A parent is selected if ANY of its df columns appear in the
-                # selection (by full bracket name or parent substring).
-                selected = any(
-                    c.lower() in selected_str or parent_lower in str(n).lower()
-                    for c in df_cols for n in selected_names
-                )
-                if not selected:
-                    for col in df_cols:
-                        if col not in selected_names:
-                            missing_cols.append(col)
+        for concept in concepts:
+            healing_concept = concept.name
+            for parent in missing_groups(concept, struct_parents, selected_names):
+                for col in struct_parents[parent]:
+                    if col not in selected_names:
+                        missing_cols.append(col)
 
         if not missing_cols:
             return selected_names

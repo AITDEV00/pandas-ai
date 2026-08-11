@@ -662,7 +662,6 @@ class Agent:
             selector = ColumnSelector(self._state)
 
             # Capture the column selection prompt for debug logging
-            _tp0 = time.time()
             self._state.column_selection_prompt = str(selector._build_prompt(query))
 
             # Use a temporary Memory with reduced size for Step 1
@@ -756,113 +755,31 @@ class Agent:
         Uses the 5-path expansion framework (direct, measurement, evidence,
         summary, foundation) to detect gaps. This is diagnostic only —
         it does NOT modify the selection.
+
+        Concept definitions live in ``pandasai.helpers.concept_registry``
+        (single source of truth shared with the repair path).
         """
-        import re
+        from pandasai.helpers.concept_registry import (
+            collect_struct_groups,
+            concepts_for_query,
+            expected_groups_by_path,
+        )
 
-        query_lower = query.lower()
-
-        # Concept → (keyword patterns, 5-path expansion hints)
-        # Each path describes WHAT to look for in struct group names/fields,
-        # not specific struct group names — making this data-agnostic.
-        CONCEPT_PATHS = {
-            "skills": {
-                "patterns": [r'\bskill\b', r'\bcompetenc', r'\babilit', r'\bproficien'],
-                "paths": {
-                    "direct": ["competenc", "skill"],
-                    "measurement": ["rating", "proficien", "assessment", "score"],
-                    "evidence": ["experience", "responsibilit", "duties", "achievement", "award"],
-                    "summary": ["summary", "profile", "overview"],
-                    "foundation": ["qualificat", "educat", "certificat", "degree"],
-                },
-            },
-            "projects": {
-                "patterns": [r'\bproject\b', r'\bassignment\b', r'\binitiative\b'],
-                "paths": {
-                    "direct": ["assignment", "project", "objective"],
-                    "measurement": ["rating", "competenc", "performance"],
-                    "evidence": ["experience", "achievement", "award", "responsibilit"],
-                    "summary": ["summary", "profile"],
-                    "foundation": [],
-                },
-            },
-            "performance": {
-                "patterns": [r'\bperformance\b', r'\bappraisal\b', r'\bevaluation\b'],
-                "paths": {
-                    "direct": ["performance", "rating"],
-                    "measurement": ["competenc", "rating", "score"],
-                    "evidence": ["objective", "achievement"],
-                    "summary": ["summary"],
-                    "foundation": [],
-                },
-            },
-            "experience": {
-                "patterns": [r'\bexperience\b', r'\bwork history\b', r'\bprevious employer\b'],
-                "paths": {
-                    "direct": ["experience", "employer"],
-                    "measurement": [],
-                    "evidence": ["assignment", "responsibilit"],
-                    "summary": ["summary", "profile"],
-                    "foundation": [],
-                },
-            },
-            "education": {
-                "patterns": [r'\beducat', r'\bqualificat', r'\bdegree\b', r'\bdiploma\b', r'\bacademic\b'],
-                "paths": {
-                    "direct": ["educat", "qualificat"],
-                    "measurement": [],
-                    "evidence": [],
-                    "summary": [],
-                    "foundation": ["degree", "certificat", "institut"],
-                },
-            },
-            "leave": {
-                "patterns": [r'\bleave\b', r'\bsick\b', r'\babsenc', r'\bholiday\b', r'\bvacation\b'],
-                "paths": {
-                    "direct": ["leave", "entitlement", "absence"],
-                    "measurement": [],
-                    "evidence": [],
-                    "summary": [],
-                    "foundation": [],
-                },
-            },
-        }
-
-        # Build a map of struct group names from the actual DataFrame schema
-        struct_groups_in_schema = {}  # name → [inner_field_names]
-        for df in self._state.dfs:
-            if hasattr(df, 'schema') and df.schema and df.schema.columns:
-                for col in df.schema.columns:
-                    if col.type and 'list' in str(col.type) and 'struct' in str(col.type):
-                        inner_fields = []
-                        if hasattr(col, 'inner_fields') and col.inner_fields:
-                            inner_fields = [f.name for f in col.inner_fields]
-                        struct_groups_in_schema[col.name] = inner_fields
-
+        # Build a map of struct parent group name → df column names from the
+        # actual DataFrame columns (the source of truth for what can be queried).
+        struct_groups_in_schema = collect_struct_groups(self._state.dfs)
         if not struct_groups_in_schema:
             return  # No struct groups to check
 
         selected_str = " ".join(str(n) for n in selected_names).lower()
 
-        for concept_name, concept_def in CONCEPT_PATHS.items():
-            # Check if query matches this concept
-            if not any(re.search(p, query_lower) for p in concept_def["patterns"]):
-                continue
-
+        for concept in concepts_for_query(query):
             # For each expansion path, find struct groups that match
             missing_by_path = {}
-            for path_name, keywords in concept_def["paths"].items():
-                if not keywords:
-                    continue
-                # Find struct groups whose name or inner fields contain any keyword
-                expected_groups = set()
-                for group_name, inner_fields in struct_groups_in_schema.items():
-                    group_lower = group_name.lower()
-                    fields_lower = " ".join(str(f) for f in inner_fields).lower()
-                    if any(kw in group_lower or kw in fields_lower for kw in keywords):
-                        expected_groups.add(group_name)
-
-                # Check which expected groups are missing from the selection
-                for group in expected_groups:
+            for path_name, expected in expected_groups_by_path(
+                concept, struct_groups_in_schema
+            ).items():
+                for group in expected:
                     group_bracket = f"[{group.lower()}["
                     group_paren = f"{group.lower()}["
                     if group_bracket not in selected_str and group_paren not in selected_str:
@@ -875,14 +792,14 @@ class Agent:
                 all_missing = list(dict.fromkeys(all_missing))  # dedupe, preserve order
 
                 self._state.logger.log(
-                    f"[Column Selection] ⚠ CONCEPT='{concept_name}' — "
+                    f"[Column Selection] ⚠ CONCEPT='{concept.name}' — "
                     f"missing struct groups by expansion path: {missing_by_path}. "
                     f"Selected: {selected_names}"
                 )
                 self._state.column_selection_log.append({
                     "step": "concept_gap_warning",
                     "detail": {
-                        "concept": concept_name,
+                        "concept": concept.name,
                         "missing_struct_groups": all_missing,
                         "missing_by_path": missing_by_path,
                         "selected_names": selected_names,

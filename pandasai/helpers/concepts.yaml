@@ -1,0 +1,106 @@
+# Column-selection multi-struct concept definitions.
+#
+# A *concept* is a user intent (skills, projects, performance, experience,
+# education, leave) that frequently spans MULTIPLE struct groups in a wide
+# DataFrame. The LLM commonly selects only one struct group and stops — the
+# recurring "stop after one struct" gap.
+#
+# This file is the SINGLE SOURCE OF TRUTH consumed by both:
+#   - Agent._detect_missing_struct_groups   (diagnostic — logs gaps)
+#   - ColumnSelector._repair_missing_struct_groups (self-healing — injects gaps)
+#
+# Schema:
+#   <concept-name>:
+#     patterns: [<regex>...]   # query triggers; ANY match fires the concept
+#     paths:                    # 5-path expansion — struct groups to look for
+#       <path-name>: [<keyword>...]   # matched case-insensitively against a
+#                                     # struct group's parent name + inner fields
+#
+# Paths:
+#   direct      — the struct group(s) whose name directly names the concept
+#   measurement — how the concept is measured/rated (e.g. ratings, scores)
+#   evidence    — proof of the concept (e.g. experience, achievements)
+#   summary     — consolidated profile/summary of the concept
+#   foundation  — prerequisite/background data (e.g. qualifications, education)
+#
+# To add a concept, add a block here. To tune an existing concept, edit its
+# patterns or path keywords. NO column names are hardcoded — groups are matched
+# against the actual DataFrame schema at runtime.
+
+concepts:
+  skills:
+    patterns:
+      - '\bskill\b'
+      - '\bcompetenc'
+      - '\babilit'
+      - '\bproficien'
+    paths:
+      direct: [competenc, skill]
+      measurement: [rating, proficien, assessment, score]
+      evidence: [experience, responsibilit, duties, achievement, award]
+      summary: [summary, profile, overview]
+      foundation: [qualificat, educat, certificat, degree]
+
+  projects:
+    patterns:
+      - '\bproject\b'
+      - '\bassignment\b'
+      - '\binitiative\b'
+    paths:
+      direct: [assignment, project, objective]
+      measurement: [rating, competenc, performance]
+      evidence: [experience, achievement, award, responsibilit]
+      summary: [summary, profile]
+      foundation: []
+
+  performance:
+    patterns:
+      - '\bperformance\b'
+      - '\bappraisal\b'
+      - '\bevaluation\b'
+    paths:
+      direct: [performance, rating]
+      measurement: [competenc, rating, score]
+      evidence: [objective, achievement]
+      summary: [summary]
+      foundation: []
+
+  experience:
+    patterns:
+      - '\bexperience\b'
+      - '\bwork history\b'
+      - '\bprevious employer\b'
+    paths:
+      direct: [experience, employer]
+      measurement: []
+      evidence: [assignment, responsibilit]
+      summary: [summary, profile]
+      foundation: []
+
+  education:
+    patterns:
+      - '\beducat'
+      - '\bqualificat'
+      - '\bdegree\b'
+      - '\bdiploma\b'
+      - '\bacademic\b'
+    paths:
+      direct: [educat, qualificat]
+      measurement: []
+      evidence: []
+      summary: []
+      foundation: [degree, certificat, institut]
+
+  leave:
+    patterns:
+      - '\bleave\b'
+      - '\bsick\b'
+      - '\babsenc\b'
+      - '\bholiday\b'
+      - '\bvacation\b'
+    paths:
+      direct: [leave, entitlement, absence]
+      measurement: []
+      evidence: []
+      summary: []
+      foundation: []
