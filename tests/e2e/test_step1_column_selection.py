@@ -49,16 +49,13 @@ COLUMN_SELECTION_THRESHOLD = 30
 COLUMN_VALUES_BUDGET_RATIO = 0.10
 
 # PandasAI config — matches the server's registration config
+# Column selection sampling mirrors code generation: ONLY temperature set.
 PANDASAI_CONFIG = {
     "enrich_column_values": True,
     "auto_fill_descriptions": False,
-    # Column selection sampling params
-    "column_selection_temperature": 0.6,
-    "column_selection_top_p": 0.95,
-    "column_selection_top_k": 20,
-    "column_selection_min_p": 0.0,
-    "column_selection_repetition_penalty": 1.0,
-    "column_selection_presence_penalty": 0.0,
+    # Column selection sampling — ONLY temperature=0.0 for deterministic output;
+    # all other params left unset to use model defaults.
+    "column_selection_temperature": 0.0,
     "column_selection_json_mode": True,
 }
 
@@ -404,6 +401,21 @@ def _register_agent_with_data():
     agent_config["llm"] = global_config_obj.llm  # Preserve actual object
     agent_config.update(PANDASAI_CONFIG)
 
+    # Inject the dedicated structured LLM (STRUCTURED_LLM_*) so the ColumnSelector
+    # uses the model under test (e.g. diffusiongemma, DeepSeek) rather than the
+    # main code-generation LLM.  When not configured, falls back to the main LLM.
+    try:
+        from server.core.llm_setup import setup_structured_llm
+        structured_llm = setup_structured_llm()
+        if structured_llm is not None:
+            agent_config["structured_llm"] = structured_llm
+            print(
+                f"  ✅ Using structured LLM for column selection: "
+                f"{getattr(structured_llm, 'model', 'unknown')}"
+            )
+    except Exception as e:  # pragma: no cover
+        print(f"  ⚠️ Could not set up structured LLM ({e}); column selection will use the main LLM")
+
     agent = Agent([df], config=agent_config)
     print(f"  ✅ Agent created. DataFrame has {len(df.columns)} columns, {len(df)} rows")
     return agent
@@ -435,6 +447,12 @@ def _run_column_selection(agent, query: str) -> Dict[str, Any]:
     # Extract Step 1 results
     raw_response = getattr(selector, '_last_raw_response', None)
 
+    # Extract the model's thinking trace captured during column selection
+    thinking_trace = getattr(state, 'column_selection_thinking_trace', None)
+    if not thinking_trace:
+        # Fall back to the raw response's reasoning_content if present
+        thinking_trace = getattr(selector, '_last_thinking_trace', None)
+
     # Match names to schema (same as _apply_column_selection)
     df = state.dfs[0]
     matched = selector.match_names_to_schema(selected_names, df)
@@ -452,6 +470,7 @@ def _run_column_selection(agent, query: str) -> Dict[str, Any]:
         "trimmed_df_columns": list(trimmed_df.columns) if trimmed_df is not None else [],
         "trimmed_df_column_count": len(trimmed_df.columns) if trimmed_df is not None else 0,
         "raw_llm_response": raw_response,
+        "thinking_trace": thinking_trace,
         "elapsed_seconds": round(elapsed, 2),
     }
 
@@ -572,6 +591,13 @@ def _write_markdown_report(run_dir: Path, results: List[Dict], timestamp: str):
                 f.write(f"  - `{col}`\n")
             f.write(f"- **Raw LLM response:**\n```\n{result['raw_llm_response'] or 'N/A'}\n```\n\n")
 
+        # Thinking trace (reasoning) — appended after the raw response so the
+        # model's chain-of-thought behind its column selection can be audited.
+        for q, result in zip(TEST_QUESTIONS, results):
+            trace = result.get("thinking_trace")
+            if trace:
+                f.write(f"### Q{q['num']} Thinking Trace\n\n```\n{trace}\n```\n\n")
+
     print(f"\n📄 Markdown report saved: {report_path}")
 
 
@@ -632,7 +658,18 @@ def main():
         print(f"  Expected breadth: {q['expected_breadth']}")
 
         try:
-            result = _run_column_selection(agent, q["pandasai_input"])
+            # Optional cache-buster: the inference engine caches responses keyed
+            # on the prompt, so repeated runs (e.g. comparing thinking OFF vs ON)
+            # return identical cached answers.  Appending a unique nonce forces a
+            # genuine cold LLM call per run.  The nonce is appended inside the
+            # prompt only; column selection is not sensitive to a trailing
+            # comment, so results remain valid.
+            cache_buster = os.environ.get("COLUMN_SELECTION_CACHE_BUSTER", "").strip()
+            run_query = q["pandasai_input"]
+            if cache_buster:
+                run_query = f"{run_query}\n<!-- run:{cache_buster} -->"
+
+            result = _run_column_selection(agent, run_query)
 
             # Check key columns
             key_col_check = _check_key_columns(

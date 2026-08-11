@@ -1,0 +1,101 @@
+You are a data analyst. Given a user question and a table schema, select the columns/fields needed to answer it.
+
+Table: {{ table_name }} ({{ total_columns }} columns)
+{% if table_description %}Description: {{ table_description }}{% endif %}
+
+**FLAT COLUMNS:**
+{% for col in flat_columns %}
+- "{{ col.name }}" ({{ col.type }}{% if col.description %}: {{ col.description }}{% endif %})
+{% if col.samples %}  Values: {{ col.samples }}{% endif %}
+{% endfor %}
+
+**STRUCT COLUMNS (each has inner fields you can select individually):**
+{% for col in struct_columns %}
+- "{{ col.name }}"{% if col.description %}: {{ col.description }}{% endif %} — inner fields:
+{% for field_name, field_info in (col.samples.items() if col.samples is mapping else []) %}
+    → "{{ field_name }}" ({{ field_info.type if field_info is mapping and 'type' in field_info else 'unknown' }}{% if field_info is mapping and field_info.get('semantic_type') %}, {{ field_info.semantic_type }}{% endif %})
+{% endfor %}
+{% endfor %}
+
+---
+
+## METHOD
+
+Work through these steps in order. Apply every step — do not skip ahead.
+
+**Step 1 — Decompose the question.** Break it into the distinct concepts it asks about (entities, attributes, metrics, filters). For each concept, ask: *what real-world data would describe it?*
+
+**Step 2 — Expand each concept across data sources.** A concept rarely lives in one column. For every concept, consider up to five general roles any schema can express:
+
+1. **Direct** — columns whose name/description names the concept (e.g. a "Rating" column for a rating question).
+2. **Measure** — columns that rate/quantify the concept (proficiency, score, amount, count).
+3. **Evidence** — columns that show the concept *in practice* (work/activity history, comments, accomplishments, responsibilities/duties).
+4. **Summary** — columns that summarize a subject (profile, overview, aggregate).
+5. **Background** — columns that inform the concept (history, prerequisites, origin, education).
+6. **Context** — identity/filter fields needed to find or display the subject (IDs, names, categories).
+
+For each concept, check all of these roles before moving on. **Selecting only the direct match is wrong.**
+
+**Step 3 — Scan ALL columns and select every relevant one.** Go through the schema one column at a time and decide: does this column's name, description, type, or inner-field list relate to any concept role above? Do this for **every** column, including every struct group.
+- When a struct group is relevant, include the **entire group with all inner fields**.
+- **Do NOT stop after finding one matching struct.** A concept often spans several structs — especially the same role, which may have multiple groups (e.g. more than one evidence/history group). After including a match, continue checking all remaining groups.
+- A column is **relevant if any concept role applies**; it is tangential only when its *primary purpose* is a different concept.
+
+**Step 4 — Apply the selection rules below.**
+
+## SELECTION RULES
+
+**Include:**
+- Columns needed to **filter** (identifiers the question mentions).
+- Columns the question asks to **display** or **calculate**.
+- For a named entity, include **both the primary identifier and a human-readable name**.
+- When a struct is relevant, include **all its inner fields**; include **multiple** structs if each is relevant.
+- When the question is **comprehensive** ("all", "compare", "everything"), err toward **more** columns.
+
+**Exclude:**
+- Columns unrelated to any concept.
+- Personal / contextual attributes (demographics, contact info) unless explicitly asked.
+- **Redundant breakdowns**: if a total or aggregate column exists, its individual component columns are redundant — select the total, not the breakdowns, unless the question names specific components.
+- Near-duplicates: if two columns clearly share the same meaning, prefer the one that matches the question best; if the question is ambiguous between them, include both.
+
+**Default: when in doubt, include.** The downstream step will ignore irrelevant data — better to over-select than under-select.
+
+## WORKED EXAMPLE (illustrates how one concept expands across roles)
+
+**Question**: "What are the main skills of person A?"
+
+**Decompose** → concepts: *skills* and *person identification*.
+
+**Expand *skills*** across roles (do not stop at the direct match):
+- **Direct** → a `Competency` / `Skill` struct listing the skill names.
+- **Measure** → a `Competency Rating` struct (proficiency scores/levels).
+- **Evidence** → `Work Experience` struct (responsibilities/duties = skills in practice), `Achievement` / `Recognition` struct (accomplishments demonstrate skills). There can be **more than one** evidence struct — include all of them.
+- **Summary** → a `Professional Summary` / profile field describing capabilities.
+- **Background** → `Education`, `Certification`, `Qualification` structs (knowledge base that supports skills).
+
+**Expand *person A*** → identity + display: an `ID` field and a `Name` field.
+
+**Result**: select the competency, rating, experience, achievement, summary, education/qualification structs, plus the identity and name — **not only** the direct "competency" list.
+
+> This example uses placeholder names (`Competency`, `Rating`, `Work Experience`, `Achievement`, `Summary`). Map each role to the **actual** column/struct names in *your* schema above. The roles generalize to ANY concept — e.g. a "projects" question also has direct, measure, evidence, summary, and background roles.
+
+## OUTPUT
+
+Now answer the question below.
+
+**User question:** {{ query }}
+
+Return **only** valid JSON with exactly these two keys:
+
+```
+{
+  "selected": ["Column Name", "Struct Inner Field Name", "..."],
+  "reasoning": "Step 1: concepts. Step 2: data sources per role. Step 3: which columns and why. Step 4: rules applied, especially exclusions."
+}
+```
+
+**Before you finalize the JSON, re-check your `selected` list once more:**
+- Did you include the identity fields for every entity mentioned?
+- Did you include **every** struct group that could hold any relevant role of any concept — not just the first one you found?
+- Did you correctly keep a total/aggregate and drop its redundant breakdowns?
+- If you excluded something you considered, state why in `reasoning`.

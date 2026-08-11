@@ -19,6 +19,8 @@ import logging
 import re
 from typing import Dict, List, Optional
 
+from pydantic import BaseModel, Field
+
 from pandasai.agent.state import AgentState
 from pandasai.core.prompts.base import BasePrompt
 from pandasai.helpers.semantic_matching import (
@@ -31,6 +33,18 @@ from pandasai.helpers.semantic_matching import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class ColumnSelectionResult(BaseModel):
+    """Structured column-selection response from the LLM (used with instructor).
+
+    Mirrors the JSON the ``select_columns_v32.tmpl`` prompt asks the model to
+    return, so the instructor-driven path produces the same shape as the raw
+    ``_parse_response`` path.
+    """
+
+    selected: List[str] = Field(description="Relevant column/field names")
+    reasoning: str = Field(default="", description="Explanation of the selection")
 
 
 class ColumnSelector:
@@ -50,23 +64,142 @@ class ColumnSelector:
         """
         prompt = self._build_prompt(query)
 
-        # Build per-call sampling params for column selection.
-        # These override the LLM's default settings for this call only,
-        # reducing variance on ambiguous column-selection queries.
-        sampling_params = self._get_sampling_params()
-
         # Use the dedicated structured LLM if configured, otherwise the main LLM.
         target_llm = getattr(self._state.config, "structured_llm", None) or self._state.config.llm
-        response = target_llm.call(prompt, self._state, sampling_params=sampling_params)
-        # Store raw LLM response for debug logging
-        self._last_raw_response = response
+
+        use_instructor = getattr(
+            self._state.config, "column_selection_use_instructor", False
+        )
+        if use_instructor:
+            response = self._call_with_instructor(prompt, target_llm)
+            # Instructor already validates against ColumnSelectionResult, so we
+            # only need to convert to the same flat list _parse_response returns.
+            selected = self._extract_response_from_result(response)
+        else:
+            # Build per-call sampling params for column selection.
+            # These override the LLM's default settings for this call only,
+            # reducing variance on ambiguous column-selection queries.
+            sampling_params = self._get_sampling_params()
+            raw_response = target_llm.call(
+                prompt, self._state, sampling_params=sampling_params
+            )
+            # Store raw LLM response for debug logging
+            self._last_raw_response = raw_response
+            selected = self._parse_response(raw_response)
+
         # Capture LLM thinking trace (if exposed) so the conversation log can
         # show why the selector chose these columns.
-        thinking = getattr(target_llm, '_last_thinking_trace', None)
+        thinking = getattr(target_llm, "_last_thinking_trace", None)
         if thinking is not None:
             self._state.column_selection_thinking_trace = thinking
-        selected = self._parse_response(response)
-        return self._validate_names(selected)
+
+        validated = self._validate_names(selected)
+
+        # Generic self-healing for multi-struct concepts: if the LLM selected
+        # only one struct group for a concept that spans several (skills,
+        # projects, performance, experience, education), inject the missing
+        # sibling struct groups derived from the actual DataFrame columns.
+        repaired = self._repair_missing_struct_groups(query, validated)
+        if len(repaired) != len(validated):
+            self._state.logger.log(
+                f"[Column Selection] Self-healed: added {len(repaired)-len(validated)} "
+                f"struct group column(s): {[c for c in repaired if c not in validated]}"
+            )
+
+        return repaired
+
+    # ------------------------------------------------------------------
+    # Instructor-based structured selection
+    # ------------------------------------------------------------------
+
+    def _call_with_instructor(self, prompt: BasePrompt, target_llm) -> ColumnSelectionResult:
+        """Run column selection through the instructor library.
+
+        Uses ``Mode.MD_JSON`` which injects the JSON schema as a system message
+        and extracts JSON from a ```json``` code block — it does NOT set
+        ``response_format``, so it works with models whose backend rejects
+        grammar-constrained decoding (DeepSeek-V4-Flash DFLASH, diffusiongemma).
+
+        The instructor client is built from the structured LLM's existing
+        ``openai`` client (already pointed at the LiteLLM endpoint), so no extra
+        credentials are needed.
+        """
+        import instructor
+        from instructor import Mode
+
+        # Grab the wrapped OpenAI client if present, else build instructor from
+        # the completion function via litellm.
+        params = getattr(target_llm, "params", None) or {}
+        client = params.get("client") if isinstance(params, dict) else None
+        model_name = getattr(target_llm, "model", None) or ""
+
+        # Forward reasoning/thinking overrides (e.g. DeepSeek's
+        # ``chat_template_kwargs.thinking``) that were set on the LiteLLM
+        # instance.  The raw OpenAI client path below bypasses ``litellm.completion``,
+        # so we must re-inject ``extra_body`` explicitly or the thinking toggle
+        # (OFF vs ON) has no effect on the column-selection call.
+        extra_body = params.get("extra_body") if isinstance(params, dict) else None
+        create_kwargs = {}
+        if extra_body and isinstance(extra_body, dict):
+            create_kwargs["extra_body"] = extra_body
+
+        if client is not None:
+            # The raw OpenAI endpoint does not accept the "openai/" prefix that
+            # LiteLLM uses; strip it.
+            raw_model = model_name
+            if raw_model.startswith("openai/"):
+                raw_model = raw_model[len("openai/"):]
+            ic = instructor.from_openai(client, mode=Mode.MD_JSON, model=raw_model)
+            result, raw_response = ic.create_with_completion(
+                response_model=ColumnSelectionResult,
+                messages=[{"role": "user", "content": prompt.to_string()}],
+                **create_kwargs,
+            )
+            self._capture_thinking_trace(raw_response)
+            return result
+
+        # Fallback: no OpenAI client available — use the litellm provider.
+        from litellm import completion
+        from instructor.v2.providers.litellm.client import from_litellm
+
+        ic = from_litellm(completion, mode=Mode.MD_JSON)
+        result, raw_response = ic.create_with_completion(
+            response_model=ColumnSelectionResult,
+            model=model_name,
+            messages=[{"role": "user", "content": prompt.to_string()}],
+            **create_kwargs,
+        )
+        self._capture_thinking_trace(raw_response)
+        return result
+
+    def _capture_thinking_trace(self, raw_response) -> None:
+        """Extract the model's reasoning/thinking content from a raw completion.
+
+        ``create_with_completion`` returns the underlying ChatCompletion so we
+        can read ``choices[0].message.reasoning_content`` (DeepSeek's chain of
+        thought) and persist it on the agent state for audit/logging — the same
+        field the LiteLLM wrapper sets via ``_last_thinking_trace``.
+        """
+        trace = None
+        try:
+            if raw_response is not None:
+                choice = getattr(raw_response, "choices", None)
+                if choice:
+                    message = getattr(choice[0], "message", None)
+                    reasoning = getattr(message, "reasoning_content", None)
+                    if reasoning is not None and str(reasoning).strip():
+                        trace = str(reasoning)
+        except Exception:
+            trace = None
+        if trace is not None:
+            self._state.column_selection_thinking_trace = trace
+
+    def _extract_response_from_result(
+        self, result: ColumnSelectionResult
+    ) -> List[str]:
+        """Convert a validated instructor result to the flat column list."""
+        self._last_raw_response = result.model_dump_json()
+        return list(result.selected)
 
     def _get_sampling_params(self) -> Optional[dict]:
         """Build per-call sampling params from config for column selection.
@@ -266,6 +399,190 @@ class ColumnSelector:
                     result[matched_col.name] = None
 
         return result
+
+    def add_missing_struct_groups(
+        self, selected_names: List[str], missing_groups: List[str], dfs: List
+    ) -> List[str]:
+        """Inject whole struct groups that the LLM missed back into the selection.
+
+        ``missing_groups`` are struct *parent* group names (e.g. ``"CV Employee
+        Summary"``) returned by ``Agent._detect_missing_struct_groups``.  This
+        method expands each into its canonical bracket-form inner-field names
+        (e.g. ``"[CV Employee Summary[CV Employee Summary]]"``) and appends
+        them to ``selected_names`` so ``match_names_to_schema`` picks up the
+        entire struct.
+
+        Generic — no hardcoded column names.  The parent name is matched
+        against the actual DataFrame schema.
+        """
+        # Build a lookup of struct parent group name → its df columns.
+        # Struct groups are represented in df.columns as bracket-style names,
+        # either one column per inner field (``[Parent[Field1]]``) or combined
+        # (``[Parent[Field1][Field2]]``).  We record the df column name(s) for
+        # each parent so an entire group can be re-injected verbatim.
+        parent_to_df_cols: Dict[str, List[str]] = {}
+        for df in dfs:
+            df_cols = df.columns if hasattr(df, 'columns') else []
+            for col_name in df_cols:
+                if not (isinstance(col_name, str) and col_name.startswith("[")):
+                    continue
+                parent = extract_struct_parent(col_name)
+                if not parent:
+                    continue
+                # Only treat as a struct group if the schema confirms it as
+                # list[struct] OR the column has multiple bracket groups.
+                if parent not in parent_to_df_cols:
+                    parent_to_df_cols[parent] = []
+                if col_name not in parent_to_df_cols[parent]:
+                    parent_to_df_cols[parent].append(col_name)
+
+        added = []
+        for group in missing_groups:
+            # ``group`` may be a bracket-form schema name or a bare parent
+            # name.  Normalize to the bare parent.
+            bare = extract_struct_parent(group) or group
+            df_cols = parent_to_df_cols.get(bare) or []
+            if df_cols:
+                for col in df_cols:
+                    if col not in selected_names:
+                        added.append(col)
+            elif group not in selected_names:
+                # No df columns known for this parent — inject the bare name so
+                # match_names_to_schema can try to resolve it.
+                added.append(group)
+
+        # Dedupe preserving order
+        seen = set(selected_names)
+        final = list(selected_names)
+        for a in added:
+            if a not in seen:
+                final.append(a)
+                seen.add(a)
+        return final
+
+    def _repair_missing_struct_groups(
+        self, query: str, selected_names: List[str]
+    ) -> List[str]:
+        """Generic, schema-driven self-healing for multi-struct concepts.
+
+        For concepts that span MULTIPLE struct groups (skills, projects,
+        performance, experience, education), if the LLM selected only one of
+        the groups (the recurring "stop after one struct" gap), inject the
+        missing sibling groups derived from the actual DataFrame columns.
+
+        Fully generic: struct groups are matched by concept keyword — no
+        hardcoded column names.  Operates on ``df.columns`` bracket-style
+        struct groups, which is the source of truth for what can be queried.
+        """
+        import re
+
+        query_lower = query.lower()
+
+        # Concept → (keyword patterns, per-path keywords).  Paths with no
+        # keywords are ignored.  Every keyword is matched case-insensitively
+        # against the struct parent name AND its inner field names.
+        CONCEPT_PATHS = {
+            "skills": {
+                "patterns": [r'\bskill\b', r'\bcompetenc', r'\babilit', r'\bproficien'],
+                "paths": ["competenc", "skill", "rating", "experience",
+                          "responsibilit", "achievement", "award", "summary",
+                          "profile", "qualificat", "educat", "certificat"],
+            },
+            "projects": {
+                "patterns": [r'\bproject\b', r'\bassignment\b', r'\binitiative\b'],
+                "paths": ["assignment", "project", "objective", "rating",
+                          "experience", "achievement", "award", "summary"],
+            },
+            "performance": {
+                "patterns": [r'\bperformance\b', r'\bappraisal\b', r'\bevaluation\b'],
+                "paths": ["performance", "rating", "competenc", "objective",
+                          "achievement", "summary"],
+            },
+            "experience": {
+                "patterns": [r'\bexperience\b', r'\bwork history\b', r'\bprevious employer\b'],
+                "paths": ["experience", "employer", "assignment", "responsibilit",
+                          "summary", "profile"],
+            },
+            "education": {
+                "patterns": [r'\beducat', r'\bqualificat', r'\bdegree\b', r'\bdiploma\b', r'\bacademic\b'],
+                "paths": ["educat", "qualificat", "degree", "certificat", "institut"],
+            },
+        }
+
+        # Collect struct groups from the actual df.columns (source of truth).
+        # Collect struct groups from the actual df.columns (source of truth).
+        # parent → list of (df column name, inner field short names)
+        struct_parents: Dict[str, List[str]] = {}
+        for df in self._state.dfs:
+            df_cols = df.columns if hasattr(df, 'columns') else []
+            for col_name in df_cols:
+                if not (isinstance(col_name, str) and col_name.startswith("[")):
+                    continue
+                parent = extract_struct_parent(col_name)
+                if not parent:
+                    continue
+                inner = col_name[1:-1]
+                fields = re.findall(r'\[([^\[\]]+)\]', inner)
+                # Only treat as a real struct group if the parent has ≥1
+                # inner field (i.e. it is not a flat bracket-named column).
+                if fields:
+                    struct_parents.setdefault(parent, []).append(col_name)
+
+        if not struct_parents:
+            return selected_names
+
+        selected_str = " ".join(str(n) for n in selected_names).lower()
+
+        missing_cols: List[str] = []
+        healing_concept = None
+        for concept_name, concept_def in CONCEPT_PATHS.items():
+            if not any(re.search(p, query_lower) for p in concept_def["patterns"]):
+                continue
+            keywords = concept_def["paths"]
+            healing_concept = concept_name
+
+            # Every struct parent whose name OR any inner field matches a
+            # keyword is EXPECTED for this multi-struct concept.  Inject any
+            # that were missed.
+            for parent, df_cols in struct_parents.items():
+                parent_lower = parent.lower()
+                # All inner field names for this parent, lowercased
+                col_fields_lower = " ".join(
+                    fld for c in df_cols
+                    for fld in [f.lower() for f in re.findall(r'\[([^\[\]]+)\]', c[1:-1])]
+                )
+                haystack = parent_lower + " " + col_fields_lower
+                if not any(kw in haystack for kw in keywords):
+                    continue
+                # This parent is expected — check if it was selected.
+                # A parent is selected if ANY of its df columns appear in the
+                # selection (by full bracket name or parent substring).
+                selected = any(
+                    c.lower() in selected_str or parent_lower in str(n).lower()
+                    for c in df_cols for n in selected_names
+                )
+                if not selected:
+                    for col in df_cols:
+                        if col not in selected_names:
+                            missing_cols.append(col)
+
+        if not missing_cols:
+            return selected_names
+
+        # Dedupe preserving order
+        seen = set(selected_names)
+        final = list(selected_names)
+        for c in missing_cols:
+            if c not in seen:
+                final.append(c)
+                seen.add(c)
+
+        logger.info(
+            "[Column Selection] Self-healed %d missing struct group column(s) "
+            "for concept '%s': %s",
+            len(missing_cols), healing_concept, missing_cols,
+        )
+        return final
 
     def ensure_essential_columns(
         self, matched: Dict[str, Optional[List[str]]], df, query: str

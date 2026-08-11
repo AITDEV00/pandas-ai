@@ -121,6 +121,16 @@ def _write_readable_log(log_dir: Path, conversation_id: str, payload: dict) -> N
                     f.write(f"| {key} | `{val}` |\n")
                 f.write("\n")
 
+            # ── 3a.1 Per-query Timing Breakdown ──
+            timings = pipeline.get("timings", {})
+            if timings:
+                f.write("### ⏱ Timing Breakdown (seconds)\n\n")
+                f.write("| Phase | Seconds |\n")
+                f.write("|-------|---------|\n")
+                for key, val in timings.items():
+                    f.write(f"| {key} | `{val}` |\n")
+                f.write("\n")
+
             # ── 3b. Column Selection ──
             col_log = pipeline.get("column_selection_log", [])
             if col_log:
@@ -525,6 +535,10 @@ def _extract_pipeline_log(agent) -> dict:
         pipeline["retrieval_mode_reasoning"] = state.retrieval_mode_reasoning
         pipeline["retrieval_mode_source"] = state.retrieval_mode_source
 
+    # 15. Per-query timing breakdown (seconds)
+    if state.timings:
+        pipeline["timings"] = state.timings
+
     return pipeline
 
 
@@ -693,6 +707,7 @@ def handle_chat_query(
             "retrieval_mode": agent._state.retrieval_mode,
             "retrieval_mode_reasoning": agent._state.retrieval_mode_reasoning,
             "retrieval_mode_source": agent._state.retrieval_mode_source,
+            "timings": getattr(agent._state, "timings", None),
         }
         # Include the pipeline trace (code_attempts, tracebacks, retries) so
         # code-generation/execution failures are visible in the API response.

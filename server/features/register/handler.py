@@ -277,12 +277,15 @@ def create_agent_from_file_path(
         )
         
         try:
+            from server.core.llm_setup import _codegen_thinking_kwargs
+
             custom_llm = create_litellm(
                 api_key=llm_config.api_key,
                 base_url=llm_config.base_url,
                 model_name=llm_config.model_name,
                 verify_ssl=os.environ.get("LLM_VERIFY_SSL", "false").lower() == "true",
                 **sampling_params,
+                **_codegen_thinking_kwargs(),
             )
             agent_config["llm"] = custom_llm
         except Exception as e:

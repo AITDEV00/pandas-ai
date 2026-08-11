@@ -48,12 +48,8 @@ COLUMN_VALUES_BUDGET_RATIO = 0.10
 PANDASAI_CONFIG = {
     "enrich_column_values": True,
     "auto_fill_descriptions": False,
-    "column_selection_temperature": 0.6,
-    "column_selection_top_p": 0.95,
-    "column_selection_top_k": 20,
-    "column_selection_min_p": 0.0,
-    "column_selection_repetition_penalty": 1.0,
-    "column_selection_presence_penalty": 0.0,
+    # Column selection sampling ONLY temperature 0.0 (others default)
+    "column_selection_temperature": 0.0,
     "column_selection_json_mode": True,
 }
 

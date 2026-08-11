@@ -1,4 +1,5 @@
 import os
+import time
 import traceback
 import warnings
 from typing import Any, List, Optional, Union
@@ -427,6 +428,8 @@ class Agent:
 
         self._state.output_type = output_type
         self._state.assign_prompt_id()
+        self._state.timings = {}  # reset per query
+        _t0 = time.time()
 
         # Step 1: Column Selection (if needed)
         original_dfs = None
@@ -437,7 +440,12 @@ class Agent:
                       else f"{total_cols} cols ≥ threshold ({self._state.config.column_selection_threshold})")
             self._state.logger.log(f"[Column Selection] Triggered: {reason}")
             original_dfs = list(self._state.dfs)  # Shallow copy of list
+            _tcs0 = time.time()
             self._apply_column_selection(str(query))
+            self._state.timings["column_selection"] = round(time.time() - _tcs0, 2)
+            self._state.logger.log(
+                f"[Timing] column_selection={self._state.timings['column_selection']}s"
+            )
             # Diagnostic: show trimmed DF column names for Step 2
             for i, df in enumerate(self._state.dfs):
                 self._state.logger.log(f"[Column Selection] Trimmed DF[{i}] columns: {list(df.columns)}")
@@ -506,14 +514,26 @@ class Agent:
         # Step 2: Code Generation
         code = ""
         try:
+            _tcg0 = time.time()
             code = self.generate_code_with_retries(str(query))
+            self._state.timings["code_generation"] = round(time.time() - _tcg0, 2)
+            self._state.logger.log(
+                f"[Timing] code_generation={self._state.timings['code_generation']}s "
+                f"(attempts={len(self._state.code_attempts)})"
+            )
 
             # Execute code with retries
+            _tex0 = time.time()
             result = self.execute_with_retries(code)
+            self._state.timings["code_execution"] = round(time.time() - _tex0, 2)
+            self._state.logger.log(
+                f"[Timing] code_execution={self._state.timings['code_execution']}s"
+            )
 
             # Issue 8: Store assistant message for multi-turn context
             self._store_assistant_message(result, output_type)
 
+            self._state.timings["total"] = round(time.time() - _t0, 2)
             self._state.logger.log("Response generated successfully.")
             return result
 
@@ -642,6 +662,7 @@ class Agent:
             selector = ColumnSelector(self._state)
 
             # Capture the column selection prompt for debug logging
+            _tp0 = time.time()
             self._state.column_selection_prompt = str(selector._build_prompt(query))
 
             # Use a temporary Memory with reduced size for Step 1
@@ -649,7 +670,16 @@ class Agent:
             self._state.memory = selector.build_step1_memory()
 
             try:
+                # Time ONLY the LLM call inside select() separately from the
+                # schema matching / trimming that follows.  The column-selection
+                # LLM call is where the ~135s / 400s timeouts occur, so split it
+                # out so we never confuse it with codegen latency again.
+                _tllm0 = time.time()
                 selected_names = selector.select(query)
+                self._state.timings["column_selection_llm"] = round(time.time() - _tllm0, 2)
+                self._state.logger.log(
+                    f"[Timing] column_selection_llm={self._state.timings['column_selection_llm']}s"
+                )
             finally:
                 # Always restore the full memory for Step 2
                 self._state.memory = original_memory
@@ -684,6 +714,7 @@ class Agent:
             # based on concept keywords in the query.
             self._detect_missing_struct_groups(query, selected_names)
 
+            _ts0 = time.time()
             trimmed_dfs = []
             for i, df in enumerate(self._state.dfs):
                 matched = selector.match_names_to_schema(selected_names, df)
@@ -707,6 +738,10 @@ class Agent:
                     trimmed_dfs.append(df)
 
             self._state.dfs = trimmed_dfs
+            self._state.timings["column_selection_schema"] = round(time.time() - _ts0, 2)
+            self._state.logger.log(
+                f"[Timing] column_selection_schema={self._state.timings['column_selection_schema']}s"
+            )
             final_col_count = sum(len(df.columns) for df in trimmed_dfs)
             self._state.logger.log(f"[Column Selection] Trimmed to {final_col_count} columns "
                   f"(after matching + essential-column guarantees)")

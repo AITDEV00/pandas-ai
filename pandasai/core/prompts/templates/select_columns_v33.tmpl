@@ -1,0 +1,98 @@
+You are a data analyst. Given a user question and a table schema, select the columns/fields needed to answer it.
+
+Table: {{ table_name }} ({{ total_columns }} columns)
+{% if table_description %}Description: {{ table_description }}{% endif %}
+
+**FLAT COLUMNS:**
+{% for col in flat_columns %}
+- "{{ col.name }}" ({{ col.type }}{% if col.description %}: {{ col.description }}{% endif %})
+{% if col.samples %}  Values: {{ col.samples }}{% endif %}
+{% endfor %}
+
+**STRUCT COLUMNS (each has inner fields you can select individually):**
+{% for col in struct_columns %}
+- "{{ col.name }}"{% if col.description %}: {{ col.description }}{% endif %} — inner fields:
+{% for field_name, field_info in (col.samples.items() if col.samples is mapping else []) %}
+    → "{{ field_name }}" ({{ field_info.type if field_info is mapping and 'type' in field_info else 'unknown' }}{% if field_info is mapping and field_info.get('semantic_type') %}, {{ field_info.semantic_type }}{% endif %})
+{% endfor %}
+{% endfor %}
+
+---
+
+## RULES
+
+Follow these rules exactly. Do not skip any rule.
+
+**Rule 1 — Decompose the question into concepts.** Identify the concepts (skills, projects, performance, experience, salary, education, leave, identity, etc.) and the filters (specific entities, IDs, departments, dates).
+
+**Rule 2 — Expand each concept to ALL the column types that can carry it.**
+A concept is almost never in one column. For each concept, include the FULL list of matching column types below. **You must select ALL column types that exist in the schema for each concept — do not stop after one match.**
+
+**CONCEPT → COLUMN TYPE checklist (select every present type):**
+- **skills / competencies / abilities** → competency/skill name structs, competency RATING structs, work-experience structs (responsibilities/duties = applied skills), achievement structs, professional-summary/profile fields, education/certification/qualification structs.
+- **projects / assignments** → assignment-history structs, objectives/goals structs, work-experience structs (CV projects/responsibilities), achievements/recognition structs, competency-rating structs (assessed in project context).
+- **performance / appraisal** → performance-rating structs, objectives/goals structs, achievement/comment structs, competency-rating structs.
+- **experience / tenure / history** → work-experience structs, assignment-history structs, previous-employer structs, join-date/tenure columns.
+- **education / qualification** → education structs, qualification/certification structs, institute/degree columns.
+- **salary / compensation** → the total/aggregate salary column (include the total, not its component allowances, unless specific components are named).
+
+> **KEY RULE for multi-struct concepts (skills, projects, performance, experience):** these span MULTIPLE struct groups. After you find the first matching struct, KEEP scanning the schema for more. For example, a "skills" question needs competency names AND ratings AND work experience AND achievements AND a professional summary AND education. **Do not stop after one.** Check that you did not miss a summary/profile, experience, or achievement group.
+
+### Rule 3 — Scan ALL columns and select every relevant one.
+Go through the schema one column at a time. Include a column if its name, description, type, or inner fields relate to any concept or checklist above.
+- When a struct is relevant, include the **entire group with all inner fields**.
+- **Check every struct group** — even if one already matches, continue through the rest.
+
+### Rule 4 — Apply include/exclude.
+**Include:**
+- Columns for **filtering** (identifiers the question mentions).
+- Columns for **display** or **calculation**.
+- For a named entity: **both the primary identifier and a human-readable name**.
+- When a struct is relevant: **all inner fields**; include **multiple** structs if each is relevant.
+- For comprehensive questions ("all", "compare", "everything"): include **more**.
+
+**Exclude:**
+- Columns unrelated to any concept.
+- Personal/contextual attributes (demographics, contact info) unless explicitly asked.
+- **Redundant breakdowns**: if a total/aggregate exists, skip its individual components unless named.
+- Near-duplicates: prefer the best match; include both only if ambiguous.
+
+**Default: when in doubt, include.** Over-selection is safer than under-selection.
+
+## WORKED EXAMPLE (illustrates concept expansion for ANY question)
+
+**Question**: "What are the main skills of person A?"
+
+**Rule 2** — *skills* → I must find: competency name list(s), competency rating struct(s), work-experience struct (responsibilities = skills in practice), achievement struct(s), a professional summary, and education/qualification structs — **not just the competency list**.
+
+**Result (in this schema)** → select:
+- the `Competency`/`Skill` struct (names)
+- the `Competency Rating` struct (proficiency)
+- the `Work Experience` struct (duties = applied skills)
+- the `Achievement`/`Recognition` struct(s) (demonstrated skills)
+- the `Professional Summary` struct (profile)
+- the `Education`/`Certification`/`Qualification` struct(s) (knowledge base)
+- identity + name for "person A"
+
+> The names above are placeholders. Map each to the **actual** struct names in YOUR schema. The same expansion applies to ANY concept: e.g. a "projects" question needs assignment, work-experience, achievements, and rating structs together.
+
+## OUTPUT
+
+Now answer the question below.
+
+**User question:** {{ query }}
+
+Return **only** valid JSON with exactly these two keys:
+
+```
+{
+  "selected": ["Column Name", "Struct Inner Field Name", "..."],
+  "reasoning": "Rule 1: concepts. Rule 2: checklist expansions applied. Rule 3: columns and why. Rule 4: rules applied, especially exclusions."
+}
+```
+
+**Final verification — confirm your `selected` list passes ALL of these before outputting:**
+- [ ] Every entity has identity + display fields.
+- [ ] For every multi-struct concept (skills/projects/performance/experience), you included **all** matching struct groups — experience, achievements, ratings, summary, education — not just the direct match.
+- [ ] A total/aggregate is kept and its redundant breakdowns are dropped.
+- [ ] Anything you deliberately excluded is justified in `reasoning`.

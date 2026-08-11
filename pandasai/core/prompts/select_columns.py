@@ -10,7 +10,7 @@ class SelectColumnsPrompt(BasePrompt):
     column/field names.
     """
 
-    template_path = "select_columns_v31.tmpl"
+    template_path = "select_columns_v33.tmpl"
 
     def __init__(
         self,

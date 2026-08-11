@@ -58,8 +58,11 @@ CHAT_PARAMS = {
 }
 
 # PandasAI config for registration
+# NOTE: enrichment disabled (2026-08-11) to cut registration CPU cost and reduce
+# the prompt's struct-vocabulary size during regression latency testing. It can
+# be re-enabled by setting enrich_column_values back to True.
 PANDASAI_CONFIG = {
-    "enrich_column_values": True,
+    "enrich_column_values": False,
     "auto_fill_descriptions": False,
 }
 

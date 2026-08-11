@@ -6,14 +6,15 @@ class PandasAIConfigPayload(BaseModel):
     categorical_max_unique: int = Field(50, description="Max unique values before a column is no longer considered categorical")
     auto_fill_descriptions: bool = Field(True, description="Use LLM to fill missing column descriptions after enrichment")
     # Column selection sampling params — override the LLM's default sampling
-    # settings for Step-1 (column selection) calls only.  Lower temperature
-    # reduces variance on ambiguous queries.
-    column_selection_temperature: Optional[float] = Field(0.6, description="Temperature for column selection LLM calls")
-    column_selection_top_p: Optional[float] = Field(0.95, description="Top-p (nucleus) sampling for column selection LLM calls")
-    column_selection_top_k: Optional[int] = Field(20, description="Top-k sampling for column selection LLM calls")
-    column_selection_min_p: Optional[float] = Field(0.0, description="Min-p sampling for column selection LLM calls")
-    column_selection_repetition_penalty: Optional[float] = Field(1.0, description="Repetition penalty for column selection LLM calls")
-    column_selection_presence_penalty: Optional[float] = Field(0.0, description="Presence penalty for column selection LLM calls")
+    # settings for Step-1 (column selection) calls only.  Per DeepSeek's
+    # guidance for deterministic output, ONLY temperature is set (0.0); all
+    # other sampling params default to None so the model's own defaults apply.
+    column_selection_temperature: Optional[float] = Field(0.0, description="Temperature for column selection LLM calls")
+    column_selection_top_p: Optional[float] = Field(None, description="Top-p (nucleus) sampling for column selection LLM calls")
+    column_selection_top_k: Optional[int] = Field(None, description="Top-k sampling for column selection LLM calls")
+    column_selection_min_p: Optional[float] = Field(None, description="Min-p sampling for column selection LLM calls")
+    column_selection_repetition_penalty: Optional[float] = Field(None, description="Repetition penalty for column selection LLM calls")
+    column_selection_presence_penalty: Optional[float] = Field(None, description="Presence penalty for column selection LLM calls")
     column_selection_json_mode: bool = Field(True, description="Force JSON structured output for column selection")
     # Code generation sampling params — override the LLM's default sampling
     # settings for Step-2 (code generation) calls only.  Default to None so

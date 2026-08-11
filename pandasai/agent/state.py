@@ -98,6 +98,14 @@ class AgentState:
     retrieval_mode_reasoning: Optional[str] = None
     retrieval_mode_source: Optional[str] = None  # "step1_llm" or future "api_override"
 
+    # Per-query timing breakdown (seconds), populated by _process_query().
+    # Keys: total, column_selection, code_generation, code_generation_retries,
+    #       code_execution, serialization, response_parsing.
+    # Column-selection sub-steps (when present):
+    #       column_selection_llm (the actual LLM call),
+    #       column_selection_schema (prompt build + schema matching + trimming).
+    timings: Dict[str, float] = field(default_factory=dict)
+
     # Step 1 only mode — when True, skip Step 2 (code generation) and return
     # column selection results only. Useful for debugging and testing.
     step1_only: bool = False

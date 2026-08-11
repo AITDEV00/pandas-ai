@@ -81,6 +81,15 @@ class Config(BaseModel):
     # constrained to emit valid JSON, eliminating parse failures.
     column_selection_json_mode: bool = os.environ.get("COLUMN_SELECTION_JSON_MODE", "true").lower() == "true"
 
+    # Use the instructor library for structured column selection. When True,
+    # the ColumnSelector wraps the structured LLM with instructor (Mode.MD_JSON)
+    # to get validated Pydantic output. This avoids grammar-constrained
+    # response_format (which models like DeepSeek-V4-Flash DFLASH and
+    # diffusiongemma reject) and instead extracts JSON from a code block.
+    column_selection_use_instructor: bool = (
+        os.environ.get("COLUMN_SELECTION_USE_INSTRUCTOR", "true").lower() == "true"
+    )
+
     # Code generation sampling params — override the LLM's default sampling
     # settings for Step-2 (code generation) calls only.  These are passed as
     # per-call overrides to LLM.call(sampling_params=...).
