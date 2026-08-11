@@ -60,6 +60,11 @@ class ColumnSelector:
         response = target_llm.call(prompt, self._state, sampling_params=sampling_params)
         # Store raw LLM response for debug logging
         self._last_raw_response = response
+        # Capture LLM thinking trace (if exposed) so the conversation log can
+        # show why the selector chose these columns.
+        thinking = getattr(target_llm, '_last_thinking_trace', None)
+        if thinking is not None:
+            self._state.column_selection_thinking_trace = thinking
         selected = self._parse_response(response)
         return self._validate_names(selected)
 

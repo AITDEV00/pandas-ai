@@ -16,13 +16,15 @@ class PandasAIConfigPayload(BaseModel):
     column_selection_presence_penalty: Optional[float] = Field(0.0, description="Presence penalty for column selection LLM calls")
     column_selection_json_mode: bool = Field(True, description="Force JSON structured output for column selection")
     # Code generation sampling params — override the LLM's default sampling
-    # settings for Step-2 (code generation) calls only.
-    code_generation_temperature: Optional[float] = Field(0.7, description="Temperature for code generation LLM calls")
-    code_generation_top_p: Optional[float] = Field(0.95, description="Top-p (nucleus) sampling for code generation LLM calls")
-    code_generation_top_k: Optional[int] = Field(20, description="Top-k sampling for code generation LLM calls")
-    code_generation_min_p: Optional[float] = Field(0.0, description="Min-p sampling for code generation LLM calls")
-    code_generation_repetition_penalty: Optional[float] = Field(1.0, description="Repetition penalty for code generation LLM calls")
-    code_generation_presence_penalty: Optional[float] = Field(0.0, description="Presence penalty for code generation LLM calls")
+    # settings for Step-2 (code generation) calls only.  Default to None so
+    # the env-driven Config values (or the model's own defaults) are used;
+    # setting one here explicitly overrides for this registration.
+    code_generation_temperature: Optional[float] = Field(None, description="Temperature for code generation LLM calls")
+    code_generation_top_p: Optional[float] = Field(None, description="Top-p (nucleus) sampling for code generation LLM calls")
+    code_generation_top_k: Optional[int] = Field(None, description="Top-k sampling for code generation LLM calls")
+    code_generation_min_p: Optional[float] = Field(None, description="Min-p sampling for code generation LLM calls")
+    code_generation_repetition_penalty: Optional[float] = Field(None, description="Repetition penalty for code generation LLM calls")
+    code_generation_presence_penalty: Optional[float] = Field(None, description="Presence penalty for code generation LLM calls")
 
 class LLMConfigPayload(BaseModel):
     api_key: Optional[str] = None

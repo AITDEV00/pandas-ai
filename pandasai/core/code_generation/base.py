@@ -39,6 +39,12 @@ class CodeGenerator:
             raw_response = getattr(self._context.config.llm, '_last_raw_response', None)
             if raw_response is not None:
                 self._context.code_generation_raw_llm_response = raw_response
+            # Capture the LLM thinking / reasoning trace (if the model exposed
+            # one) so the conversation log can show WHY the model chose this
+            # code — invaluable for diagnosing code-generation bugs.
+            thinking = getattr(self._context.config.llm, '_last_thinking_trace', None)
+            if thinking is not None:
+                self._context.code_generation_thinking_trace = thinking
             self._context.logger.log(f"Code Generated:\n{code}")
 
             # Validate and clean the code

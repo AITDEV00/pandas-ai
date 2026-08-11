@@ -7,6 +7,35 @@ from pandasai.helpers.filemanager import DefaultFileManager, FileManager
 from pandasai.llm.base import LLM
 
 
+def _env_float(name: str) -> Optional[float]:
+    """Read a float env var, returning None when unset/blank.
+
+    Unset env vars map to None so the caller (code generation / column
+    selection) omits them from the LLM sampling call and lets the model
+    apply its own defaults.  This is the requested behaviour for DeepSeek:
+    only temperature and top_p are pinned; everything else is left to the
+    model defaults.
+    """
+    raw = os.environ.get(name)
+    if raw is None or raw.strip() == "":
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        return None
+
+
+def _env_int(name: str) -> Optional[int]:
+    """Parse an int env var, returning None when unset/blank/invalid."""
+    raw = os.environ.get(name)
+    if raw is None or raw.strip() == "":
+        return None
+    try:
+        return int(raw)
+    except ValueError:
+        return None
+
+
 class Config(BaseModel):
     save_logs: bool = True
     verbose: bool = False
@@ -37,16 +66,16 @@ class Config(BaseModel):
     # Column selection sampling params — override the LLM's default sampling
     # settings for Step-1 (column selection) calls only.  Lower temperature
     # reduces variance on ambiguous queries.  These are passed as per-call
-    # overrides to LiteLLM.call(sampling_params=...).
-    # Defaults are tuned for Qwen3.5-35B-A3B via vllm with the V6 prompt.
-    # Override via config dict, HTTP request body, or env vars
-    # (e.g. COLUMN_SELECTION_TEMPERATURE=0.6).
-    column_selection_temperature: Optional[float] = float(os.environ.get("COLUMN_SELECTION_TEMPERATURE", "0.6"))
-    column_selection_top_p: Optional[float] = float(os.environ.get("COLUMN_SELECTION_TOP_P", "0.95"))
-    column_selection_top_k: Optional[int] = int(os.environ.get("COLUMN_SELECTION_TOP_K", "20"))
-    column_selection_min_p: Optional[float] = float(os.environ.get("COLUMN_SELECTION_MIN_P", "0.0"))
-    column_selection_repetition_penalty: Optional[float] = float(os.environ.get("COLUMN_SELECTION_REPETITION_PENALTY", "1.0"))
-    column_selection_presence_penalty: Optional[float] = float(os.environ.get("COLUMN_SELECTION_PRESENCE_PENALTY", "0.0"))
+    # overrides to LLM.call(sampling_params=...).
+    # Each value reads an env var; when unset it becomes None so the param is
+    # omitted and the model applies its own default.  Override via config dict,
+    # HTTP request body, or env vars (e.g. COLUMN_SELECTION_TEMPERATURE=0.6).
+    column_selection_temperature: Optional[float] = _env_float("COLUMN_SELECTION_TEMPERATURE")
+    column_selection_top_p: Optional[float] = _env_float("COLUMN_SELECTION_TOP_P")
+    column_selection_top_k: Optional[int] = _env_int("COLUMN_SELECTION_TOP_K")
+    column_selection_min_p: Optional[float] = _env_float("COLUMN_SELECTION_MIN_P")
+    column_selection_repetition_penalty: Optional[float] = _env_float("COLUMN_SELECTION_REPETITION_PENALTY")
+    column_selection_presence_penalty: Optional[float] = _env_float("COLUMN_SELECTION_PRESENCE_PENALTY")
     # Force JSON structured output for column selection (vllm supports this
     # via response_format={"type": "json_object"}).  When True, the LLM is
     # constrained to emit valid JSON, eliminating parse failures.
@@ -54,15 +83,18 @@ class Config(BaseModel):
 
     # Code generation sampling params — override the LLM's default sampling
     # settings for Step-2 (code generation) calls only.  These are passed as
-    # per-call overrides to LiteLLM.call(sampling_params=...).
-    # Override via config dict, HTTP request body, or env vars
-    # (e.g. CODE_GENERATION_TEMPERATURE=0.7).
-    code_generation_temperature: Optional[float] = float(os.environ.get("CODE_GENERATION_TEMPERATURE", "0.7"))
-    code_generation_top_p: Optional[float] = float(os.environ.get("CODE_GENERATION_TOP_P", "0.95"))
-    code_generation_top_k: Optional[int] = int(os.environ.get("CODE_GENERATION_TOP_K", "20"))
-    code_generation_min_p: Optional[float] = float(os.environ.get("CODE_GENERATION_MIN_P", "0.0"))
-    code_generation_repetition_penalty: Optional[float] = float(os.environ.get("CODE_GENERATION_REPETITION_PENALTY", "1.0"))
-    code_generation_presence_penalty: Optional[float] = float(os.environ.get("CODE_GENERATION_PRESENCE_PENALTY", "0.0"))
+    # per-call overrides to LLM.call(sampling_params=...).
+    # Each param reads an env var; when unset it becomes None so the param is
+    # omitted and the model's default is used.  For DeepSeek the requested
+    # configuration is temperature=1.0, top_p=0.95, everything else None
+    # (i.e. leave top_k / min_p / repetition_penalty / presence_penalty to the
+    # model defaults).  Override via env vars or HTTP request body.
+    code_generation_temperature: Optional[float] = _env_float("CODE_GENERATION_TEMPERATURE")
+    code_generation_top_p: Optional[float] = _env_float("CODE_GENERATION_TOP_P")
+    code_generation_top_k: Optional[int] = _env_int("CODE_GENERATION_TOP_K")
+    code_generation_min_p: Optional[float] = _env_float("CODE_GENERATION_MIN_P")
+    code_generation_repetition_penalty: Optional[float] = _env_float("CODE_GENERATION_REPETITION_PENALTY")
+    code_generation_presence_penalty: Optional[float] = _env_float("CODE_GENERATION_PRESENCE_PENALTY")
 
     @classmethod
     def from_dict(cls, config: Dict[str, Any]) -> "Config":

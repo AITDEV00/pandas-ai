@@ -154,6 +154,14 @@ def _write_readable_log(log_dir: Path, conversation_id: str, payload: dict) -> N
                 f.write(f"```\n{col_sel_raw}\n```\n\n")
                 f.write("</details>\n\n")
 
+            # Column selection LLM thinking trace
+            col_sel_thinking = pipeline.get("column_selection_thinking_trace", "")
+            if col_sel_thinking:
+                f.write("#### Column Selection — LLM Thinking Trace\n\n")
+                f.write("<details>\n<summary>Click to expand</summary>\n\n")
+                f.write(f"```\n{col_sel_thinking}\n```\n\n")
+                f.write("</details>\n\n")
+
             # Trimmed DataFrame info
             trimmed_info = pipeline.get("trimmed_df_info", [])
             if trimmed_info:
@@ -224,6 +232,14 @@ def _write_readable_log(log_dir: Path, conversation_id: str, payload: dict) -> N
                 f.write("### Code Generation — Raw LLM Response\n\n")
                 f.write("<details>\n<summary>Click to expand</summary>\n\n")
                 f.write(f"```\n{code_gen_raw}\n```\n\n")
+                f.write("</details>\n\n")
+
+            # ── 3d.1 Code Generation LLM Thinking Trace ──
+            code_gen_thinking = pipeline.get("code_generation_thinking_trace", "")
+            if code_gen_thinking:
+                f.write("### Code Generation — LLM Thinking Trace\n\n")
+                f.write("<details>\n<summary>Click to expand</summary>\n\n")
+                f.write(f"```\n{code_gen_thinking}\n```\n\n")
                 f.write("</details>\n\n")
 
             # ── 3e. Raw Execution Result ──
@@ -460,6 +476,12 @@ def _extract_pipeline_log(agent) -> dict:
     # 8. Code generation raw LLM response (before code extraction)
     if state.code_generation_raw_llm_response:
         pipeline["code_generation_raw_llm_response"] = state.code_generation_raw_llm_response
+
+    # 8.1 LLM thinking traces (reasoning_content) for column selection & code gen
+    if state.column_selection_thinking_trace:
+        pipeline["column_selection_thinking_trace"] = state.column_selection_thinking_trace
+    if state.code_generation_thinking_trace:
+        pipeline["code_generation_thinking_trace"] = state.code_generation_thinking_trace
 
     # 9. SQL queries executed
     if state.sql_queries:

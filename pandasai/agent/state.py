@@ -64,6 +64,15 @@ class AgentState:
     # Raw LLM response text (before cleaning) for code generation Step 2
     code_generation_raw_llm_response: Optional[str] = None
 
+    # LLM thinking/reasoning trace (reasoning_content) captured from the raw
+    # response for the last code-generation call.  Populated by LiteLLM.call()
+    # and read by the server's conversation logger so the model's "thinking"
+    # behind each generated code attempt can be audited.
+    code_generation_thinking_trace: Optional[str] = None
+
+    # Same, for column selection Step 1 calls.
+    column_selection_thinking_trace: Optional[str] = None
+
     # SQL queries executed by _execute_sql_query() during code execution
     # Each entry: {"sql": str, "result_shape": tuple, "result_columns": list,
     #              "result_preview": str, "error": str|None}

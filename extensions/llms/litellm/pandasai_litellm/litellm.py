@@ -95,11 +95,33 @@ class LiteLLM(LLM):
             model=self.model,
             messages=messages,
             **merged_params,
-        ).choices[0].message.content
+        )
 
+        # Capture the thinking / reasoning trace from the raw response so it
+        # can be audited in the conversation log.  DeepSeek (and other
+        # reasoning models) surface "chain of thought" via reasoning_content
+        # on the first choice; guard against absence so non-thinking models
+        # still work.
+        self._last_thinking_trace = None
+        try:
+            first_choice = response.choices[0]
+            message = getattr(first_choice, "message", None)
+            if message is not None:
+                reasoning = getattr(message, "reasoning_content", None)
+                if reasoning is not None and str(reasoning).strip():
+                    self._last_thinking_trace = str(reasoning)
+        except Exception:
+            self._last_thinking_trace = None
+
+        content = response.choices[0].message.content
         if context and context.logger:
             context.logger.log(
-                f"LLM RESPONSE ({len(response)} chars):\n{response}"
+                f"LLM RESPONSE ({len(content)} chars):\n{content}"
             )
+            if self._last_thinking_trace:
+                context.logger.log(
+                    f"LLM THINKING TRACE ({len(self._last_thinking_trace)} chars):\n"
+                    f"{self._last_thinking_trace}"
+                )
 
-        return response
+        return content
