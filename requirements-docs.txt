@@ -1,0 +1,3 @@
+# Docs build dependencies (kept separate from the main project venv)
+mkdocs-material>=9.5
+mkdocs-git-revision-date-localized-plugin

@@ -63,6 +63,18 @@ STABILITY_QUESTIONS: Dict[str, str] = {
         "How many sick leaves did employee 1136 take in 2025? "
         "Count total sick leave days and list each record with dates."
     ),
+    "Q13b": (
+        "Find all sick leave records for employee ID 1136 (Dr. Rahila Babar "
+        "Asad) in the year 2025. Count total number of sick leave days taken, "
+        "list each leave record with start date, end date, and duration. Also "
+        "include employee name and department if available."
+    ),
+    "Q13c": (
+        "Count total sick leave days taken by employee 1136 (Dr. Rahila Babar "
+        "Asad) in 2025. Also list individual leave records showing leave type, "
+        "start date, end date, and duration in days for any sick leaves in 2025. "
+        "Include employee name if available."
+    ),
     "Q19": (
         "Find education details for employees with IDs '0982' and '1177'. "
         "For each employee, return name, employee ID, organizational unit, "
@@ -80,6 +92,99 @@ STABILITY_QUESTIONS: Dict[str, str] = {
     "Q30": (
         "What are the leadership roles in ADEO? Find employees with "
         "management/leadership titles and list their roles."
+    ),
+    # Additional question types that historically required retries
+    "R1_leave_explore": (
+        "Check what leave-related columns exist in the dataset by listing "
+        "distinct columns that contain 'Leave' in their name or show sample "
+        "records with leave information for any employee. Then search for sick "
+        "leave records specifically for employee 1136 in year 2025, counting "
+        "total days and listing individual leave dates if available."
+    ),
+    "R2_human_capital": (
+        "List all employees working in the Human Capital Department. For each "
+        "employee, show: Employee Name, Employee ID, Organizational "
+        "Unit/Section, Grade, Date of Joining, Years of Service/Tenure, and "
+        "Division. Sort by employee ID ascending. Include total count at the "
+        "end."
+    ),
+    "R3_senior_specialist_sorted": (
+        "Find all employees who have \"Senior Specialist\" in their job title "
+        "or position. For each employee, show: Employee Name, Employee ID, "
+        "Grade, Position, Department, Division, Organizational Unit, Years of "
+        "Service, and any salary-related fields available in the system (such "
+        "as Salary Amount, Basic Salary, Total Compensation, Salary Band, Pay "
+        "Grade, or similar compensation data). Calculate the average salary "
+        "across all Senior Specialists if salary data exists. Sort by years of "
+        "service descending."
+    ),
+    "R4_longest_tenure": (
+        "Find the employee(s) with the longest years of service/tenure at ADEO. "
+        "Return Employee Name, Employee ID, Position, Grade, Department, "
+        "Division, Organizational Unit, Date of Joining, Years of Service/Tenure "
+        "(calculated), and Gender. Sort by tenure descending and show top 20 "
+        "employees. Include the maximum tenure value found."
+    ),
+    "R5_chinese_ai": (
+        "Find all employees who have BOTH Chinese language skills AND any "
+        "AI-related competency (including Artificial Intelligence, AI "
+        "Implementation, AI Integration, Machine Learning, Deep Learning, "
+        "Python, or similar AI/ML skills). For each employee show: Employee "
+        "Name, Employee ID, Organizational Unit/Section, Department, Grade, "
+        "Date of Joining, Years of Service, and list all their Chinese "
+        "language skills and AI-related competencies."
+    ),
+    "R6_emp1137_skills": (
+        "Find employee with ID 1137. Return their name, employee ID, and all "
+        "their technical competencies/skills from the CV data. List each skill "
+        "name."
+    ),
+    "R7_ec_committees": (
+        "Find all employees working in the EC and Committees Affairs "
+        "Department. For each employee, show: Employee Name, Employee ID, "
+        "Organizational Unit/Section, Grade, Date of Joining, Years of "
+        "Service/Tenure, and Gender. Sort by employee ID ascending. Include "
+        "total count at the end with breakdown by gender if available."
+    ),
+    "R8_director_general": (
+        "Find all employees who have the role of Director General (DG) in "
+        "Strategic Affairs Division. Search for any position/title containing "
+        "\"Director General\", \"DG\", or \"Strategic Affairs\" that indicates "
+        "leadership of the Strategic Affairs Division. For each employee show: "
+        "Employee Name, Employee ID, Position, Grade, Organizational "
+        "Unit/Division, Department, Date of Joining, Years of Service/Tenure, "
+        "and Reporting Line if available. Sort by grade seniority."
+    ),
+    "R9_emp982_1177_skills": (
+        "Find employees with IDs '0982' and '1177'. For each employee, return "
+        "their name, employee ID, organizational unit, department, grade, and "
+        "ALL their technical competencies/skills with competency ratings if "
+        "available. Compare their skill sets side by side and identify any "
+        "common skills they share."
+    ),
+    "R10_leadership_positions": (
+        "Find all employees with leadership positions including Chairman, "
+        "Secretary General, Director General, DG, Executive Director, ED, "
+        "Director, Head of Section, or any senior management title. For each "
+        "employee show: Employee Name, Employee ID, Position, Grade, "
+        "Organizational Unit, Department, Division, Reporting Line "
+        "(Supervisor), Date of Joining, Years of Service/Tenure, and Gender. "
+        "Sort by grade seniority (highest leadership first). Count total "
+        "leadership roles found."
+    ),
+    "R11_projects_982_1177": (
+        "Find all project information for Employee ID 982 and Employee ID 1177. "
+        "For each employee, show their name, employee ID, organizational "
+        "unit/department, grade, and list ALL projects they have been involved "
+        "in including project name, project role, start date, end date, and "
+        "project status/description if available. Compare their project "
+        "portfolios side by side."
+    ),
+    "R12_compare_edu_0982_1177": (
+        "Compare the education background of employees 0982 and 1177."
+    ),
+    "R13_sick_1136": (
+        "How many sick leave days did employee 1136 take in 2025?"
     ),
 }
 

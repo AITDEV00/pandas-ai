@@ -22,6 +22,13 @@ Choose the most appropriate type for the user's question:
 
 **IMPORTANT: Use exact column names from the schema listings above.** Flat columns are `"column_name"`, struct fields after UNNEST are `var['field_name']`.
 
+**BEFORE returning the code, deterministically self-review it:**
+1. Every `UNNEST("...")` string must be copied **character-for-character** from the schema listing — do NOT add, drop, or reorder any inner field, and do NOT change casing or spacing.
+2. Every struct field access `var['...']` must use an exact key from the schema (e.g. `rec['Employee Leave Details[Leave Type]']`). Do NOT invent keys or change case.
+3. Every alias you define with `AS <alias>` in the SQL must be the EXACT name you later reference in Python (`df['<alias>']`). Do not write `AS skill` and then read `df['skill_name']`.
+4. Leave NO placeholders, `..`, `[..]`, `TODO`, or `-- placeholder` in the SQL or code — every field must be a real reference.
+5. Every variable referenced in an f-string or expression must be assigned before use — if the reasoning used one name, the code must use the same name (no `header` vs `header_line` drift).
+
 **Examples of rich Python code:**
 
 ```python

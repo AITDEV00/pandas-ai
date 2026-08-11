@@ -100,8 +100,15 @@ spell_fix:  ## run codespell on the project and fix the errors
 # DOCS
 ######################
 
-docs:  ## run docs serving
-	mkdocs serve
+docs:  ## install docs deps + serve MkDocs live preview
+	python3 -m venv .venv-docs 2>/dev/null; \
+	.venv-docs/bin/pip install -q -r requirements-docs.txt; \
+	.venv-docs/bin/mkdocs serve
+
+docs-build:  ## install docs deps + build the static site into ./site
+	python3 -m venv .venv-docs 2>/dev/null; \
+	.venv-docs/bin/pip install -q -r requirements-docs.txt; \
+	.venv-docs/bin/mkdocs build
 
 ######################
 # HELP

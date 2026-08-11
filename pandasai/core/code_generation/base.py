@@ -5,6 +5,7 @@ from pandasai.core.prompts.base import BasePrompt
 
 from .code_cleaning import CodeCleaner
 from .code_validation import CodeRequirementValidator
+from .structural_validator import StructuralCodeValidator
 
 
 class CodeGenerator:
@@ -12,6 +13,10 @@ class CodeGenerator:
         self._context = context
         self._code_cleaner = CodeCleaner(self._context)
         self._code_validator = CodeRequirementValidator(self._context)
+        # Deterministic, schema-driven self-review that catches fabricated or
+        # garbled schema identifiers (struct names, aliases, placeholders) that
+        # the LLM would otherwise only discover at execution time.
+        self._structural_validator = self._build_structural_validator()
 
     def generate_code(self, prompt: BasePrompt) -> str:
         """
@@ -92,6 +97,46 @@ class CodeGenerator:
             raise ValueError("Code validation failed due to unmet requirements.")
         self._context.logger.log("Code validation successful.")
 
+        # Deterministic self-review: replay the schema-name checks against the
+        # generated code. If the code fabricated a struct column name, a struct
+        # field key, left a placeholder, or drifted an alias, we raise a precise,
+        # targeted error NOW so the retry prompt receives it — instead of only
+        # discovering it at execution time (and re-using a wasted retry).
+        self._run_structural_self_review(code)
+
         # Clean the code
         self._context.logger.log("Cleaning the generated code...")
         return self._code_cleaner.clean_code(code)
+
+    def _run_structural_self_review(self, code: str) -> None:
+        """Run the deterministic structural self-review over generated code.
+
+        Raises a ValueError describing the exact problems found. The retry
+        loop in the agent picks this up and feeds it back to the LLM as the
+        error message, so the model can fix the precise issue.
+        """
+        if self._structural_validator is None:
+            return
+        problems = self._structural_validator.validate(code)
+        if problems:
+            msg = StructuralCodeValidator.format_problems(problems)
+            self._context.logger.log(msg)
+            raise ValueError(msg)
+
+    def _build_structural_validator(self):
+        """Build a StructuralCodeValidator from the current schema columns.
+
+        Returns None when no schema columns are available (e.g. during the
+        fallback path) so the checks are skipped rather than raising.
+        """
+        try:
+            columns = []
+            for df in self._context.dfs:
+                if df.schema and df.schema.columns:
+                    columns.extend(col.name for col in df.schema.columns)
+            if not columns:
+                return None
+            return StructuralCodeValidator(columns)
+        except Exception:
+            # Never let the validator itself break code generation.
+            return None

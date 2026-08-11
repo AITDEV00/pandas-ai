@@ -20,6 +20,10 @@ pandasai.egg-info
 /venv
 .venv
 
+# docs build venv + static site output
+.venv-docs
+/site
+
 # command line
 /pandasai_cli.egg-info
 
@@ -54,6 +58,9 @@ run/e2e_reports/
 
 # per-conversation chat run summaries (markdown)
 run/conv_logs/
+
+# packed archives of old run artifacts
+run/archive/
 
 # scratch / temp
 scratch/
