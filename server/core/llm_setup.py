@@ -20,7 +20,16 @@ def create_litellm(
     Centralises the httpx + openai + LiteLLM wiring so both the global
     setup and per-request handlers share the same logic.
     """
-    custom_httpx_client = httpx.Client(verify=verify_ssl)
+    # Bound the httpx transport too (connect/read/write/pool). The default is
+    # 5s connect + unbounded read for streaming, which lets a slow reasoning
+    # model (DeepSeek V4 Flash emitting 100k CoT tokens) block forever. Use the
+    # same budget as the per-call timeout when one is supplied, so a slow
+    # request is aborted at the HTTP layer as well as by litellm.
+    request_timeout = litellm_kwargs.get("timeout") or None
+    custom_httpx_client = httpx.Client(
+        verify=verify_ssl,
+        timeout=request_timeout if request_timeout else None,
+    )
     try:
         custom_openai_client = openai.OpenAI(
             api_key=api_key,
@@ -46,37 +55,85 @@ def _structured_thinking_kwargs() -> dict:
     request body so it does NOT spend tokens/time reasoning before producing its
     JSON column-selection output. Defaults to enabled (no override).
 
+    When thinking is enabled, the chain-of-thought can run away (DeepSeek's max
+    output is 384K tokens). Bound it with a top-level ``reasoning_effort``
+    (default ``low``) so column-selection generation does not hang. Controlled
+    by ``STRUCTURED_LLM_REASONING_EFFORT`` (low/high/max). When thinking is
+    disabled, no reasoning_effort is sent (it is irrelevant for non-thinking).
+
     Returns:
-        dict: A dict safe to merge into ``litellm_kwargs``. Empty when the env
-        var is unset or truthy.
+        dict: A dict safe to merge into ``litellm_kwargs``.
     """
     flag = os.environ.get("STRUCTURED_LLM_THINKING", "").strip().lower()
     if flag == "false":
         return {"extra_body": {"chat_template_kwargs": {"thinking": False}}}
-    return {}
+
+    effort = os.environ.get("STRUCTURED_LLM_REASONING_EFFORT", "low").strip().lower()
+    if effort not in {"low", "high", "max"}:
+        logger.warning(
+            "Unsupported STRUCTURED_LLM_REASONING_EFFORT=%r — expected "
+            "low/high/max; falling back to low", effort
+        )
+        effort = "low"
+
+    return {
+        "reasoning_effort": effort,
+        # LiteLLM rejects unsupported params for the openai provider unless
+        # explicitly whitelisted; allow reasoning_effort so it is forwarded.
+        "allowed_openai_params": ["reasoning_effort"],
+        "extra_body": {
+            "chat_template_kwargs": {"thinking": True},
+        },
+    }
 
 
 def _codegen_thinking_kwargs() -> dict:
-    """Return ``chat_template_kwargs`` that toggles the coding model's thinking.
+    """Return code-generation LLM kwargs.
 
-    The DeepSeek coding model surfaces chain-of-thought via the
-    ``chat_template_kwargs.thinking`` flag in the request body (see the user
-    example: ``{"chat_template_kwargs": {"thinking": true}}``). When the
-    ``CODE_GENERATION_THINKING`` env var is set to ``false`` (case-insensitive),
-    we emit ``{"thinking": false}`` so the code-generation LLM does NOT spend
-    tokens/time reasoning before producing code. Defaults to enabled.
+    Code generation runs on a reasoning model (DeepSeek-V4-Flash). Its thinking
+    mode can run away to hundreds of thousands of tokens if left unconstrained
+    (a classic reasoning loop, esp. on the 0731 build) — which looks like a hang.
+    ``CODE_GENERATION_THINKING=false`` disables the chain-of-thought entirely
+    (no reasoning block to loop on); ``reasoning_effort`` bounds it when enabled;
+    and ``max_tokens`` caps the *total* output (reasoning + final code) so even
+    a runaway is truncated at a hard budget instead of running to the model's
+    384K max. LiteLLM rejects unknown openai params unless whitelisted, so
+    ``reasoning_effort`` and ``max_tokens`` are listed in ``allowed_openai_params``.
 
     Returns:
-        dict: A dict safe to merge into ``litellm_kwargs``. Empty when the env
-        var is unset or truthy, so existing behaviour is unchanged.
+        dict: A dict safe to merge into ``litellm_kwargs``.
     """
-    flag = os.environ.get("CODE_GENERATION_THINKING", "").strip().lower()
-    if flag == "false":
-        # Use extra_body so litellm reliably forwards it into the OpenAI
-        # request body as a top-level field. The vLLM/DeepSeek endpoint reads
-        # chat_template_kwargs.thinking to toggle chain-of-thought.
+    # Toggle the codegen model's chain-of-thought off entirely when set to
+    # "false". This is the primary mitigation for the 0731 reasoning-loop hang.
+    thinking_flag = os.environ.get("CODE_GENERATION_THINKING", "").strip().lower()
+    if thinking_flag == "false":
         return {"extra_body": {"chat_template_kwargs": {"thinking": False}}}
-    return {}
+
+    effort = os.environ.get("CODE_GENERATION_REASONING_EFFORT", "low").strip().lower()
+    if effort not in {"low", "high", "max"}:
+        logger.warning(
+            "Unsupported CODE_GENERATION_REASONING_EFFORT=%r — expected "
+            "low/high/max; falling back to low", effort
+        )
+        effort = "low"
+
+    # Hard cap on the total output tokens (reasoning + content) for codegen.
+    # Without this, thinking mode can emit up to the model's 384K max and look
+    # like a hang. Read as int; 0/blank => no cap.
+    try:
+        max_tokens = int(os.environ.get("CODE_GENERATION_MAX_TOKENS", "10000"))
+    except ValueError:
+        max_tokens = 10000
+    max_tokens = max_tokens if max_tokens > 0 else 10000
+
+    return {
+        "reasoning_effort": effort,
+        "max_tokens": max_tokens,
+        "allowed_openai_params": ["reasoning_effort", "max_tokens"],
+        "extra_body": {
+            "chat_template_kwargs": {"thinking": True},
+        },
+    }
 
 
 def setup_structured_llm(json_mode: bool = False):

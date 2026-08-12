@@ -117,6 +117,83 @@ class LLM:
 
         return code
 
+    def _extract_code_robust(self, response: str) -> str:
+        """Extract Python code from a structured `code` field with fallbacks.
+
+        The raw ``_extract_code`` splits on the first ``` and can fail when the
+        model wraps a long program in nested markdown fences, prepends prose, or
+        emits the code with trailing explanations.  This tries, in order:
+
+          1. the standard ``_extract_code`` path;
+          2. the largest ```python``` (or ```) fenced block, taken whole;
+          3. the largest substring that parses as valid Python (handles prose
+             before/after the program);
+          4. the whole response stripped of fences.
+
+        Raises:
+            NoCodeFoundError: If no candidate parses as valid Python.
+        """
+        # 1. Standard extraction (handles single fence / raw code).
+        try:
+            return self._extract_code(response)
+        except NoCodeFoundError:
+            pass
+
+        # 2 & 3) Find all fenced blocks; prefer the largest one that parses.
+        candidates: list[str] = []
+        for m in re.finditer(r"```(?:python|py)?\s*\n(.*?)```", response, re.DOTALL):
+            candidates.append(m.group(1))
+        if not candidates:
+            # No fences: treat the whole thing as a candidate.
+            candidates.append(response)
+        # Also always consider the raw response minus any fences.
+        candidates.append(re.sub(r"```(?:python|py)?\s*|```", "", response))
+
+        # Try candidates longest-first so the real program wins over fragments.
+        for cand in sorted(candidates, key=len, reverse=True):
+            cand = self._polish_code(cand)
+            if self._is_python_code(cand):
+                return cand
+
+        # 4) Last resort: strip leading prose up to the first 'import'/'from'/'#'.
+        stripped = response
+        for marker in ("import ", "from ", "# TODO"):
+            idx = stripped.find(marker)
+            if idx > 0 and "\n" in stripped[: idx + 1]:
+                stripped = stripped[idx:]
+                break
+        stripped = self._polish_code(stripped)
+        if self._is_python_code(stripped):
+            return stripped
+
+        raise NoCodeFoundError("No code found in the response")
+
+    def generate_code_structured(
+        self,
+        instruction: BasePrompt,
+        context: Any = None,
+        sampling_params: Optional[dict] = None,
+    ) -> "CodeGenResult":
+        """Generate code via a structured, bounded 3-section response.
+
+        Unlike the raw ``call()`` path, the model is asked to return three
+        validated fields: ``reasoning_trace`` (short plan), ``double_check``
+        (self-review), and ``code`` (final Python). This keeps the reasoning
+        benefit of thinking-mode while bounding the output so it cannot loop.
+
+        Base implementation falls back to the unstructured path by prompting for
+        JSON. Concrete LLMs (LiteLLM) override this to use the instructor
+        library for guaranteed schema adherence.
+
+        Returns:
+            CodeGenResult: The structured generation result.
+        """
+        from pandasai.core.code_generation.structured import CodeGenResult
+
+        # Default: re-use the raw call and parse sections out of the response.
+        response = self.call(instruction, context=context, sampling_params=sampling_params)
+        return CodeGenResult(code=self._extract_code(response))
+
     @staticmethod
     def _extract_code_after_marker(response: str) -> Optional[str]:
         """
@@ -203,6 +280,37 @@ class LLM:
             str: A string of Python code.
 
         """
+        # Structured code generation: when enabled, request a bounded 3-section
+        # response (reasoning_trace + double_check + code) validated by Pydantic.
+        # This keeps the reasoning benefit of thinking-mode while bounding output
+        # so DeepSeek-V4-Flash cannot loop. Concrete LLMs override
+        # generate_code_structured to use instructor; the base falls back to the
+        # raw call.
+        use_structured = False
+        if context is not None:
+            cfg = getattr(context, "config", None)
+            if cfg is not None:
+                use_structured = getattr(cfg, "code_generation_use_instructor", False)
+
+        if use_structured:
+            result = self.generate_code_structured(
+                instruction, context=context, sampling_params=sampling_params
+            )
+            self._last_raw_response = (
+                result.model_dump_json() if hasattr(result, "model_dump_json") else str(result)
+            )
+            # Store the reasoning/double-check sections for audit.
+            self._last_structured_reasoning = getattr(result, "reasoning_trace", "")
+            self._last_structured_double_check = getattr(result, "double_check", "")
+            # Store the raw verification_checks list (Plan/CoVe/PoT structured fields).
+            self._last_structured_verification_checks = getattr(
+                result, "verification_checks", []
+            )
+            # Structured `code` fields can arrive wrapped in markdown fences or
+            # with prose; use the robust extractor so a long valid program is
+            # not rejected just because the model fenced it.
+            return self._extract_code_robust(result.code)
+
         response = self.call(instruction, context, sampling_params=sampling_params)
         # Store the raw LLM response for debug logging
         self._last_raw_response = response

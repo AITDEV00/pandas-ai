@@ -50,6 +50,18 @@ class CodeGenerator:
             thinking = getattr(self._context.config.llm, '_last_thinking_trace', None)
             if thinking is not None:
                 self._context.code_generation_thinking_trace = thinking
+            # Capture the structured reasoning/double-check sections (when
+            # structured codegen is enabled) for audit in the conversation log.
+            sr = getattr(self._context.config.llm, '_last_structured_reasoning', None)
+            if sr:
+                self._context.code_generation_structured_reasoning = sr
+            sc = getattr(self._context.config.llm, '_last_structured_double_check', None)
+            if sc:
+                self._context.code_generation_structured_double_check = sc
+            svc = getattr(
+                self._context.config.llm, '_last_structured_verification_checks', None)
+            if svc:
+                self._context.code_generation_structured_verification_checks = svc
             self._context.logger.log(f"Code Generated:\n{code}")
 
             # Validate and clean the code

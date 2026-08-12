@@ -17,6 +17,7 @@ import os
 import sys
 import time
 import traceback
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 
@@ -33,11 +34,19 @@ SEMANTIC_MODEL_FILE = DATASETS_DIR / "20th may column descriptions for pandasai.
 PANDASAI_CONFIG = {
     "enrich_column_values": True,
     "auto_fill_descriptions": False,
-    # ONLY temperature=0.0 for deterministic output; all other sampling params
-    # left unset to use model defaults.
+    # Structured (Step-1) selection: temp 0 + instructor (validated Pydantic).
     "column_selection_temperature": 0.0,
     "column_selection_json_mode": True,
-    "code_generation_temperature": 0.0,
+    "column_selection_use_instructor": True,
+    # Codegen (Step-2): temp 0.2 + thinking OFF (kills the reasoning loop).
+    # The 0731 build loops its thinking chain when thinking is on; see .env.
+    "code_generation_temperature": 0.2,
+    # Structured codegen: request a bounded reasoning_trace + double_check + code
+    # response validated by instructor. Middle ground between thinking-on (loops)
+    # and thinking-off (quality collapse). Toggle via CODE_GENERATION_USE_INSTRUCTOR.
+    "code_generation_use_instructor": (
+        os.environ.get("CODE_GENERATION_USE_INSTRUCTOR", "true").lower() == "true"
+    ),
 }
 
 # All Step-1 questions (same set as test_step1_column_selection.py).
@@ -216,9 +225,11 @@ def run_one(q: dict) -> dict:
         "code": None,
         "codegen_thinking": None,
         "codegen_time": None,
+        "llm_calls": [],          # NEW: per-LLM-call records
         "validators_passed": None,
         "validation_error": None,
         "executed": False,
+        "execution_time": None,   # NEW: execution phase duration
         "execution_error": None,
         "executed_result": None,
         "failure_stage": None,
@@ -226,6 +237,27 @@ def run_one(q: dict) -> dict:
 
     agent = build_agent()
     state = agent._state
+
+    # NEW: wrap the state logger so we can capture every log line (which now
+    # includes the per-LLM-call records) for inspection.
+    captured_logs = []
+    orig_logger = state.logger
+
+    class _CaptureLogger:
+        def log(self, msg):
+            captured_logs.append(str(msg))
+            if orig_logger is not None:
+                orig_logger.log(msg)
+
+    state.logger = _CaptureLogger()
+
+    def _extract_llm_calls():
+        """Pull [LLM-CALL] records and timing lines from captured logs."""
+        calls = []
+        for line in captured_logs:
+            if line.startswith("[LLM-CALL]") or line.startswith("[ATTEMPT]"):
+                calls.append(line)
+        return calls
 
     # Step 1
     sel = ColumnSelector(state)
@@ -251,32 +283,57 @@ def run_one(q: dict) -> dict:
     state.dfs = [trimmed if i == 0 else d for i, d in enumerate(state.dfs)]
     out["trimmed_cols"] = len(trimmed.columns)
 
-    # Step 2
+    # Step 2 (code generation)
     state.memory.add(query, is_user=True)
     prompt = get_chat_prompt_for_sql(state)
     codegen = CodeGenerator(state)
     t1 = time.time()
+    _cg_calls_before = len(_extract_llm_calls())
+    # Optional production-style retry loop. Single-shot by default (isolates
+    # first-try accuracy); set CODEGEN_RETRY=1 to measure the full
+    # generate_code_with_retries loop (1 + max_retries attempts).
+    _retry = os.environ.get("CODEGEN_RETRY", "").strip() == "1"
     try:
-        code = codegen.generate_code(prompt)
+        if _retry:
+            code = agent.generate_code_with_retries(query)
+        else:
+            code = codegen.generate_code(prompt)
         out["code"] = code
         out["codegen_time"] = round(time.time() - t1, 2)
         out["codegen_thinking"] = getattr(state, 'code_generation_thinking_trace', None)
+        out["codegen_structured_reasoning"] = getattr(
+            state, 'code_generation_structured_reasoning', None)
+        out["codegen_structured_double_check"] = getattr(
+            state, 'code_generation_structured_double_check', None)
+        out["codegen_structured_verification_checks"] = getattr(
+            state, 'code_generation_structured_verification_checks', None)
         out["validators_passed"] = True
     except Exception as e:
         out["code"] = getattr(state, 'last_code_generated', None)
         out["codegen_time"] = round(time.time() - t1, 2)
         out["codegen_thinking"] = getattr(state, 'code_generation_thinking_trace', None)
+        out["codegen_structured_reasoning"] = getattr(
+            state, 'code_generation_structured_reasoning', None)
+        out["codegen_structured_double_check"] = getattr(
+            state, 'code_generation_structured_double_check', None)
+        out["codegen_structured_verification_checks"] = getattr(
+            state, 'code_generation_structured_verification_checks', None)
         out["validators_passed"] = False
         out["validation_error"] = str(e)
         out["failure_stage"] = "codegen"
-        # Capture full traceback
         out["error_traceback"] = traceback.format_exc()
+        out["codegen_llm_calls"] = _extract_llm_calls()[_cg_calls_before:]
+        # restore real logger for the outer callers
+        state.logger = orig_logger
         return out
+    out["codegen_llm_calls"] = _extract_llm_calls()[_cg_calls_before:]
 
-    # Execute
+    # Execute (code execution is a separate phase — no LLM call, just sandbox run)
+    t_exec = time.time()
     try:
         exec_result = agent.execute_code(out["code"])
         out["executed"] = True
+        out["execution_time"] = round(time.time() - t_exec, 2)
         if isinstance(exec_result, dict):
             out["executed_result"] = {
                 k: (str(v) if not isinstance(v, (int, float, bool, str, type(None))) else v)
@@ -285,9 +342,40 @@ def run_one(q: dict) -> dict:
         else:
             out["executed_result"] = str(exec_result)
     except Exception as e:
+        out["execution_time"] = round(time.time() - t_exec, 2)
         out["execution_error"] = str(e)
         out["execution_traceback"] = traceback.format_exc()
         out["failure_stage"] = "execution"
+    out["llm_calls"] = _extract_llm_calls()
+    # restore real logger for outer callers
+    state.logger = orig_logger
+    return out
+
+
+def _run_one_worker(q: dict) -> dict:
+    """Module-level worker for process pools.
+
+    Each question is self-contained (run_one builds its own agent/DataFrame),
+    so we can run many in parallel. In a forked process each worker gets its own
+    module-level _ATTEMPTS / captured_logs, so the per-LLM-call logging stays
+    isolated. Also snapshot the global LLM setup so fork/spawn workers that
+    don't inherit it still function.
+    """
+    try:
+        from server.core.llm_setup import setup_global_llm
+        setup_global_llm()
+    except Exception:
+        pass
+    t_start = time.time()
+    try:
+        out = run_one(q)
+    except Exception as e:
+        out = {
+            "num": q["num"], "test_question": q["test_question"],
+            "error": str(e), "error_traceback": traceback.format_exc(),
+            "failure_stage": "script_error", "executed": False,
+        }
+    out["elapsed_total"] = round(time.time() - t_start, 2)
     return out
 
 
@@ -303,51 +391,81 @@ def main():
           f"structured_thinking={os.environ.get('STRUCTURED_LLM_THINKING')}")
     print(f"Output: {run_dir}\n")
 
+    # Optional question filter: QUESTIONS=28,35 runs only those questions
+    filter_env = os.environ.get("QUESTIONS", "").strip()
+    if filter_env:
+        filter_set = {p.strip().lstrip("Q").lower() for p in filter_env.split(",") if p.strip()}
+        QUESTIONS_TO_RUN = [q for q in QUESTIONS if str(q["num"]).lower() in filter_set]
+        print(f"QUESTIONS filter active: running only {[q['num'] for q in QUESTIONS_TO_RUN]}\n")
+    else:
+        QUESTIONS_TO_RUN = QUESTIONS
+
     failures = []
     all_results = []
-    for i, q in enumerate(QUESTIONS):
+    # Questions not yet done (skip ones with an existing per-question JSON).
+    pending = []
+    for q in QUESTIONS_TO_RUN:
         num = q["num"]
-        print(f"[{i+1}/{len(QUESTIONS)}] Q{num}: {q['test_question'][:50]}... ", flush=True)
-        t_start = time.time()
-        try:
-            out = run_one(q)
-        except Exception as e:
-            out = {
-                "num": num, "test_question": q["test_question"],
-                "error": str(e), "error_traceback": traceback.format_exc(),
-                "failure_stage": "script_error", "executed": False,
-            }
-        out["elapsed_total"] = round(time.time() - t_start, 2)
-        all_results.append(out)
+        existing_path = run_dir / f"Q{num}_gen.json"
+        if existing_path.exists():
+            print(f"Q{num}: {q['test_question'][:50]}... SKIP (already done)", flush=True)
+            out = json.loads(existing_path.read_text(encoding="utf-8"))
+            all_results.append(out)
+            if not out.get("executed") or not out.get("validators_passed"):
+                failures.append(out)
+        else:
+            pending.append(q)
 
-        # Save per-question full JSON
-        with open(run_dir / f"Q{num}_gen.json", "w", encoding="utf-8") as f:
-            json.dump(out, f, indent=2, ensure_ascii=False, default=str)
-        # Save readable .md
-        _write_md(run_dir / f"Q{num}_gen.md", out)
+    if pending:
+        # Run the remaining questions concurrently. Each worker is a separate
+        # forked process (isolated LLM/attempt logging) so N questions run in
+        # parallel instead of serially.
+        max_workers = int(os.environ.get("CODEGEN_CONCURRENCY", "4"))
+        print(f"Running {len(pending)} questions concurrently (workers={max_workers})...", flush=True)
+        with ProcessPoolExecutor(max_workers=max_workers) as ex:
+            # preserve question order in results
+            futs = {ex.submit(_run_one_worker, q): q for q in pending}
+            for fut in as_completed(futs):
+                q = futs[fut]
+                num = q["num"]
+                try:
+                    out = fut.result()
+                except Exception as e:
+                    out = {
+                        "num": num, "test_question": q["test_question"],
+                        "error": str(e), "error_traceback": traceback.format_exc(),
+                        "failure_stage": "worker_error", "executed": False,
+                    }
+                all_results.append(out)
 
-        # Track failures
-        is_fail = not out.get("executed") or not out.get("validators_passed")
-        status = "❌ FAIL" if is_fail else "✅ OK"
-        print(f"    {status}  ({out.get('elapsed_total')}s)  "
-              f"trimmed={out.get('trimmed_cols')} "
-              f"validators={out.get('validators_passed')} "
-              f"exec={out.get('executed')} "
-              f"stage={out.get('failure_stage')}", flush=True)
-        if is_fail:
-            failures.append(out)
+                with open(run_dir / f"Q{num}_gen.json", "w", encoding="utf-8") as f:
+                    json.dump(out, f, indent=2, ensure_ascii=False, default=str)
+                _write_md(run_dir / f"Q{num}_gen.md", out)
 
-        # Write incremental progress + failures file
-        _write_progress(run_dir, failures)
+                is_fail = not out.get("executed") or not out.get("validators_passed")
+                status = "❌ FAIL" if is_fail else "✅ OK"
+                print(f"    {status}  ({out.get('elapsed_total')}s)  "
+                      f"trimmed={out.get('trimmed_cols')} "
+                      f"validators={out.get('validators_passed')} "
+                      f"exec={out.get('executed')} "
+                      f"stage={out.get('failure_stage')}", flush=True)
+                if is_fail:
+                    failures.append(out)
+
+                _write_progress(run_dir, failures)
+        # restore input order for the summary
+        order = {str(q["num"]): i for i, q in enumerate(QUESTIONS_TO_RUN)}
+        all_results.sort(key=lambda o: order.get(str(o.get("num")), 999))
 
     # Final summary
     ok_exec = sum(1 for o in all_results if o.get("executed"))
     ok_val = sum(1 for o in all_results if o.get("validators_passed"))
+    total_n = len(QUESTIONS_TO_RUN)
     print("\n" + "=" * 70)
-    print(f"THINKING-ON CODEGEN RESULTS ({len(QUESTIONS)} questions)")
+    print(f"THINKING-ON CODEGEN RESULTS ({total_n} questions)")
     print("=" * 70)
-    print(f"  Validators passed: {ok_val}/{len(QUESTIONS)}")
-    print(f"  Executed ok:       {ok_exec}/{len(QUESTIONS)}")
+    print(f"  Validators passed: {ok_val}/{total_n}")
+    print(f"  Executed ok:       {ok_exec}/{total_n}")
     print(f"  Failures:          {len(failures)}")
     print(f"  Output:            {run_dir}")
     print("=" * 70)
@@ -370,17 +488,33 @@ def _write_md(path: Path, out: dict):
                  f"codegen={out.get('thinking_enabled',{}).get('codegen')}")
     lines.append(f"- **selected ({len(out.get('selected_names',[]))})**: {out.get('selected_names')}")
     lines.append(f"- **trimmed cols**: {out.get('trimmed_cols')}")
-    lines.append(f"- **col-sel time**: {out.get('col_sel_time')}s | **codegen time**: {out.get('codegen_time')}s")
+    lines.append(f"- **col-sel time**: {out.get('col_sel_time')}s | **codegen time**: {out.get('codegen_time')}s | **exec time**: {out.get('execution_time')}s")
     lines.append(f"- **validators passed**: {out.get('validators_passed')}")
     lines.append(f"- **executed**: {out.get('executed')}")
+
+    # Per-LLM-call breakdown
+    llm_calls = out.get("llm_calls") or out.get("codegen_llm_calls") or []
+    if llm_calls:
+        lines.append(f"\n## LLM calls ({len(llm_calls)})\n")
+        for c in llm_calls:
+            lines.append(f"    `{c}`")
+
     if out.get("executed_result"):
         lines.append(f"- **result**: `{out.get('executed_result')}`")
     if out.get("validation_error"):
         lines.append(f"- **validation/error**: {out.get('validation_error')}")
+    if out.get("execution_error"):
+        lines.append(f"- **execution error**: {out.get('execution_error')}")
     lines.append(f"\n## Generated code\n```python\n{out.get('code') or 'N/A'}\n```")
     ct = out.get("codegen_thinking")
     if ct:
         lines.append(f"\n## Codegen thinking trace\n```\n{ct}\n```")
+    sr = out.get("codegen_structured_reasoning")
+    if sr:
+        lines.append(f"\n## Structured reasoning trace (Plan-and-Solve)\n```\n{sr}\n```")
+    svc = out.get("codegen_structured_verification_checks")
+    if svc:
+        lines.append(f"\n## Verification checks (CoVe)\n```\n{svc}\n```")
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 

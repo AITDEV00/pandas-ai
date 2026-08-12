@@ -105,6 +105,15 @@ class Config(BaseModel):
     code_generation_repetition_penalty: Optional[float] = _env_float("CODE_GENERATION_REPETITION_PENALTY")
     code_generation_presence_penalty: Optional[float] = _env_float("CODE_GENERATION_PRESENCE_PENALTY")
 
+    # Use the instructor library for structured code generation. When True,
+    # the code generator requests a bounded 3-section response (reasoning_trace,
+    # double_check, code) validated by Pydantic. This keeps the reasoning benefit
+    # of thinking-mode while bounding output so DeepSeek-V4-Flash cannot loop.
+    # The raw response code field is then extracted as the generated code.
+    code_generation_use_instructor: bool = (
+        os.environ.get("CODE_GENERATION_USE_INSTRUCTOR", "false").lower() == "true"
+    )
+
     @classmethod
     def from_dict(cls, config: Dict[str, Any]) -> "Config":
         return cls(**config)

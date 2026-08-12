@@ -135,6 +135,51 @@ class StructuralCodeValidator:
             problems.extend(self._check_struct_field_keys(sql))
         problems.extend(self._check_alias_consistency(code))
         problems.extend(self._check_undefined_variables(code))
+        problems.extend(self._check_self_reference_result(code))
+        return problems
+
+    # -- Check 6: self-referential result assignment --------------------------
+
+    def _check_self_reference_result(self, code: str) -> List[str]:
+        """Detect the self-referential result bug:
+        ``result = {'type': 'dataframe', 'value': result}``.
+
+        Here the RHS ``result`` refers to itself (which is not yet bound at that
+        point), so it raises NameError at runtime. The intent was almost always
+        to assign an intermediate DataFrame built earlier (e.g. ``result_df``).
+        This pattern slips past the undefined-name scan because ``result`` IS an
+        assignment target — the reference is on the same statement that binds it.
+        """
+        problems: List[str] = []
+        try:
+            tree = ast.parse(code)
+        except SyntaxError:
+            return problems
+
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+            if not (len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)):
+                continue
+            target = node.targets[0].id
+            if target != "result":
+                continue
+            # Does the value (dict RHS) contain a Load reference to `result`?
+            for sub in ast.walk(node.value):
+                if (
+                    isinstance(sub, ast.Name)
+                    and sub.id == "result"
+                    and isinstance(sub.ctx, ast.Load)
+                ):
+                    problems.append(
+                        "The `result` dict references `result` on its own right "
+                        "hand side: result = {'type': ..., 'value': result}. "
+                        "This raises NameError because `result` is not yet bound. "
+                        "Assign the DataFrame/object to an intermediate variable "
+                        "first (e.g. result_df = ...), then set "
+                        "result = {'type': ..., 'value': result_df}."
+                    )
+                    break
         return problems
 
     # -- SQL string extraction ------------------------------------------------
@@ -206,19 +251,35 @@ class StructuralCodeValidator:
         # Match struct field access of the form  rec['<Base>[<Field>]']
         # The key is a base name followed by one-or-more [Field] groups, all
         # inside single quotes:  rec['Employee Leave Details[Leave Type]']
-        for m in re.finditer(r"\w+\['([^'\[\]]+(?:\[[^\]]*\])+)'\]", sql):
-            key = m.group(1)
-            if key in self._struct_field_keys:
+        #
+        # We collect RAW matches (including malformed ones) so we can catch
+        # bracket mismatches like rec['...Name]]'] (an extra closing bracket)
+        # that the strict "valid key" check would otherwise skip entirely.
+        for m in re.finditer(r"\w+\[['\"]([^'\"]+)['\"]\]", sql):
+            raw = m.group(1).strip()
+            if raw in self._struct_field_keys:
                 continue
-            # allow referencing a full flat column
-            if key in self.schema_columns:
+            if raw in self.schema_columns:
                 continue
-            problems.append(
-                f"Struct field key '{key}' is not a valid schema field. Use the "
-                "exact key names shown in the schema (e.g. "
-                "'Employee Leave Details[Leave Type]'). Do not change case or "
-                "invent fields."
-            )
+            # Detect bracket mismatch: the raw key equals a valid schema key
+            # but with extra/missing brackets (e.g. one too many ']' at the end).
+            # Compare the bracket-stripped core to every valid struct field key.
+            stripped = re.sub(r"[\[\]]", "", raw).strip()
+            for valid in self._struct_field_keys:
+                if re.sub(r"[\[\]]", "", valid).lower() == stripped.lower():
+                    problems.append(
+                        f"Struct field key '{raw}' has a bracket/whitespace/case "
+                        f"mismatch. Use the EXACT key '{valid}' (one opening [ "
+                        "and one closing ] per field, exact case)."
+                    )
+                    break
+            else:
+                problems.append(
+                    f"Struct field key '{raw}' is not a valid schema field. Use "
+                    "the exact key names shown in the schema (e.g. "
+                    "'Employee Leave Details[Leave Type]'). Do not change case, "
+                    "add extra brackets, or invent fields."
+                )
         return problems
 
     # -- Check 4: SQL alias vs Python accessor consistency ----------------------
@@ -257,8 +318,27 @@ class StructuralCodeValidator:
                 if aliases:
                     alias_by_var[node.targets[0].id] = aliases
 
+        # Collect DataFrame columns that are EXPLICITLY assigned in the Python
+        # code (e.g. `df['new_col'] = df['x'].str.lower()`). These are valid
+        # derived columns created after the SQL query — they are not SQL aliases
+        # but must not be flagged as "invented".
+        derived_cols_by_var: dict = {}
+        for node in ast.walk(tree):
+            # df['key'] = <value>
+            if (
+                isinstance(node, ast.Assign)
+                and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Subscript)
+                and isinstance(node.targets[0].value, ast.Name)
+                and isinstance(node.targets[0].slice, ast.Constant)
+                and isinstance(node.targets[0].slice.value, str)
+            ):
+                var = node.targets[0].value.id
+                key = node.targets[0].slice.value
+                derived_cols_by_var.setdefault(var, set()).add(key)
+
         # Now find df['key'] accesses and verify the key is a defined alias
-        # OR a real schema column (a column may be referenced without an alias).
+        # OR a real schema column OR a derived column assigned in the code.
         for node in ast.walk(tree):
             if not isinstance(node, ast.Subscript):
                 continue
@@ -271,7 +351,13 @@ class StructuralCodeValidator:
                 var = node.value.id
                 key = node.slice.value
                 known = alias_by_var.get(var)
-                if known is not None and key not in known and key not in self.schema_columns:
+                derived = derived_cols_by_var.get(var, set())
+                if (
+                    known is not None
+                    and key not in known
+                    and key not in self.schema_columns
+                    and key not in derived
+                ):
                     problems.append(
                         f"Accessing `{var}['{key}']` but the SQL query for `{var}` "
                         f"defines aliases: {sorted(known)}. Use one of the defined "
@@ -317,6 +403,16 @@ class StructuralCodeValidator:
                 self._collect_name_target(node.target, assigned)
             elif isinstance(node, ast.ExceptHandler) and node.name:
                 assigned.add(node.name)
+            elif isinstance(node, ast.Lambda):
+                # Lambda params bind names within their own scope; collect them
+                # as "assigned" so `lambda x: ...` is not flagged as using an
+                # undefined `x`.
+                for a in node.args.args:
+                    assigned.add(a.arg)
+                if node.args.vararg:
+                    assigned.add(node.args.vararg.arg)
+                if node.args.kwarg:
+                    assigned.add(node.args.kwarg.arg)
             elif isinstance(node, ast.Import):
                 for alias in node.names:
                     if alias.asname:
@@ -330,7 +426,31 @@ class StructuralCodeValidator:
                     elif alias.name != "*":
                         assigned.add(alias.name)
 
-        # Collect all Name loads that appear inside a JoinedStr (f-string).
+        # Collect every Name in Load context across the whole tree, minus every
+        # name that is assigned ANYWHERE in the code (the comprehensive
+        # `assigned` set above includes FunctionDef names, Lambda params,
+        # for-loop targets, imports, comprehension targets, etc.).
+        # This catches the R12/R13 pattern where a variable is referenced in a
+        # control-flow context (e.g. `if flat_fields.empty:`) but never assigned
+        # anywhere — a plain NameError at runtime that the targeted scans below
+        # (f-strings, str.join, call args, assignment RHS) would miss.
+        # Using the full `assigned` set avoids false positives on names bound
+        # by function defs (`def is_ai_skill(skill)`) or lambda params
+        # (`lambda d: ...`), which are not Store-target Name nodes.
+        all_loads: set = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+                all_loads.add(node.id)
+        missing = (all_loads - assigned) - _BUILTIN_NAMES
+        for name in sorted(missing):
+            problems.append(
+                f"`{name}` is referenced but never assigned in the code. "
+                "Check for a typo (e.g. did you mean a variable you defined "
+                "earlier?). Ensure the exact variable name is assigned before "
+                "it is referenced."
+            )
+
+        # Collect all Name loads that are in a JoinedStr (f-string).
         used = set()
         for node in ast.walk(tree):
             if isinstance(node, ast.JoinedStr):
@@ -429,14 +549,26 @@ class StructuralCodeValidator:
         identifier immediately after ``AS``. UNNEST destructuring aliases
         (``AS t(rec)``) live after FROM and are not column aliases, so scanning
         only the SELECT clause avoids them entirely.
+
+        Handles BOTH quoted and unquoted aliases:
+          - ``AS "Employee ID"``  -> the FULL ``Employee ID`` (not just ``Employee``)
+          - ``AS team_id``        -> ``team_id``
+        The earlier version used ``[A-Za-z_]\w*`` which truncated quoted
+        multi-word aliases to their first word, producing false "invented
+        column" warnings for perfectly valid code.
         """
         aliases = set()
         from_idx = re.search(r"\bFROM\b", sql, re.IGNORECASE)
         select_clause = sql[:from_idx.start()] if from_idx else sql
         for m in re.finditer(
-            r"\bAS\s+[`\"']?([A-Za-z_]\w*)", select_clause, re.IGNORECASE
+            r"\bAS\s+(?:([`\"'])(.*?)\1|([A-Za-z_]\w*))",
+            select_clause,
+            re.IGNORECASE | re.DOTALL,
         ):
-            aliases.add(m.group(1))
+            if m.group(2) is not None:
+                aliases.add(m.group(2).strip())
+            elif m.group(3) is not None:
+                aliases.add(m.group(3))
         return aliases
 
     @staticmethod
