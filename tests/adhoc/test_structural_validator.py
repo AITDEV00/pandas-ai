@@ -65,6 +65,29 @@ result = rows
     assert any("`assignments_query` is referenced" in p for p in problems), problems
 
 
+def test_sandbox_date_helpers_not_flagged():
+    """years_between / as_date / today are sandbox-predefined; not undefined."""
+    code = """\
+df = execute_sql_query('SELECT [Employee Master[Date of Joining]] AS doj FROM enterprise_data')
+tenure = years_between(as_date(df['doj']), today())
+result = {'type': 'number', 'value': float(tenure)}
+"""
+    problems = _validate(code)
+    assert problems == [], problems
+
+
+def test_sandbox_date_helpers_inside_sql_not_flagged():
+    """Helpers used inside a SQL literal must not trip undefined-var scan."""
+    code = """\
+df = execute_sql_query(
+    "SELECT years_between(as_date([Employee Master[Date of Joining]]), today()) AS yrs FROM enterprise_data"
+)
+result = len(df)
+"""
+    problems = _validate(code)
+    assert problems == [], problems
+
+
 def test_defined_rhs_and_builtins_pass():
     """Names assigned in code, sandbox globals, and builtins must not flag."""
     code = """\

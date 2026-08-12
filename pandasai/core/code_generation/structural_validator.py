@@ -25,6 +25,12 @@ _BUILTIN_NAMES = {
     "plt",
     "np",
     "execute_sql_query",
+    # Date helper functions pre-defined by the code-execution sandbox
+    # (see pandasai/core/code_execution/environment.py). Generated code may
+    # call them without assigning them, so do not flag them as undefined.
+    "years_between",
+    "as_date",
+    "today",
     # Python builtins commonly used in generated code
     "len",
     "range",
