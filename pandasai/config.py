@@ -76,6 +76,10 @@ class Config(BaseModel):
     column_selection_min_p: Optional[float] = _env_float("COLUMN_SELECTION_MIN_P")
     column_selection_repetition_penalty: Optional[float] = _env_float("COLUMN_SELECTION_REPETITION_PENALTY")
     column_selection_presence_penalty: Optional[float] = _env_float("COLUMN_SELECTION_PRESENCE_PENALTY")
+    # Hard cap on output tokens for Step-1 (column selection) calls.  Bounds a
+    # runaway selection/analysis so a single query cannot loop indefinitely.
+    # Reads COLUMN_SELECTION_MAX_TOKENS; when unset the model default applies.
+    column_selection_max_tokens: Optional[int] = _env_int("COLUMN_SELECTION_MAX_TOKENS")
     # Force JSON structured output for column selection (vllm supports this
     # via response_format={"type": "json_object"}).  When True, the LLM is
     # constrained to emit valid JSON, eliminating parse failures.
@@ -104,6 +108,12 @@ class Config(BaseModel):
     code_generation_min_p: Optional[float] = _env_float("CODE_GENERATION_MIN_P")
     code_generation_repetition_penalty: Optional[float] = _env_float("CODE_GENERATION_REPETITION_PENALTY")
     code_generation_presence_penalty: Optional[float] = _env_float("CODE_GENERATION_PRESENCE_PENALTY")
+    # Hard cap on the number of output tokens for Step-2 (code generation)
+    # calls.  This bounds the response so a runaway reasoning/code generation
+    # cannot loop indefinitely (a key cause of multi-hundred-second latencies
+    # on complex multi-struct questions like R9-R13).  Reads
+    # CODE_GENERATION_MAX_TOKENS; when unset the model default applies.
+    code_generation_max_tokens: Optional[int] = _env_int("CODE_GENERATION_MAX_TOKENS")
 
     # Use the instructor library for structured code generation. When True,
     # the code generator requests a bounded 3-section response (reasoning_trace,

@@ -38,9 +38,21 @@ PANDASAI_CONFIG = {
     "column_selection_temperature": 0.0,
     "column_selection_json_mode": True,
     "column_selection_use_instructor": True,
-    # Codegen (Step-2): temp 0.2 + thinking OFF (kills the reasoning loop).
+    # Codegen (Step-2): temp 0 + thinking OFF (kills the reasoning loop).
     # The 0731 build loops its thinking chain when thinking is on; see .env.
-    "code_generation_temperature": 0.2,
+    # Temperature is env-overridable (default 0.0) so latency runs can pin it.
+    "code_generation_temperature": float(
+        os.environ.get("CODE_GENERATION_TEMPERATURE", "0.0")
+    ),
+    # Hard 10k-token cap on codegen output so a runaway generation cannot loop
+    # indefinitely (root cause of the 300-1000s latencies on R9-R13).
+    "code_generation_max_tokens": int(
+        os.environ.get("CODE_GENERATION_MAX_TOKENS", "10000")
+    ),
+    # Hard cap on column-selection output tokens too (bounds Step-1 analysis).
+    "column_selection_max_tokens": int(
+        os.environ.get("COLUMN_SELECTION_MAX_TOKENS", "10000")
+    ),
     # Structured codegen: request a bounded reasoning_trace + double_check + code
     # response validated by instructor. Middle ground between thinking-on (loops)
     # and thinking-off (quality collapse). Toggle via CODE_GENERATION_USE_INSTRUCTOR.

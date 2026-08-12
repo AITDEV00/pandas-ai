@@ -3,6 +3,25 @@ DOCKER_USER := jya0
 VERSION := latest
 HARBOR_REPO := zdc-ai-harbor.ecouncil.ae/aiteam
 
+# ---------------------------------------------------------------------------
+# Structured-LLM / codegen env overrides shared by `run` and `run-local`.
+# These are the validated settings used by the stability harness on
+# DeepSeek-V4-Flash-0731: instructor structured codegen, temp 0.0, 10k token
+# caps, and the TLS bypass required for the internal LiteLLM endpoint.
+# ---------------------------------------------------------------------------
+CODE_GENERATION_USE_INSTRUCTOR ?= true
+CODE_GENERATION_TEMPERATURE ?= 0.0
+CODE_GENERATION_MAX_TOKENS ?= 10000
+COLUMN_SELECTION_MAX_TOKENS ?= 10000
+STRUCTURED_LLM_MODEL_NAME ?= openai/deepseek-ai/DeepSeek-V4-Flash-0731
+
+# Export these so child processes (docker run / uvicorn) inherit them.
+export CODE_GENERATION_USE_INSTRUCTOR CODE_GENERATION_TEMPERATURE
+
+export CODE_GENERATION_MAX_TOKENS COLUMN_SELECTION_MAX_TOKENS STRUCTURED_LLM_MODEL_NAME
+
+export NODE_TLS_REJECT_UNAUTHORIZED SSL_CERT_FILE REQUESTS_CA_BUNDLE
+
 .PHONY: all build tag run run-local push login harbor_upload
 
 # Default command 
@@ -18,12 +37,21 @@ tag:
 
 run:
 	@echo "Running $(IMAGE_NAME):$(VERSION) on port 8000 with hot reload..."
-	docker run -p 8000:8000 --env-file .env -v $(PWD):/app $(IMAGE_NAME):$(VERSION) uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload
+	docker run -p 8000:8000 --env-file .env \
+		-e CODE_GENERATION_USE_INSTRUCTOR=$$CODE_GENERATION_USE_INSTRUCTOR \
+		-e CODE_GENERATION_TEMPERATURE=$$CODE_GENERATION_TEMPERATURE \
+		-e CODE_GENERATION_MAX_TOKENS=$$CODE_GENERATION_MAX_TOKENS \
+		-e COLUMN_SELECTION_MAX_TOKENS=$$COLUMN_SELECTION_MAX_TOKENS \
+		-e STRUCTURED_LLM_MODEL_NAME=$$STRUCTURED_LLM_MODEL_NAME \
+		-e NODE_TLS_REJECT_UNAUTHORIZED=$$NODE_TLS_REJECT_UNAUTHORIZED \
+		-e SSL_CERT_FILE=$$SSL_CERT_FILE \
+		-e REQUESTS_CA_BUNDLE=$$REQUESTS_CA_BUNDLE \
+		-v $(PWD):/app $(IMAGE_NAME):$(VERSION) uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload
 
 
 run-local:
-	@echo "Running server locally on port 8000 with .env loaded..."
-	bash -c 'set -a && . .env && set +a && . .venv/bin/activate && python -m uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload'
+	@echo "Running server locally on port 8000 with .env + tuned structured-LLM env..."
+	bash -c 'set -a && . .env && set +a && export NODE_TLS_REJECT_UNAUTHORIZED=0 SSL_CERT_FILE="" REQUESTS_CA_BUNDLE="" CODE_GENERATION_USE_INSTRUCTOR=$$CODE_GENERATION_USE_INSTRUCTOR CODE_GENERATION_TEMPERATURE=$$CODE_GENERATION_TEMPERATURE CODE_GENERATION_MAX_TOKENS=$$CODE_GENERATION_MAX_TOKENS COLUMN_SELECTION_MAX_TOKENS=$$COLUMN_SELECTION_MAX_TOKENS STRUCTURED_LLM_MODEL_NAME=$$STRUCTURED_LLM_MODEL_NAME && . .venv/bin/activate && python -m uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload'
 
 
 

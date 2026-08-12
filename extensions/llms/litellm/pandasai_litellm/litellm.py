@@ -63,6 +63,14 @@ def get_attempt_log():
     return list(_ATTEMPTS)
 
 
+# Phase labels for the per-query LLM call log. The agent calls the raw
+# `call()` path for BOTH Step-1 column selection and the unstructured codegen
+# fallback, so the raw path cannot self-identify its stage reliably. The
+# structured codegen path is unambiguously code generation.
+_PHASE_STRUCTURED_CODEGEN = "codegen_structured"
+_PHASE_UNKNOWN = "unknown"
+
+
 class LiteLLM(LLM):
     """A lightweight wrapper for interacting with a specified LLM model.
 
@@ -96,6 +104,8 @@ class LiteLLM(LLM):
         # it is not forwarded to the provider.
         self.timeout = kwargs.pop("timeout", None)
         self.params = kwargs
+        self._last_thinking_trace = None
+        self._last_finish_reason = None
         logging.getLogger("LiteLLM").setLevel(logging.ERROR)
 
     @property
@@ -232,6 +242,22 @@ class LiteLLM(LLM):
                     f"{self._last_thinking_trace}"
                 )
 
+        # Record this call in the per-query LLM call log for precise profiling.
+        # The raw call() path serves Step-1 column selection AND the unstructured
+        # codegen fallback; correlate by order with state.timings in the analyzer.
+        if context is not None and hasattr(context, "llm_call_log"):
+            context.llm_call_log.append({
+                "seq": len(context.llm_call_log) + 1,
+                "phase": _PHASE_UNKNOWN,
+                "kind": "raw_call",
+                "elapsed_s": _call_elapsed,
+                "attempts": len(_attempts),
+                "attempts_detail": list(_attempts),
+                "finish_reason": self._last_finish_reason,
+                "thinking_chars": len(self._last_thinking_trace or ""),
+                "fallback": False,
+            })
+
         return content
 
     def generate_code_structured(
@@ -302,6 +328,7 @@ class LiteLLM(LLM):
         client = merged_params.get("client")
 
         _call_start = _t.monotonic()
+        _attempts_start = len(_ATTEMPTS)
         try:
             if client is not None:
                 ic = instructor.from_openai(client, mode=Mode.MD_JSON, model=raw_model)
@@ -321,6 +348,7 @@ class LiteLLM(LLM):
                     messages=messages,
                     **create_kwargs,
                 )
+            _attempts = _ATTEMPTS[_attempts_start:]
         except Exception:
             # If instructor fails, fall back to the unstructured path so codegen
             # still works (degraded) rather than aborting the whole query.
@@ -328,13 +356,26 @@ class LiteLLM(LLM):
                 context.logger.log(
                     "[LLM-CALL] structured codegen failed; falling back to raw call()"
                 )
+            if context is not None and hasattr(context, "llm_call_log"):
+                context.llm_call_log.append({
+                    "phase": _PHASE_STRUCTURED_CODEGEN,
+                    "kind": "structured_codegen",
+                    "elapsed_s": round(_t.monotonic() - _call_start, 3),
+                    "attempts": len(_ATTEMPTS[_attempts_start:]),
+                    "attempts_detail": list(_ATTEMPTS[_attempts_start:]),
+                    "finish_reason": None,
+                    "thinking_chars": 0,
+                    "fallback": True,
+                })
             return super().generate_code_structured(
                 instruction, context=context, sampling_params=sampling_params
             )
         _elapsed = round(_t.monotonic() - _call_start, 2)
+        _attempts = _ATTEMPTS[_attempts_start:]
 
         # Capture thinking trace from the underlying completion for audit.
         trace = None
+        finish_reason = None
         try:
             if raw_response is not None:
                 choice = getattr(raw_response, "choices", None)
@@ -343,9 +384,26 @@ class LiteLLM(LLM):
                     reasoning = getattr(message, "reasoning_content", None)
                     if reasoning is not None and str(reasoning).strip():
                         trace = str(reasoning)
+                    fr = getattr(choice[0], "finish_reason", None)
+                    finish_reason = getattr(fr, "reason", None) if not isinstance(fr, str) else fr
         except Exception:
             trace = None
         self._last_thinking_trace = trace
+        self._last_finish_reason = finish_reason
+
+        # Record this call in the per-query LLM call log for precise profiling.
+        if context is not None and hasattr(context, "llm_call_log"):
+            context.llm_call_log.append({
+                "seq": len(context.llm_call_log) + 1,
+                "phase": _PHASE_STRUCTURED_CODEGEN,
+                "kind": "structured_codegen",
+                "elapsed_s": _elapsed,
+                "attempts": len(_attempts),
+                "attempts_detail": list(_attempts),
+                "finish_reason": finish_reason,
+                "thinking_chars": len(trace or ""),
+                "fallback": False,
+            })
 
         if context and context.logger:
             context.logger.log(

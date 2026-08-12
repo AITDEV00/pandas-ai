@@ -14,6 +14,7 @@ SCHEMA = [
     "[Employee Leave Details[Leave Type][Leave Days]]",
     "[Employee Assignment History[Assignment Name][Position Title]]",
     "[CV Employee Competencies[Technical Competency Name]]",
+    "[Employee Qualification[Qualification Title]]",
 ]
 
 VALIDATOR = StructuralCodeValidator(SCHEMA)
@@ -187,6 +188,96 @@ df = execute_sql_query(
     "SELECT years_between(start, today()) AS yrs, as_date(start) AS sd FROM t"
 )
 result = len(df)
+"""
+    problems = _validate(code)
+    assert problems == [], problems
+
+
+# -- R12: UNNEST struct-access nesting level ---------------------------------
+
+
+def test_unnest_outer_alias_access_detected():
+    """`q['Employee Qualification[...]']` reads from the outer UNNEST alias.
+    The struct is nested under the inner field `rec`; reading `q['...']` is
+    wrong and raises 'Could not find key ... Candidate entries: rec'."""
+    code = """\
+df = execute_sql_query('''
+SELECT q['Employee Qualification[Qualification Title]']
+FROM enterprise_data
+LEFT JOIN UNNEST("[Employee Qualification[Qualification Title]]") AS q(rec) ON TRUE
+''')
+"""
+    problems = _validate(code)
+    assert any("outer UNNEST alias" in p and "inner field" in p for p in problems), problems
+
+
+def test_unnest_inner_field_access_passes():
+    """`rec['key']` and `q.rec['key']` are the correct nesting levels."""
+    code = """\
+df = execute_sql_query('''
+SELECT rec['Employee Qualification[Qualification Title]'] AS a,
+       q.rec['Employee Qualification[Qualification Title]'] AS b
+FROM enterprise_data
+LEFT JOIN UNNEST("[Employee Qualification[Qualification Title]]") AS q(rec) ON TRUE
+''')
+"""
+    problems = _validate(code)
+    assert problems == [], problems
+
+
+# -- Near-miss undefined-variable typo hint ------------------------------------
+
+
+def test_undefined_var_typo_suggests_close_match():
+    """`emp_9822` closely matches assigned `emp_982` -> give a precise hint."""
+    code = """\
+emp_982 = df[df['emp_id'] == '0982']
+out = emp_9822.iloc[0]['name']
+result = {'type': 'string', 'value': out}
+"""
+    problems = _validate(code)
+    assert any("emp_9822" in p and "emp_982" in p for p in problems), problems
+
+
+def test_undefined_var_no_similar_name_keeps_generic_msg():
+    """No close match -> generic message, no false hint."""
+    code = """\
+df = execute_sql_query('SELECT name FROM [Employee Master[Employee Name]]')
+out = completely_unrelated_thing.iloc[0]['name']
+result = out
+"""
+    problems = _validate(code)
+    assert any("`completely_unrelated_thing` is referenced" in p for p in problems), problems
+
+
+# -- Bare aggregate (R13 nan: SUM over zero rows) ------------------------------
+
+
+def test_bare_sum_aggregate_detected():
+    """Bare SUM(...) over possibly-empty data -> flag for COALESCE."""
+    code = """\
+df = execute_sql_query('SELECT SUM(rec[\\'Employee Leave Details[Leave Days]\\']) AS total FROM enterprise_data')
+result = {'type': 'number', 'value': float(df['total'].iloc[0])}
+"""
+    problems = _validate(code)
+    assert any("COALESCE" in p and "SUM" in p for p in problems), problems
+
+
+def test_coalesced_sum_passes():
+    """COALESCE(SUM(x), 0) must NOT be flagged."""
+    code = """\
+df = execute_sql_query("SELECT COALESCE(SUM(x), 0) AS total FROM enterprise")
+result = len(df)
+"""
+    problems = _validate(code)
+    assert problems == [], problems
+
+
+def test_bare_count_not_flagged():
+    """COUNT already returns 0 on empty; must not be flagged."""
+    code = """\
+df = execute_sql_query('SELECT COUNT(*) AS n FROM enterprise')
+result = {'type': 'number', 'value': int(df['n'].iloc[0])}
 """
     problems = _validate(code)
     assert problems == [], problems

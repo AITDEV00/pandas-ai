@@ -143,7 +143,9 @@ class StructuralCodeValidator:
             problems.extend(self._check_placeholders(sql))
             problems.extend(self._check_unnest_columns(sql))
             problems.extend(self._check_struct_field_keys(sql))
+            problems.extend(self._check_unnest_access_level(sql))
         problems.extend(self._check_unknown_sql_functions(code))
+        problems.extend(self._check_bare_aggregates(code))
         problems.extend(self._check_alias_consistency(code))
         problems.extend(self._check_undefined_variables(code))
         problems.extend(self._check_self_reference_result(code))
@@ -331,6 +333,57 @@ class StructuralCodeValidator:
                     )
         return problems
 
+    # -- Check 1c: bare aggregates on potentially-empty data --------------------
+
+    # SQL aggregate functions that return NULL when applied to zero rows.
+    _AGGREGATE_FUNCS = {
+        "SUM",
+        "AVG",
+        "MIN",
+        "MAX",
+        "COUNT",
+        "ARRAY_AGG",
+        "MEDIAN",
+        "STDDEV",
+        "VAR",
+        "MODE",
+    }
+
+    def _check_bare_aggregates(self, code: str) -> List[str]:
+        """Flag bare aggregate calls not wrapped in ``COALESCE(..., 0)``.
+
+        The R13 r3 failure: ``SUM(...)`` over zero matching rows returns NULL,
+        and ``float(NULL)`` -> NaN, so a "total sick leave days" answer that
+        should be ``0`` comes back as ``nan``. The DuckDB-syntax prompt rule #9
+        already tells the model to use ``COALESCE(SUM(x), 0)``, but the model
+        does not always follow it. This deterministic check makes the retry
+        fix it before execution.
+
+        We only flag SUM/AVG (the aggregates most likely to represent a
+        numeric "how many / how much" answer where 0 is the correct empty
+        result). COUNT already returns 0 on empty, so it is excluded to avoid
+        false positives. We skip any occurrence already inside a COALESCE call.
+        """
+        problems: List[str] = []
+        for sql in self._extract_sql_strings(code):
+            # Find every SUM( / AVG( occurrence, but not ones already wrapped
+            # by COALESCE( directly before them.
+            for m in re.finditer(r"\b(SUM|AVG)\s*\(", sql, re.IGNORECASE):
+                start = m.start()
+                # look behind for an immediately preceding COALESCE(
+                prefix = sql[:start]
+                if re.search(r"\bCOALESCE\s*\([^()]*$", prefix):
+                    continue
+                problems.append(
+                    f"Bare {m.group(1).upper()}(...) is used over data that may "
+                    "contain zero matching rows, which returns NULL (rendered as "
+                    "`nan`/`None`). Wrap the aggregate in COALESCE to return 0 "
+                    "instead: COALESCE("
+                    f"{m.group(1).upper()}(...), 0). "
+                    "Only skip this if an empty result is genuinely meaningful."
+                )
+        return problems
+
     # -- Check 2: UNNEST column strings must match the schema -------------------
 
     def _check_unnest_columns(self, sql: str) -> List[str]:
@@ -347,6 +400,61 @@ class StructuralCodeValidator:
                     "NOT in the schema. Copy the struct column name "
                     "character-for-character from the schema (check for "
                     "hallucinated or dropped inner fields)."
+                )
+        return problems
+
+    # -- Check 2b: UNNEST struct-access nesting level ---------------------------
+
+    def _check_unnest_access_level(self, sql: str) -> List[str]:
+        """Catch the R12 alias-nesting bug.
+
+        ``LEFT JOIN UNNEST("col") AS q(rec)`` wraps the inner struct into a
+        field named ``rec``. To read a field you must go through that inner
+        field: ``rec['Employee Qualification[Qualification Title]']`` (or
+        ``q.rec['...']``). Referencing the OUTER alias directly —
+        ``q['Employee Qualification[Qualification Title]']`` — is wrong:
+        ``q`` only contains the single field ``rec``, so DuckDB raises
+        ``Could not find key ... Candidate entries: rec``.
+
+        DuckDB struct-key lookup is case-INSENSITIVE, so this is NOT a
+        case-mismatch; it is a nesting-level error. The key-string checks
+        above pass because the key itself is a valid schema field — only the
+        accessor prefix is at the wrong level.
+        """
+        problems: List[str] = []
+        # Collect the UNNEST destructuring aliases: UNNEST("...") AS outer(inner).
+        # Map outer alias -> its inner struct field so the diagnostic can name
+        # the exact inner field belonging to the offending outer alias.
+        alias_to_inner: dict = {}
+        for m in re.finditer(
+            r'UNNEST\s*\(\s*(["\'])[^"\']+\1\s*\)\s+AS\s+([A-Za-z_]\w*)\s*\(\s*([A-Za-z_]\w*)\s*\)',
+            sql,
+            re.IGNORECASE,
+        ):
+            outer = m.group(2)
+            inner = m.group(3)
+            alias_to_inner[outer] = inner
+
+        if not alias_to_inner:
+            return problems
+
+        # Collect every struct-field access `<prefix>['schema.key']` where the
+        # prefix is an outer UNNEST alias (i.e. the model read at the wrong level).
+        for m in re.finditer(r"([A-Za-z_]\w*)\['([^'\"]+)'\]", sql):
+            prefix = m.group(1)
+            key = m.group(2)
+            if key not in self._struct_field_keys:
+                continue  # key validity handled by _check_struct_field_keys
+            if prefix in alias_to_inner:
+                inner = alias_to_inner[prefix]
+                problems.append(
+                    f"Struct field access `{prefix}['{key}']` reads from the "
+                    f"outer UNNEST alias `{prefix}`, but the struct is nested "
+                    f"under the inner field `{inner}`. Access it through the "
+                    f"inner field instead: `{prefix}.{inner}['{key}']` "
+                    f"(or `{inner}['{key}']`). DuckDB reports this as "
+                    "`could not find key ... Candidate entries: rec` — it is a "
+                    "nesting-level error, NOT a case mismatch."
                 )
         return problems
 
@@ -386,6 +494,36 @@ class StructuralCodeValidator:
                     "'Employee Leave Details[Leave Type]'). Do not change case, "
                     "add extra brackets, or invent fields."
                 )
+        # Catch bracket-corruption that the strict regex above misses.  When the
+        # model writes ``CAST(rec['...Start Date]]' AS DATE)`` (an EXTRA closing
+        # ``]`` inside the quotes, followed by a space + ``AS`` instead of a
+        # closing ``]``), the ``[^'"]+['"]\]`` pattern above requires ``]``
+        # immediately after the quote and silently skips the corrupted key.  The
+        # parser then dies with a cryptic ``syntax error at or near "AS"`` that
+        # the execution-retry loop cannot reliably fix (R13 r3 repeated the same
+        # broken bracket 4x).  Detect it statically: any ``rec['...']`` / similar
+        # access whose quoted content has an IMBALANCED bracket count.
+        for m in re.finditer(r"\w+\[['\"]([^'\"]+)['\"]", sql):
+            raw = m.group(1).strip()
+            opens = raw.count("[")
+            closes = raw.count("]")
+            if opens != closes and opens >= 1:
+                # Find the closest valid schema field key by bracket-stripped
+                # core, to give the retry a precise replacement target.
+                stripped = re.sub(r"[\[\]]", "", raw).strip()
+                hint = None
+                for valid in self._struct_field_keys:
+                    if re.sub(r"[\[\]]", "", valid).lower() == stripped.lower():
+                        hint = valid
+                        break
+                if hint is not None:
+                    problems.append(
+                        f"Struct field key '{raw}' has UNBALANCED brackets "
+                        f"({opens} open vs {closes} close). The intent is likely "
+                        f"'{hint}'. Copy the exact key with one opening [ and "
+                        "one closing ] per field (no extra ']' inside the "
+                        "quotes) so DuckDB can parse the expression."
+                    )
         return problems
 
     # -- Check 4: SQL alias vs Python accessor consistency ----------------------
@@ -550,10 +688,7 @@ class StructuralCodeValidator:
         missing = (all_loads - assigned) - _BUILTIN_NAMES
         for name in sorted(missing):
             problems.append(
-                f"`{name}` is referenced but never assigned in the code. "
-                "Check for a typo (e.g. did you mean a variable you defined "
-                "earlier?). Ensure the exact variable name is assigned before "
-                "it is referenced."
+                self._undefined_var_message(name, assigned)
             )
 
         # Collect all Name loads that are in a JoinedStr (f-string).
@@ -608,12 +743,96 @@ class StructuralCodeValidator:
         missing = (used - assigned) - _BUILTIN_NAMES
         for name in sorted(missing):
             problems.append(
-                f"`{name}` is referenced but never assigned in the code. "
-                "Check for a typo (e.g. did you mean a variable you defined "
-                "earlier?). Ensure the exact variable name is assigned before "
-                "it is referenced."
+                self._undefined_var_message(name, assigned)
             )
         return problems
+
+    @staticmethod
+    def _undefined_var_message(name: str, assigned: Set[str]) -> str:
+        """Build an actionable message for an undefined variable reference.
+
+        If the undefined name is a small edit / prefix-match of a name that IS
+        assigned, suggest the exact replacement so the retry self-corrects
+        precisely (e.g. ``emp_9822`` -> ``emp_982``, ``d`` -> ``df``,
+        ``query_ratings`` -> ``rating_ratings``). This turns the generic
+        "not assigned" error into a targeted typo fix.
+        """
+        msg = (
+            f"`{name}` is referenced but never assigned in the code. "
+            "Check for a typo (e.g. did you mean a variable you defined "
+            "earlier?). Ensure the exact variable name is assigned before "
+            "it is referenced."
+        )
+        hint = StructuralCodeValidator._nearest_assigned_name(name, assigned)
+        if hint is not None:
+            msg = (
+                f"`{name}` is referenced but never assigned in the code, and "
+                f"it closely matches the assigned variable `{hint}`. This is "
+                f"almost certainly a typo. Replace every `{name}` with `{hint}` "
+                "and retry."
+            )
+        return msg
+
+    @staticmethod
+    def _nearest_assigned_name(name: str, assigned: Set[str]) -> Optional[str]:
+        """Return the assigned variable closest to ``name``, or None.
+
+        Scores each assigned name by:
+          - prefix / substring relation (one is a prefix of the other),
+          - character-level Levenshtein distance.
+        A candidate only qualifies if it is "close enough" (distance <= 2, or
+        prefix/substring with the shorter name at least 2 chars). This avoids
+        suggesting unrelated names. Heuristic, best-effort — used only to make
+        the diagnostic message more actionable, never to auto-rewrite code.
+        """
+        if not assigned:
+            return None
+        lower_name = name.lower()
+        best = None
+        best_key = None
+        for candidate in assigned:
+            if candidate == name or candidate.lower() == lower_name:
+                continue
+            cl = candidate.lower()
+            # prefix / substring relation (either direction)
+            if len(lower_name) >= 2 and len(cl) >= 2:
+                if lower_name.startswith(cl) or cl.startswith(lower_name) or cl in lower_name or lower_name in cl:
+                    score = min(len(lower_name), len(cl))
+                    key = (score, 0)
+                    if best_key is None or key > best_key:
+                        best_key = key
+                        best = candidate
+                    continue
+            # Levenshtein distance <= 1 (single char typo / added char)
+            if abs(len(lower_name) - len(cl)) <= 1:
+                if StructuralCodeValidator._levenshtein(lower_name, cl) <= 1:
+                    key = (max(len(lower_name), len(cl)), 1)
+                    if best_key is None or key > best_key:
+                        best_key = key
+                        best = candidate
+        return best
+
+    @staticmethod
+    def _levenshtein(a: str, b: str) -> int:
+        if a == b:
+            return 0
+        if not a:
+            return len(b)
+        if not b:
+            return len(a)
+        prev = list(range(len(b) + 1))
+        for i, ca in enumerate(a, 1):
+            cur = [i]
+            for j, cb in enumerate(b, 1):
+                cur.append(
+                    min(
+                        prev[j] + 1,
+                        cur[j - 1] + 1,
+                        prev[j - 1] + (ca != cb),
+                    )
+                )
+            prev = cur
+        return prev[-1]
 
     @staticmethod
     def _collect_rhs_names(node, used: set) -> None:

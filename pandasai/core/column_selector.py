@@ -17,6 +17,7 @@ Usage (inside Agent._process_query)::
 import json
 import logging
 import re
+import time
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
@@ -155,11 +156,14 @@ class ColumnSelector:
             if raw_model.startswith("openai/"):
                 raw_model = raw_model[len("openai/"):]
             ic = instructor.from_openai(client, mode=Mode.MD_JSON, model=raw_model)
+            _t0 = time.monotonic()
             result, raw_response = ic.create_with_completion(
                 response_model=ColumnSelectionResult,
                 messages=[{"role": "user", "content": prompt.to_string()}],
                 **create_kwargs,
             )
+            _elapsed = round(time.monotonic() - _t0, 3)
+            self._record_llm_call(_elapsed)
             self._capture_thinking_trace(raw_response)
             return result
 
@@ -168,14 +172,38 @@ class ColumnSelector:
         from instructor.v2.providers.litellm.client import from_litellm
 
         ic = from_litellm(completion, mode=Mode.MD_JSON)
+        _t0 = time.monotonic()
         result, raw_response = ic.create_with_completion(
             response_model=ColumnSelectionResult,
             model=model_name,
             messages=[{"role": "user", "content": prompt.to_string()}],
             **create_kwargs,
         )
+        _elapsed = round(time.monotonic() - _t0, 3)
+        self._record_llm_call(_elapsed)
         self._capture_thinking_trace(raw_response)
         return result
+
+    def _record_llm_call(self, elapsed_s: float) -> None:
+        """Append a column-selection LLM call to the per-query LLM call log.
+
+        The column-selection instructor path bypasses the LiteLLM wrapper's
+        call()/generate_code_structured(), so it would otherwise be invisible
+        to the per-query llm_call_log. Record it here for a complete profile.
+        """
+        if not hasattr(self._state, "llm_call_log"):
+            return
+        self._state.llm_call_log.append({
+            "seq": len(self._state.llm_call_log) + 1,
+            "phase": "column_selection",
+            "kind": "column_selection_instructor",
+            "elapsed_s": elapsed_s,
+            "attempts": 0,
+            "attempts_detail": [],
+            "finish_reason": None,
+            "thinking_chars": len(self._state.column_selection_thinking_trace or ""),
+            "fallback": False,
+        })
 
     def _capture_thinking_trace(self, raw_response) -> None:
         """Extract the model's reasoning/thinking content from a raw completion.
@@ -226,6 +254,9 @@ class ColumnSelector:
             params["repetition_penalty"] = cfg.column_selection_repetition_penalty
         if cfg.column_selection_presence_penalty is not None:
             params["presence_penalty"] = cfg.column_selection_presence_penalty
+        # Bounds the output so a runaway selection/analysis cannot loop.
+        if getattr(cfg, "column_selection_max_tokens", None) is not None:
+            params["max_tokens"] = cfg.column_selection_max_tokens
         # JSON mode forces structured JSON output from the LLM
         if getattr(cfg, "column_selection_json_mode", False):
             params["response_format"] = {"type": "json_object"}

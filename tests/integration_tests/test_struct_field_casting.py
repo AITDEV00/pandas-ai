@@ -29,6 +29,7 @@ from pandasai.helpers.type_determination import (
     _cast_float,
     _cast_integer,
     _looks_like_date,
+    _looks_like_number,
     cast_flat_field_types,
     cast_struct_field_types,
     parse_json_array_columns,
@@ -978,3 +979,107 @@ class TestDataDrivenDateSniffing:
         assert "Study Start Date]\" DATE" in struct_type, (
             f"Malformed value collapsed field to VARCHAR, got: {struct_type}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Data-driven numeric sniffing (non-hardcoded fallback for R13)
+# ---------------------------------------------------------------------------
+# When ``build_agent`` collapses a struct column it drops the inner-field
+# schema entries, so an undeclared numeric field like "Leave Duration (Days)"
+# stays VARCHAR in DuckDB and any generated ``SUM(...)``/``AVG(...)`` raises
+# ``BinderException: sum(VARCHAR)``.  ``_looks_like_number`` + the sniffer in
+# ``_build_struct_field_type_map`` recover these numerics from the DATA alone
+# (same mechanism as the date sniffer above).
+
+
+class TestDataDrivenNumberSniffing:
+    """Data-driven numeric detection for struct inner fields with no schema type."""
+
+    def test_looks_like_number_ints(self):
+        assert _looks_like_number(["10", "5", "25", "3"]) is True
+
+    def test_looks_like_number_floats(self):
+        assert _looks_like_number(["10.5", "3.14", "2.0", "0.75"]) is True
+
+    def test_looks_like_number_mixed_with_blanks(self):
+        """Empty strings don't count against the sniff."""
+        assert _looks_like_number(["", "10", "", "25", "30"]) is True
+
+    def test_looks_like_number_false_for_text(self):
+        assert _looks_like_number(["Sick", "Annual", "Pending"]) is False
+
+    def test_looks_like_number_false_for_years(self):
+        """A bare 4-digit integer is more likely a year — do not cast it."""
+        assert _looks_like_number(["2025", "2020", "2018"]) is False
+
+    def test_looks_like_number_false_for_text_experience(self):
+        """'0 Years, 1 Months' is text, not a number."""
+        assert _looks_like_number(
+            ["0 Years, 10 Months", "1 Years, 0 Months", "2 Years, 3 Months"]
+        ) is False
+
+    def test_looks_like_number_mixed_majority(self):
+        """Majority-numeric still sniffs even with a minority of text."""
+        assert _looks_like_number(["10", "5", "N/A", "20", "15"]) is True
+
+    def test_looks_like_number_all_empty_false(self):
+        assert _looks_like_number(["", "", ""]) is False
+
+    def test_undeclared_struct_number_casts_via_sniff(self):
+        """A struct numeric field with NO schema declaration becomes DOUBLE.
+
+        Simulates build_agent dropping the inner-field schema entry: the schema
+        only declares a non-numeric inner field; the numeric field must be
+        recovered from the data so `SUM(...)` does not hit sum(VARCHAR).
+        """
+        data = {
+            "id": ["1", "2"],
+            "[Employee Leave Details[Leave Type][Leave Duration (Days)]]": [
+                json.dumps([
+                    {
+                        "Employee Leave Details[Leave Type]": "Sick",
+                        "Employee Leave Details[Leave Duration (Days)]": "10",
+                    },
+                ]),
+                json.dumps([
+                    {
+                        "Employee Leave Details[Leave Type]": "Annual",
+                        "Employee Leave Details[Leave Duration (Days)]": "5",
+                    },
+                ]),
+            ],
+        }
+        df = pd.DataFrame(data)
+        parse_json_array_columns(df)
+        # Schema only declares the (non-numeric) Leave Type field, NOT the
+        # numeric Leave Duration — exactly what happens after build_agent
+        # collapses the struct column.
+        df.schema = SemanticLayerSchema(
+            name="enterprise_data",
+            source={"type": "csv", "path": "/tmp/dummy.csv"},
+            columns=[
+                Column(name="[Employee Leave Details[Leave Type]]", type="string"),
+            ],
+        )
+
+        db = DuckDBConnectionManager()
+        db.register("enterprise_data", df)
+        describe = db.sql("DESCRIBE enterprise_data").fetchall()
+        db.close()
+        struct_type = next(
+            row[1] for row in describe if "Leave Details" in row[0]
+        )
+        assert "Leave Duration (Days)]\" DOUBLE" in struct_type, (
+            f"Expected sniffed DOUBLE for Leave Duration (Days), got: {struct_type}"
+        )
+
+        # SUM must work WITHOUT an explicit CAST now that the field is DOUBLE.
+        db = DuckDBConnectionManager()
+        db.register("enterprise_data", df)
+        total = db.sql(
+            'SELECT COALESCE(SUM(rec[\'Employee Leave Details[Leave Duration (Days)]\']),0) '
+            'FROM enterprise_data '
+            'LEFT JOIN UNNEST("[Employee Leave Details[Leave Type][Leave Duration (Days)]]") AS t(rec) ON TRUE'
+        ).fetchall()
+        db.close()
+        assert total[0][0] == 15.0, f"SUM over DOUBLE field failed: {total}"

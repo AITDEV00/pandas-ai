@@ -116,6 +116,14 @@ class AgentState:
     # column selection results only. Useful for debugging and testing.
     step1_only: bool = False
 
+    # Per-query LLM call log (seconds), one entry per LLM HTTP request.
+    # Each entry: {"seq": int, "phase": str, "kind": str, "elapsed_s": float,
+    #              "attempts": int, "attempts_detail": list[dict],
+    #              "finish_reason": str|None, "thinking_chars": int,
+    #              "fallback": bool}. Populated by the LiteLLM adapter's
+    #              call() and generate_code_structured(). Reset at query start.
+    llm_call_log: List[Dict[str, Any]] = field(default_factory=list)
+
     def __post_init__(self):
         if isinstance(self.config, dict):
             self.config = Config(**self.config)

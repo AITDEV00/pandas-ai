@@ -214,6 +214,50 @@ def _looks_like_date(values: List[Any], sample_size: int = 10) -> bool:
     return bool(parse_frac >= 0.5)
 
 
+def _looks_like_number(values: List[Any], sample_size: int = 10) -> bool:
+    """Data-driven sniff: do most sampled values parse as a number?
+
+    The numeric analogue of :func:`_looks_like_date`.  When the semantic
+    schema does NOT declare a type for a struct inner field or flat column
+    (common after struct columns are collapsed in ``build_agent`` and their
+    inner-field schema entries are dropped), this lets us cast numeric strings
+    (e.g. ``"10"``, ``"3.5"``) to ``float`` so DuckDB infers ``DOUBLE``
+    instead of ``VARCHAR``.
+
+    Without this, an undeclared numeric struct field stays VARCHAR and any
+    generated ``SUM(...)`` / ``AVG(...)`` raises
+    ``BinderException: sum(VARCHAR)`` — the R13 failure class.
+
+    A MAJORITY threshold (``>= 0.5``) is used so a minority of malformed or
+    non-numeric values (e.g. ``"N/A"``) does not defeat detection, but is
+    high enough that a genuinely textual field (e.g. approval status names)
+    is never misclassified.  To avoid misclassifying a bare year like ``"2025"``
+    inside a date-only field, a value is only counted as numeric when it looks
+    like a genuine number (contains a decimal point / exponent / sign) OR is a
+    bare integer that is not a 4-digit year.
+    """
+    samples = [v for v in values if isinstance(v, str) and v.strip()]
+    if not samples:
+        return False
+    samples = samples[:sample_size]
+
+    converted = 0
+    for v in samples:
+        stripped = v.strip().lstrip("+-")
+        if not stripped:
+            continue
+        # A plain 4-digit integer is more likely a year inside a date field
+        # than a quantity — do not count it as numeric.
+        if len(stripped) == 4 and stripped.isdigit():
+            continue
+        try:
+            if not pd.isna(pd.to_numeric(v, errors="coerce")):
+                converted += 1
+        except (ValueError, TypeError):
+            continue
+    return bool(converted / len(samples) >= 0.5)
+
+
 def _cast_float(v: Any) -> Any:
     """Cast a string/value to float using ``pandas.to_numeric``.
 
@@ -350,10 +394,24 @@ def _build_struct_field_type_map(df: pd.DataFrame, schema: Any) -> Dict[str, Dic
             if declared_type and declared_type in _TYPE_CASTERS:
                 inner_types[key] = declared_type
                 continue
+            # Respect the schema author's explicit non-numeric declaration (e.g.
+            # a rating stored as "string" because it can be text like "N/A").
+            # Only sniff undeclared fields so we never override intent.
+            if declared_type:
+                continue
             # Data-driven fallback: if every sampled value parses as a date,
             # treat this inner field as a datetime so DuckDB infers DATE.
             if _looks_like_date(sample_values.get(key, [])):
                 inner_types[key] = "datetime"
+                continue
+            # Data-driven fallback: if the sampled values parse as numbers,
+            # treat this inner field as a float so DuckDB infers DOUBLE.
+            # (Mirrors the date sniffing above; targets the R13 class where a
+            # numeric struct field like "Leave Duration (Days)" stays VARCHAR
+            # because its inner-field schema entry was dropped in build_agent,
+            # causing `SUM(VARCHAR)` BinderException.)
+            if _looks_like_number(sample_values.get(key, [])):
+                inner_types[key] = "float"
 
         if inner_types:
             field_type_map[col_name] = inner_types

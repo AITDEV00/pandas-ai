@@ -73,6 +73,22 @@ class SQLParser:
             r'UNNEST\s*\([^)]+\)\s+AS\s+(\w+)\b(?!\s*\()', query
         )
 
+        # Collect aliases that are destructured with (rec) — for these, `rec` IS
+        # the struct, so `<alias>.rec['field']` is CORRECT and must be preserved.
+        # e.g. `AS q(rec)` → q.rec['x'] is valid (rec is the struct).
+        #
+        # NOTE: we match the `AS alias(rec)` destructure directly rather than
+        # parsing the UNNEST(...) argument, because the column name inside the
+        # string may contain parentheses (e.g. "GPA (Grade Point Average)"),
+        # which would break a naive `UNNEST\s*\([^)]+\)` match.
+        rec_destructured_aliases = {
+            outer
+            for outer, inner in re.findall(
+                r'\bAS\s+(\w+)\s*\(\s*(\w+)\s*\)', query
+            )
+            if inner == 'rec'
+        }
+
         for alias in unnest_aliases:
             # Skip aliases already in t(rec) or t1(rec), t2(rec) form
             if alias.startswith('t') and (alias == 't' or alias[1:].isdigit()):
@@ -101,11 +117,14 @@ class SQLParser:
         # When using AS t1(pp), the LLM sometimes writes pp.rec['field'] instead
         # of pp['field']. In DuckDB, pp IS the struct — .rec tries to find a key
         # called "rec" inside it, which doesn't exist.
-        # This pattern applies to ANY variable used as a UNNEST destructuring alias,
-        # not just the ones caught by Fix 2 (which only handles non-t aliases).
+        #
+        # IMPORTANT: This must NOT apply when the alias is destructured with
+        # (rec) — in that case `rec` IS the struct, so `<alias>.rec['field']` is
+        # CORRECT (e.g. AS q(rec) → q.rec['x']). Stripping `.rec` there would
+        # corrupt valid code into the broken q['x'] form.
         query = re.sub(
             r'\b(\w+)\.rec\[',
-            r"\1[",
+            lambda m: m.group(0) if m.group(1) in rec_destructured_aliases else m.group(1) + '[',
             query
         )
 

@@ -233,6 +233,7 @@ class Agent:
         self._state.code_attempts = []
 
         for attempt in range(1 + max_retries):
+            _attempt_t0 = time.time()
             try:
                 if attempt == 0:
                     code = self.generate_code(query)
@@ -247,10 +248,14 @@ class Agent:
                     "attempt": attempt + 1,
                     "code": code,
                     "error": None,
-                    # Snapshot the thinking trace produced by THIS generation
+                    "time_s": round(time.time() - _attempt_t0, 3),
+                    # Snapshot the result trace produced by THIS generation
                     # call, before a later retry can overwrite it.
                     "thinking_trace": self._state.code_generation_thinking_trace,
                 })
+                # Aggregate: record how many *regeneration* attempts were needed
+                # before a generation succeeded (0 = no retry needed).
+                self._state.timings["code_generation_retries"] = attempt
                 return code
             except Exception as e:
                 exception = e
@@ -263,6 +268,7 @@ class Agent:
                     "error": str(e),
                     "error_type": type(e).__name__,
                     "error_traceback": error_tb,
+                    "time_s": round(time.time() - _attempt_t0, 3),
                     "thinking_trace": self._state.code_generation_thinking_trace,
                 })
                 if attempt >= max_retries:
@@ -282,6 +288,7 @@ class Agent:
         max_retries = self._state.config.max_retries
 
         for attempt in range(1 + max_retries):
+            _attempt_t0 = time.time()
             try:
                 result = self.execute_code(code)
                 # Track the code that actually executed successfully
@@ -295,9 +302,11 @@ class Agent:
                     "attempt": attempt + 1,
                     "code": code,
                     "error": None,
+                    "time_s": round(time.time() - _attempt_t0, 3),
                     # Snapshot the thinking trace that produced this code.
                     "thinking_trace": self._state.code_generation_thinking_trace,
                 })
+                self._state.timings["code_execution_retries"] = attempt
                 return self._response_parser.parse(result, code)
             except Exception as e:
                 error_tb = traceback.format_exc()
@@ -309,6 +318,7 @@ class Agent:
                     "error": str(e),
                     "error_type": type(e).__name__,
                     "error_traceback": error_tb,
+                    "time_s": round(time.time() - _attempt_t0, 3),
                     "thinking_trace": self._state.code_generation_thinking_trace,
                 })
                 if attempt >= max_retries:
@@ -411,6 +421,7 @@ class Agent:
         self._state.retrieval_mode = None
         self._state.retrieval_mode_reasoning = None
         self._state.retrieval_mode_source = None
+        self._state.llm_call_log = []
 
         # Snapshot key config values for debugging
         cfg = self._state.config

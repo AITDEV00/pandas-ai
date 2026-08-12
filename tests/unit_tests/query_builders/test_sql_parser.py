@@ -227,6 +227,60 @@ JOIN "department" AS d
         assert "pr['field_b']" in result
         assert ".rec[" not in result
 
+    def test_fix_preserve_q_rec_when_rec_destructured(self):
+        """q.rec['field'] must be PRESERVED when AS q(rec) destructures rec as the struct.
+
+        DuckDB semantics: with `AS q(rec)`, `rec` IS the struct, so `q.rec['x']`
+        is the CORRECT access form. Stripping `.rec` (→ q['x']) would corrupt
+        valid code into a Binder error (Candidate entries: rec). Regression for
+        R12 r3/r5 where the model correctly emitted q.rec['...'] but the fixer
+        broke it.
+        """
+        sql = (
+            "SELECT q.rec['Employee Qualification[Qualification Title]'] AS t "
+            "FROM enterprise_data "
+            'LEFT JOIN UNNEST("[Employee Qualification[Qualification Title]]") AS q(rec) ON TRUE'
+        )
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "q.rec['Employee Qualification[Qualification Title]']" in result
+        assert "q['Employee Qualification" not in result
+
+    def test_fix_rec_destructured_with_multiple_aliases(self):
+        """Only the (rec)-destructured alias keeps its .rec; others still fixed."""
+        sql = (
+            "SELECT q.rec['A'] AS a, pp.rec['B'] AS b "
+            "FROM enterprise_data "
+            'LEFT JOIN UNNEST("[colA]") AS q(rec) ON TRUE '
+            'LEFT JOIN UNNEST("[colB]") AS t1(pp) ON TRUE'
+        )
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        # q is destructured with (rec) → preserve q.rec
+        assert "q.rec['A']" in result
+        # pp is destructured with (pp) → pp.rec is wrong, strip it
+        assert "pp['B']" in result
+        assert "pp.rec['B']" not in result
+
+    def test_fix_preserve_q_rec_with_parens_in_column(self):
+        """q.rec['x'] preserved even when UNNEST column name contains parens.
+
+        Regression for R12 r2/r3: the UNNEST column string may contain
+        parentheses (e.g. 'GPA (Grade Point Average)'), which would break a
+        naive `UNNEST\\s*\\([^)]+\\)` match. The destructure alias detection
+        must match `AS alias(rec)` directly, independent of the column string.
+        """
+        sql = (
+            "SELECT q.rec['Employee Qualification[Qualification Title]'] AS t, "
+            "q.rec['Employee Qualification[GPA (Grade Point Average)]'] AS gpa "
+            "FROM enterprise_data "
+            'LEFT JOIN UNNEST("[Employee Qualification[Qualification Title]'
+            '[Educational Institute][GPA (Grade Point Average)][Study Start Date]'
+            '[Study End Date]]") AS q(rec) ON TRUE'
+        )
+        result = SQLParser.fix_common_llm_mistakes(sql)
+        assert "q.rec['Employee Qualification[Qualification Title]']" in result
+        assert "q.rec['Employee Qualification[GPA (Grade Point Average)]']" in result
+        assert "q['Employee" not in result
+
     # --- Fix 4: Nested struct field access → flat key ---
 
     def test_fix_nested_struct_basic(self):

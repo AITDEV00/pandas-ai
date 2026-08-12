@@ -111,6 +111,10 @@ class CodeGenerator:
             params["repetition_penalty"] = cfg.code_generation_repetition_penalty
         if getattr(cfg, "code_generation_presence_penalty", None) is not None:
             params["presence_penalty"] = cfg.code_generation_presence_penalty
+        # Bounds the output so a runaway generation cannot loop indefinitely
+        # (a key cause of multi-hundred-second latencies on complex questions).
+        if getattr(cfg, "code_generation_max_tokens", None) is not None:
+            params["max_tokens"] = cfg.code_generation_max_tokens
         return params if params else None
 
     def validate_and_clean_code(self, code: str, step_timings: dict | None = None) -> str:

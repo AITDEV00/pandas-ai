@@ -8,7 +8,8 @@ with per-run cache busting. Records for every run:
   - retried: True if gen or exec attempts > 1 (the "had to retry once" signal)
 
 Usage (env same as run_chat_retry_all.py + QUESTIONS, STABILITY_Q, RUNS):
-  CODE_GENERATION_USE_INSTRUCTOR=true CODE_GENERATION_TEMPERATURE=0.2 \
+  CODE_GENERATION_USE_INSTRUCTOR=true CODE_GENERATION_TEMPERATURE=0.0 \
+  CODE_GENERATION_MAX_TOKENS=10000 \
   STRUCTURED_LLM_MODEL_NAME="openai/deepseek-ai/DeepSeek-V4-Flash-0731" \
   OUTPUT_DIR=/tmp/stability_agent STABILITY_WORKERS=4 \
   python tests/e2e/run_stability_agent.py
@@ -85,6 +86,10 @@ def run_one(question_id: str, query: str, run_no: int) -> dict:
     out["elapsed_total"] = round(time.time() - t_start, 2)
     out["timings"] = dict(state.timings)
     out["code_attempts"] = state.code_attempts
+    out["llm_call_log"] = list(state.llm_call_log)
+    out["codegen_step_timings"] = list(state.code_generation_step_timings)
+    out["sql_queries"] = list(state.sql_queries)
+    out["trimmed_df_info"] = list(state.trimmed_df_info)
 
     # Retry classification: "had to retry" = more than one generation attempt
     # OR more than one execution attempt. A normal successful run is exactly
@@ -146,7 +151,17 @@ def main():
     else:
         qs = STABILITY_QUESTIONS
 
-    run_dir = OUTPUT_DIR / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_stability_agent"
+    # Persistent output: default to the repo's stability reports folder so
+    # results survive across sessions (NOT /tmp). Only an explicit OUTPUT_DIR
+    # env overrides this. Timestamped subfolders keep every run addressable.
+    out_root = Path(
+        os.environ.get(
+            "OUTPUT_DIR",
+            str(PROJECT_ROOT / "run" / "e2e_reports" / "stability" / "profiled"),
+        )
+    )
+    out_root.mkdir(parents=True, exist_ok=True)
+    run_dir = out_root / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_stability_agent"
     run_dir.mkdir(parents=True, exist_ok=True)
     workers = int(os.environ.get("STABILITY_WORKERS", "4"))
     print(f"Running stability bank ({len(qs)} questions x {runs} runs) in PARALLEL")
@@ -154,41 +169,61 @@ def main():
     print(f"Cache buster: {'ON' if os.environ.get('CODEGEN_CACHE_BUSTER') else 'OFF'}")
     print(f"Output: {run_dir}\n")
 
-    # Build all (question, run) tasks with a unique per-run cache-buster marker
-    # so the provider can't serve a stale cached codegen response across runs.
-    tasks = []
-    for qid, query in qs.items():
-        for r in range(1, runs + 1):
-            tasks.append((qid, query, r, f"{qid}-r{r}-{int(time.time())}"))
-
     all_results = []
-    with ProcessPoolExecutor(max_workers=workers) as ex:
-        futs = {ex.submit(_worker, t): t for t in tasks}
-        for fut in as_completed(futs):
-            t = futs[fut]
-            qid, _, r, _ = t
-            try:
-                out = fut.result()
-            except Exception as e:
-                out = {
-                    "question": qid, "run": r, "query": None,
-                    "executed": False, "response_type": None,
-                    "error": str(e), "failure_stage": "pool_error",
-                    "code_attempts": [], "timings": {},
-                    "elapsed_total": None, "gen_attempts": 0,
-                    "exec_attempts": 0, "retried": False,
-                }
-            all_results.append(out)
-            status = "OK" if out["executed"] else "FAIL"
-            retried = " RETRY" if out.get("retried") else ""
+    # Per-question concurrency: run each question's `runs` in parallel via a
+    # process pool, but process questions SEQUENTIALLY (one question's batch
+    # completes before the next question starts). This bounds concurrent LLM
+    # load to `runs` per question while still running the batch in parallel.
+    for qid, query in qs.items():
+        print(f"\n--- Starting question {qid} ({runs} runs in parallel) ---", flush=True)
+        tasks = [
+            (qid, query, r, f"{qid}-r{r}-{int(time.time())}")
+            for r in range(1, runs + 1)
+        ]
+        with ProcessPoolExecutor(max_workers=min(workers, runs)) as ex:
+            futs = {ex.submit(_worker, t): t for t in tasks}
+            for fut in as_completed(futs):
+                t = futs[fut]
+                _, _, r, _ = t
+                try:
+                    out = fut.result()
+                except Exception as e:
+                    out = {
+                        "question": qid, "run": r, "query": None,
+                        "executed": False, "response_type": None,
+                        "error": str(e), "failure_stage": "pool_error",
+                        "code_attempts": [], "timings": {},
+                        "elapsed_total": None, "gen_attempts": 0,
+                        "exec_attempts": 0, "retried": False,
+                    }
+                all_results.append(out)
+                status = "OK" if out["executed"] else "FAIL"
+                retried = " RETRY" if out.get("retried") else ""
+                tim = out.get("timings") or {}
+                print(
+                    f"  [{qid:>20} r{r}/{runs}] {status:4}{retried}  "
+                    f"type={out['response_type']}  gen={out.get('gen_attempts')} "
+                    f"exec={out.get('exec_attempts')}  tot={out.get('elapsed_total')}s  "
+                    f"sel={tim.get('column_selection')}s gen={tim.get('code_generation')}s "
+                    f"exec={tim.get('code_execution')}s",
+                    flush=True,
+                )
+                with open(run_dir / f"{qid}_r{r}.json", "w", encoding="utf-8") as f:
+                    json.dump(out, f, indent=2, ensure_ascii=False, default=str)
+        # Per-question timing aggregate (include column-selection breakdown).
+        qres = [o for o in all_results if o["question"] == qid]
+        if qres:
+            import statistics as _st
+            def _avg(key):
+                vals = [o["timings"].get(key) or 0 for o in qres]
+                return round(_st.mean(vals), 2)
             print(
-                f"  [{qid:>20} r{r}/{runs}] {status:4}{retried}  "
-                f"type={out['response_type']}  gen={out.get('gen_attempts')} "
-                f"exec={out.get('exec_attempts')}  tot={out.get('elapsed_total')}s",
+                f"  ~ {qid} averages: "
+                f"total={_avg('total')}s colsel={_avg('column_selection')}s "
+                f"(llm={_avg('column_selection_llm')}s schema={_avg('column_selection_schema')}s) "
+                f"codegen={_avg('code_generation')}s exec={_avg('code_execution')}s",
                 flush=True,
             )
-            with open(run_dir / f"{qid}_r{r}.json", "w", encoding="utf-8") as f:
-                json.dump(out, f, indent=2, ensure_ascii=False, default=str)
 
     # Summary
     print("\n" + "=" * 80)
