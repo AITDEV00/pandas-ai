@@ -17,7 +17,7 @@ RUN poetry config virtualenvs.create false \
     && rm -rf /root/.cache/pypoetry /root/.cache/pip
 
 # Inject extras without caching
-RUN pip install --no-cache-dir httpx ./extensions/llms/litellm fastapi uvicorn python-multipart pydantic
+RUN pip install --no-cache-dir httpx ./extensions/llms/litellm instructor fastapi uvicorn python-multipart pydantic
 
 EXPOSE 8000
 

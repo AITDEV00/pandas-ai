@@ -311,8 +311,6 @@ class LiteLLM(LLM):
             "min_p",
             "repetition_penalty",
             "presence_penalty",
-            "reasoning_effort",
-            "allowed_openai_params",
         ):
             if key in merged_params and merged_params[key] is not None:
                 create_kwargs[key] = merged_params[key]

@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dep-icarus-pandasai-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: icarus-pandasai-server
+  template:
+    metadata:
+      labels:
+        app: icarus-pandasai-server
+    spec:
+      containers:
+      - name: icarus-pandasai-server
+        # Image built & pushed to Harbor (see Makefile.build harbor_upload)
+        image: zdc-ai-harbor.ecouncil.ae/aiteam/adeo-icarus-pandasai-server:latest
+        imagePullPolicy: Always
+        env:
+        # --- Main LLM — DeepSeek-V4-Flash-0731 via LiteLLM gateway ---
+        - name: LLM_API_KEY
+          value: "sk-WYz67mNLm248jhvqeSPShQ"
+        - name: LLM_BASE_URL
+          value: "https://litellm.adeoaiengine.ecouncil.ae"
+        - name: LLM_MODEL_NAME
+          value: "openai/deepseek-ai/DeepSeek-V4-Flash-0731"
+        - name: LLM_VERIFY_SSL
+          value: "false"
+        # --- Dedicated structured (JSON) LLM — same DeepSeek model ---
+        - name: STRUCTURED_LLM_MODEL_NAME
+          value: "openai/deepseek-ai/DeepSeek-V4-Flash-0731"
+        - name: STRUCTURED_LLM_THINKING
+          value: "false"
+        - name: COLUMN_SELECTION_USE_INSTRUCTOR
+          value: "true"
+        - name: COLUMN_SELECTION_JSON_MODE
+          value: "false"
+        # --- DeepSeek code-generation sampling (validated) ---
+        - name: CODE_GENERATION_USE_INSTRUCTOR
+          value: "true"
+        - name: CODE_GENERATION_TEMPERATURE
+          value: "0.0"
+        - name: CODE_GENERATION_MAX_TOKENS
+          value: "10000"
+        - name: COLUMN_SELECTION_MAX_TOKENS
+          value: "10000"
+        # --- TLS bypass (internal inference gateway) ---
+        - name: NODE_TLS_REJECT_UNAUTHORIZED
+          value: "0"
+        ports:
+        - containerPort: 8000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-icarus-pandasai-server
+spec:
+  type: ClusterIP
+  selector:
+    app: icarus-pandasai-server
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8000
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-prefix-pandasai-server
+spec:
+  stripPrefix:
+    prefixes:
+      - /pandasai-server
+
+---
+# ingress-icarus-qdrant.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-pandasai-server
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: default-strip-prefix-pandasai-server@kubernetescrd
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /pandasai-server/
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-icarus-pandasai-server
+                port:
+                  number: 8080

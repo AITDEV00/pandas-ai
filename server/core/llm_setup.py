@@ -56,10 +56,7 @@ def _structured_thinking_kwargs() -> dict:
     JSON column-selection output. Defaults to enabled (no override).
 
     When thinking is enabled, the chain-of-thought can run away (DeepSeek's max
-    output is 384K tokens). Bound it with a top-level ``reasoning_effort``
-    (default ``low``) so column-selection generation does not hang. Controlled
-    by ``STRUCTURED_LLM_REASONING_EFFORT`` (low/high/max). When thinking is
-    disabled, no reasoning_effort is sent (it is irrelevant for non-thinking).
+    output is 384K tokens).
 
     Returns:
         dict: A dict safe to merge into ``litellm_kwargs``.
@@ -68,19 +65,7 @@ def _structured_thinking_kwargs() -> dict:
     if flag == "false":
         return {"extra_body": {"chat_template_kwargs": {"thinking": False}}}
 
-    effort = os.environ.get("STRUCTURED_LLM_REASONING_EFFORT", "low").strip().lower()
-    if effort not in {"low", "high", "max"}:
-        logger.warning(
-            "Unsupported STRUCTURED_LLM_REASONING_EFFORT=%r — expected "
-            "low/high/max; falling back to low", effort
-        )
-        effort = "low"
-
     return {
-        "reasoning_effort": effort,
-        # LiteLLM rejects unsupported params for the openai provider unless
-        # explicitly whitelisted; allow reasoning_effort so it is forwarded.
-        "allowed_openai_params": ["reasoning_effort"],
         "extra_body": {
             "chat_template_kwargs": {"thinking": True},
         },
@@ -94,11 +79,9 @@ def _codegen_thinking_kwargs() -> dict:
     mode can run away to hundreds of thousands of tokens if left unconstrained
     (a classic reasoning loop, esp. on the 0731 build) — which looks like a hang.
     ``CODE_GENERATION_THINKING=false`` disables the chain-of-thought entirely
-    (no reasoning block to loop on); ``reasoning_effort`` bounds it when enabled;
-    and ``max_tokens`` caps the *total* output (reasoning + final code) so even
-    a runaway is truncated at a hard budget instead of running to the model's
-    384K max. LiteLLM rejects unknown openai params unless whitelisted, so
-    ``reasoning_effort`` and ``max_tokens`` are listed in ``allowed_openai_params``.
+    (no reasoning block to loop on); and ``max_tokens`` caps the *total* output
+    (reasoning + final code) so even a runaway is truncated at a hard budget
+    instead of running to the model's 384K max.
 
     Returns:
         dict: A dict safe to merge into ``litellm_kwargs``.
@@ -108,14 +91,6 @@ def _codegen_thinking_kwargs() -> dict:
     thinking_flag = os.environ.get("CODE_GENERATION_THINKING", "").strip().lower()
     if thinking_flag == "false":
         return {"extra_body": {"chat_template_kwargs": {"thinking": False}}}
-
-    effort = os.environ.get("CODE_GENERATION_REASONING_EFFORT", "low").strip().lower()
-    if effort not in {"low", "high", "max"}:
-        logger.warning(
-            "Unsupported CODE_GENERATION_REASONING_EFFORT=%r — expected "
-            "low/high/max; falling back to low", effort
-        )
-        effort = "low"
 
     # Hard cap on the total output tokens (reasoning + content) for codegen.
     # Without this, thinking mode can emit up to the model's 384K max and look
@@ -127,9 +102,7 @@ def _codegen_thinking_kwargs() -> dict:
     max_tokens = max_tokens if max_tokens > 0 else 10000
 
     return {
-        "reasoning_effort": effort,
         "max_tokens": max_tokens,
-        "allowed_openai_params": ["reasoning_effort", "max_tokens"],
         "extra_body": {
             "chat_template_kwargs": {"thinking": True},
         },
