@@ -284,7 +284,20 @@ def run_one(q: dict) -> dict:
     out["trimmed_cols"] = len(trimmed.columns)
 
     # Step 2 (code generation)
-    state.memory.add(query, is_user=True)
+    # Bust the codegen response cache by injecting a unique marker into the
+    # question that is stored in memory and therefore embedded in the codegen
+    # prompt (the prompt renders context.memory.last().get('message')). Set
+    # CODEGEN_CACHE_BUSTER to a fresh value per run so an identical LLM prompt
+    # is NOT served from the provider's response cache (which would replay the
+    # previous run's code/timing). This is independent of the column-selection
+    # buster (which uses run_query above).
+    codegen_cache_buster = os.environ.get("CODEGEN_CACHE_BUSTER", "").strip()
+    codegen_query = (
+        f"{query}\n<!-- codegen_run:{codegen_cache_buster} -->"
+        if codegen_cache_buster
+        else query
+    )
+    state.memory.add(codegen_query, is_user=True)
     prompt = get_chat_prompt_for_sql(state)
     codegen = CodeGenerator(state)
     t1 = time.time()
@@ -300,6 +313,8 @@ def run_one(q: dict) -> dict:
             code = codegen.generate_code(prompt)
         out["code"] = code
         out["codegen_time"] = round(time.time() - t1, 2)
+        out["codegen_step_timings"] = getattr(
+            state, 'code_generation_step_timings', None)
         out["codegen_thinking"] = getattr(state, 'code_generation_thinking_trace', None)
         out["codegen_structured_reasoning"] = getattr(
             state, 'code_generation_structured_reasoning', None)
@@ -307,10 +322,14 @@ def run_one(q: dict) -> dict:
             state, 'code_generation_structured_double_check', None)
         out["codegen_structured_verification_checks"] = getattr(
             state, 'code_generation_structured_verification_checks', None)
+        out["codegen_step_timings"] = getattr(
+            state, 'code_generation_step_timings', None)
         out["validators_passed"] = True
     except Exception as e:
         out["code"] = getattr(state, 'last_code_generated', None)
         out["codegen_time"] = round(time.time() - t1, 2)
+        out["codegen_step_timings"] = getattr(
+            state, 'code_generation_step_timings', None)
         out["codegen_thinking"] = getattr(state, 'code_generation_thinking_trace', None)
         out["codegen_structured_reasoning"] = getattr(
             state, 'code_generation_structured_reasoning', None)
@@ -470,10 +489,16 @@ def main():
     print(f"  Output:            {run_dir}")
     print("=" * 70)
     for o in all_results:
+        timings = (o.get("codegen_step_timings") or [])
+        tstr = ""
+        if timings:
+            t = timings[0]
+            tstr = (f" llm={t.get('llm_call_s')}s req={t.get('code_validation_s')}s "
+                    f"struct={t.get('structural_review_s')}s clean={t.get('cleaning_s')}s")
         print(f"  Q{o.get('num'):>3}  validators={'✅' if o.get('validators_passed') else '❌'} "
               f"exec={'✅' if o.get('executed') else '❌'}  "
               f"stage={o.get('failure_stage') or '-'}  "
-              f"trimmed={o.get('trimmed_cols')}  {o.get('elapsed_total')}s")
+              f"trimmed={o.get('trimmed_cols')}  {o.get('elapsed_total')}s{tstr}")
     # Write final failures file
     with open(run_dir / "failures.json", "w", encoding="utf-8") as f:
         json.dump(failures, f, indent=2, ensure_ascii=False, default=str)

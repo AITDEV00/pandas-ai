@@ -13,7 +13,7 @@ code text itself — there is no sampling, no temperature, and no second LLM cal
 
 import ast
 import re
-from typing import List, Set
+from typing import List, Optional, Set
 
 
 # Identifiers that the code-execution sandbox provides without the model
@@ -96,6 +96,10 @@ _PLACEHOLDER_PATTERNS = [
     re.compile(r"\[\.\.\]|\[\.\.\."),
 ]
 
+# Lazily-populated cache of DuckDB function names for the allowlist check.
+# None until first query; see StructuralCodeValidator._duckdb_function_names().
+_DUCKDB_FUNCTION_NAMES: Optional[Set[str]] = None
+
 
 class StructuralCodeValidator:
     """Static, schema-driven checks over generated Python+SQL code."""
@@ -133,6 +137,7 @@ class StructuralCodeValidator:
             problems.extend(self._check_placeholders(sql))
             problems.extend(self._check_unnest_columns(sql))
             problems.extend(self._check_struct_field_keys(sql))
+        problems.extend(self._check_unknown_sql_functions(code))
         problems.extend(self._check_alias_consistency(code))
         problems.extend(self._check_undefined_variables(code))
         problems.extend(self._check_self_reference_result(code))
@@ -223,6 +228,101 @@ class StructuralCodeValidator:
                     "`-- placeholder`, `..`, `[..]`, `TODO` — every field must "
                     "be a real column reference, not a stub."
                 )
+        return problems
+
+    # -- Check 1b: SQL functions must exist in DuckDB --------------------------
+
+    # sqlglot parses a function it does not recognise as an ``Anonymous`` node
+    # (it CANNOT tell whether it is a DuckDB function or a typo — it only knows
+    # the built-in SQL grammar).  A fabricated function such as ``julianday()``
+    # (a SQLite idiom) or ``to_date()`` therefore comes back as Anonymous.  We
+    # re-check every Anonymous call against the LIVE ``duckdb_functions()``
+    # registry (which also includes our own helper macros), flagging any that
+    # do not exist.  This is fully data-driven — no hardcoded function lists.
+
+    @staticmethod
+    def _duckdb_function_names() -> Set[str]:
+        """Return the live set of DuckDB function names (lowercased).
+
+        Cached at module level because the list is static per process and
+        expensive to re-query.  Includes native functions AND our helper
+        macros (``years_between`` / ``as_date`` / ``today``), since those are
+        created on the runtime connection by ``DuckDBConnectionManager`` and
+        thus valid in generated SQL.
+        """
+        global _DUCKDB_FUNCTION_NAMES
+        if _DUCKDB_FUNCTION_NAMES is None:
+            names: Set[str] = set()
+            try:
+                import duckdb
+
+                con = duckdb.connect()
+                try:
+                    rows = con.execute(
+                        "SELECT DISTINCT function_name FROM duckdb_functions()"
+                    ).fetchall()
+                    names = {r[0].lower() for r in rows}
+                finally:
+                    con.close()
+            except Exception:
+                # If DuckDB metadata is unavailable, fall back to the Python
+                # SQL built-ins we know are always present; do not break codegen.
+                names = set(_BUILTIN_NAMES)
+            # Our helper macros are created on every runtime connection, so
+            # they are always valid in generated SQL even though the ad-hoc
+            # metadata connection above did not create them.
+            try:
+                from pandasai.data_loader.duck_db_connection_manager import (
+                    _SQL_HELPER_DEFINITIONS,
+                )
+                names.update(name.lower() for name, _ in _SQL_HELPER_DEFINITIONS)
+            except Exception:
+                pass
+            _DUCKDB_FUNCTION_NAMES = names
+        return _DUCKDB_FUNCTION_NAMES
+
+    def _check_unknown_sql_functions(self, code: str) -> List[str]:
+        """Flag SQL functions not present in DuckDB's function catalog.
+
+        The Q35 class of bug: the model writes a function that exists in
+        another dialect (SQLite's ``julianday``, Postgres's ``age`` with 2
+        args, etc.) but NOT in DuckDB.  These only fail at runtime with a
+        CatalogException.  Catching them statically lets the retry prompt
+        correct the code before execution.
+        """
+        problems: List[str] = []
+        try:
+            import sqlglot
+            from sqlglot import exp
+        except ImportError:  # pragma: no cover
+            return problems
+
+        known = self._duckdb_function_names()
+        seen: Set[str] = set()
+        for sql in self._extract_sql_strings(code):
+            if not sql or not sql.strip():
+                continue
+            try:
+                tree = sqlglot.parse_one(sql)
+            except Exception:
+                continue  # leave syntax validation to the interpreter
+            for func_node in tree.find_all(exp.Anonymous):
+                name = getattr(func_node, "name", None)
+                if not name:
+                    continue
+                lname = str(name).lower()
+                if lname in seen:
+                    continue
+                seen.add(lname)
+                if lname not in known:
+                    problems.append(
+                        f"SQL calls the function `{name}()` which does NOT exist "
+                        "in DuckDB. DuckDB will raise CatalogException at runtime. "
+                        "Replace it with a real DuckDB function (e.g. "
+                        "`date_diff('year', a, b)`, `strptime(s, '%Y-%m-%d')`, "
+                        "`CURRENT_DATE`) or the provided helper "
+                        "(`years_between`, `as_date`, `today`)."
+                    )
         return problems
 
     # -- Check 2: UNNEST column strings must match the schema -------------------

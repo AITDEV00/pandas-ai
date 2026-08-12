@@ -565,8 +565,18 @@ class Agent:
                 self._state.dfs = original_dfs
 
     def _regenerate_code_after_error(self, code: str, error: Exception) -> str:
-        """Generate a new code snippet based on the error."""
-        error_trace = traceback.format_exc()
+        """Generate a new code snippet based on the error.
+
+        The error message passed to the retry prompt is the CONCISE root-cause
+        message (real exception type + message + failing line), not a huge
+        traceback dump that buries the actual error under pandas/duckdb frames.
+        ``error`` is a ``CodeExecutionError`` whose ``str(error)`` is now the
+        unmasked root cause (see code_executor._root_cause_message).
+        """
+        # Concise, actionable: the real cause (AttributeError, duckdb
+        # BinderException, KeyError, ...) + failing line. The full traceback
+        # stays available on the exception's __cause__ for debugging.
+        error_trace = str(error)
         self._state.logger.log(f"Execution failed with error: {error_trace}")
 
         if isinstance(error, InvalidLLMOutputType):

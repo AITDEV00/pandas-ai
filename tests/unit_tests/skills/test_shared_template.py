@@ -139,9 +139,9 @@ class TestSharedTemplate:
         context_empty = MockContextEmpty()
         rendered_empty = template.render(context=context_empty)
 
-        # Should only have execute_sql_query
+        # Without skills, should have execute_sql_query + the date helpers block
         function_count = rendered_empty.count("<function>")
-        assert function_count == 1  # Only execute_sql_query
+        assert function_count == 2  # execute_sql_query + date helper functions
 
         # Test with skills
         @skill
@@ -156,9 +156,9 @@ class TestSharedTemplate:
         context_with_skills = MockContextWithSkills()
         rendered_with_skills = template.render(context=context_with_skills)
 
-        # Should have execute_sql_query plus custom skills
+        # Should have execute_sql_query + custom skills + date helpers
         function_count = rendered_with_skills.count("<function>")
-        assert function_count == 2  # execute_sql_query + test_function
+        assert function_count == 3  # execute_sql_query + test_function + date helpers
 
     def test_shared_template_skill_string_formatting(self):
         """Test that skills are properly formatted in the template."""

@@ -135,11 +135,83 @@ def _cast_datetime(v: Any) -> Any:
             warnings.simplefilter("ignore", UserWarning)
             ts = pd.to_datetime(v, errors="coerce", dayfirst=True)
         if pd.isna(ts):
+            # The string does not parse as a date.  If it LOOKS like a date
+            # (contains digits and date separators), return None (-> NULL in
+            # DuckDB) rather than the raw string.  Keeping the raw string would
+            # poison the whole struct field / column to VARCHAR in DuckDB even
+            # when the other 99% of values cast fine.  NULLs are the safe,
+            # type-stable choice for a date-typed field.
+            if _is_date_shaped(v):
+                return None
             return v
         # Return date so DuckDB infers DATE, not TIMESTAMP
         return ts.date()
     except (ValueError, TypeError):
         return v
+
+
+def _is_date_shaped(v: str) -> bool:
+    """Heuristic: does a non-empty string look like it intends to be a date?
+
+    Used only as a guard when ``to_datetime`` fails: if the raw string contains
+    digit runs and a date separator (``-``, ``/``, ``.``) or a ``:`` time
+    marker, it is very likely a malformed/partial date (e.g. ``0202-11-19``).
+    We then coerce it to ``None`` (NULL) so DuckDB keeps the surrounding field
+    type-stable as DATE instead of collapsing the whole field to VARCHAR.
+
+    Pure structural check — no column names, no hardcoding.
+    """
+    import re
+
+    if not isinstance(v, str) or not v.strip():
+        return False
+    # Must contain digits...
+    if not re.search(r"\d", v):
+        return False
+    # ...and look date/time-like: digit-group + separator + digit-group,
+    # OR contains a colon (time component).
+    if ":" in v:
+        return True
+    return bool(re.search(r"\d[\s/\-.]+\d", v))
+
+
+def _looks_like_date(values: List[Any], sample_size: int = 10) -> bool:
+    """Data-driven sniff: do most of the sampled values parse as dates?
+
+    Used as a fallback when the semantic schema does NOT declare a type for a
+    struct inner field or flat column (common after struct columns are collapsed
+    and their inner-field schema entries are dropped).  This keeps date-casting
+    NON-hardcoded: any field whose sampled values are mostly parseable dates
+    gets cast to ``datetime.date`` -> DuckDB ``DATE``.
+
+    ``sample_size`` values (or all if fewer) are tested.  A MAJORITY threshold
+    (``>= 0.5``) is used rather than 100% so that an occasional malformed date
+    (e.g. ``0202-11-19``) does not defeat detection — but the threshold is high
+    enough that a genuinely non-date text column (e.g. approval status strings)
+    is never misclassified.
+    """
+    import warnings
+
+    samples = [v for v in values if isinstance(v, str) and v.strip()]
+    if not samples:
+        return False
+    samples = samples[:sample_size]
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            # ISO-first (dayfirst=False) because the sniff is used for date
+            # DETECTION, not day-first DD/MM/YYYY parsing.  ISO YYYY-MM-DD
+            # values like "2015-09-16" would otherwise be rejected (16 is not a
+            # valid day-first month), and a mix of DD and YYYY-MM-DD formats
+            # would misparse under dayfirst=True.
+            ts = pd.to_datetime(samples, errors="coerce", dayfirst=False)
+    except (ValueError, TypeError):
+        return False
+    if len(ts) == 0:
+        return False
+    parse_frac = (~pd.isna(ts)).sum() / len(ts)
+    # Majority threshold, tolerant of a minority of malformed values.
+    return bool(parse_frac >= 0.5)
 
 
 def _cast_float(v: Any) -> Any:
@@ -253,6 +325,21 @@ def _build_struct_field_type_map(df: pd.DataFrame, schema: Any) -> Dict[str, Dic
         inner_keys = list(first_nonempty[0].keys())
         inner_types: Dict[str, str] = {}
 
+        # For data-driven date sniffing of undeclared inner fields: collect
+        # sample values per key across a few rows so we can detect date-like
+        # strings even when the schema no longer declares them (they are
+        # dropped when a struct column is collapsed in build_agent).
+        sample_values: Dict[str, List[Any]] = {k: [] for k in inner_keys}
+        for row_list in df[col_name].dropna():
+            if not isinstance(row_list, list):
+                continue
+            for struct_dict in row_list:
+                if not isinstance(struct_dict, dict):
+                    continue
+                for k in inner_keys:
+                    if k in struct_dict and len(sample_values[k]) < 10:
+                        sample_values[k].append(struct_dict[k])
+
         for key in inner_keys:
             # The schema stores inner fields with outer brackets: [Parent[Field]]
             # The data dict key is: Parent[Field] (no outer brackets)
@@ -262,6 +349,11 @@ def _build_struct_field_type_map(df: pd.DataFrame, schema: Any) -> Dict[str, Dic
             declared_type = schema_type_by_name.get(key) or schema_type_by_name.get(bracket_name)
             if declared_type and declared_type in _TYPE_CASTERS:
                 inner_types[key] = declared_type
+                continue
+            # Data-driven fallback: if every sampled value parses as a date,
+            # treat this inner field as a datetime so DuckDB infers DATE.
+            if _looks_like_date(sample_values.get(key, [])):
+                inner_types[key] = "datetime"
 
         if inner_types:
             field_type_map[col_name] = inner_types

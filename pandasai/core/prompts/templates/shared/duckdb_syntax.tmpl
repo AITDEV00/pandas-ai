@@ -42,4 +42,14 @@ You are writing **DuckDB SQL** — NOT PostgreSQL, MySQL, or T-SQL. Key differen
 11. **String search**: Use `ILIKE '%term%'` for case-insensitive search. For accent-insensitive: `lower(strip_accents("col")) ILIKE lower(strip_accents('%term%'))`. For fuzzy matching: `jaro_winkler_similarity(LOWER("col"), 'term') >= 0.85`.
 
 12. **Double quotes = identifiers, single quotes = strings**: `"column_name"` is an identifier, `'string value'` is a string literal. Never use double quotes for string values.
+
+13. **Date functions are DUCKDB-specific — never use SQLite/MySQL/Postgres idioms**:
+   - ❌ `julianday(...)` ← SQLite only, NOT in DuckDB
+   - ❌ `to_date(...)` ← NOT in DuckDB; use `strptime(s, '%Y-%m-%d')` or `as_date(x)`
+   - ❌ `DATEDIFF(day, a, b)` with named unit as first arg in that order ← use `date_diff('day', a, b)` / `date_diff('year', a, b)`
+   - ✅ `date_diff('year', earlier, later)` / `date_diff('day', a, b)`
+   - ✅ For "whole years between two dates" prefer the provided helper `years_between(earlier, later)`.
+   - ✅ For "today" prefer the provided helper `today()` (== `CURRENT_DATE`).
+   - ✅ For "coerce a string/date to DATE" use `as_date(x)` (== `CAST(x AS DATE)`).
+   - If unsure whether a function exists in DuckDB, check it against `duckdb_functions()`; a call to a non-existent function raises `CatalogException` at runtime.
 </duckdb_syntax>

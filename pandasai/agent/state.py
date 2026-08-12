@@ -70,6 +70,12 @@ class AgentState:
     # behind each generated code attempt can be audited.
     code_generation_thinking_trace: Optional[str] = None
 
+    # Wall-clock breakdown of the code-generation phase, one entry per attempt.
+    # Each entry: {"attempt": int, "llm_call_s": float, "validation_s": float,
+    #              "cleaning_s": float, "total_s": float}. Populated by
+    # CodeGenerator.generate_code() for per-step timing analysis.
+    code_generation_step_timings: List[Dict[str, Any]] = field(default_factory=list)
+
     # Same, for column selection Step 1 calls.
     column_selection_thinking_trace: Optional[str] = None
 

@@ -28,6 +28,7 @@ from pandasai.helpers.type_determination import (
     _cast_datetime,
     _cast_float,
     _cast_integer,
+    _looks_like_date,
     cast_flat_field_types,
     cast_struct_field_types,
     parse_json_array_columns,
@@ -66,6 +67,19 @@ class TestCastDatetime:
         from datetime import datetime
         dt = datetime(2025, 1, 15, 10, 30)
         assert _cast_datetime(dt) == date(2025, 1, 15)
+
+    def test_malformed_date_shaped_to_none(self):
+        """A date-SHAPED but unparseable string -> None (NULL), not the raw str.
+
+        Keeping the raw string would collapse a DATE-typed struct field back to
+        VARCHAR in DuckDB even when every other value casts fine.
+        """
+        assert _cast_datetime("0202-11-19") is None
+
+    def test_non_date_string_kept(self):
+        """Non-date-shaped garbage is preserved (passthrough), not nulled."""
+        assert _cast_datetime("not a date") == "not a date"
+        assert _cast_datetime("") == ""
 
 
 class TestCastFloat:
@@ -851,3 +865,116 @@ class TestFlatFieldCasting:
         assert types["[Employee Info[Score]]"] == "DOUBLE"
         assert types["[Employee Info[Active]]"] == "BOOLEAN"
         assert types["[Employee Info[Name]]"] == "VARCHAR"
+
+
+# ---------------------------------------------------------------------------
+# Data-driven date sniffing (non-hardcoded fallback)
+# ---------------------------------------------------------------------------
+# When ``build_agent`` collapses a struct column it drops the inner-field
+# schema entries (e.g. the individual ``[Parent[Date Field]]`` columns).  So
+# ``cast_struct_field_types`` has no declared type to use, and date inner
+# fields would otherwise stay VARCHAR in DuckDB.  ``_looks_like_date`` + the
+# sniffer in ``_build_struct_field_type_map`` recover these dates from the
+# DATA alone — no schema, no hardcoded column names.
+
+
+class TestDataDrivenDateSniffing:
+    """Data-driven date detection for struct inner fields with no schema type."""
+
+    def test_looks_like_date_iso(self):
+        assert _looks_like_date(["2025-01-15", "2026-03-30", "2020-12-01"]) is True
+
+    def test_looks_like_date_ddmmyyyy(self):
+        assert _looks_like_date(["30/03/2026", "01/04/2026", "15/01/2025"]) is True
+
+    def test_looks_like_date_false_for_text(self):
+        assert _looks_like_date(["Sick", "Annual", "Pending"]) is False
+
+    def test_looks_like_date_empty_ignored(self):
+        """Empty strings don't count against the sniff."""
+        assert _looks_like_date(["", "2025-01-15", "", "2026-07-30"]) is True
+
+    def test_looks_like_date_all_empty_false(self):
+        assert _looks_like_date(["", "", ""]) is False
+
+    def test_undeclared_struct_date_casts_via_sniff(self):
+        """A struct date field with NO schema declaration still becomes DATE.
+
+        Simulates build_agent dropping the inner-field schema entry: the schema
+        only declares non-date inner fields; the date field must be recovered
+        from the data.
+        """
+        data = {
+            "id": ["1", "2"],
+            "[Employee Qualification[Qualification Title][Study Start Date][Study End Date]]": [
+                json.dumps([
+                    {
+                        "Employee Qualification[Qualification Title]": "BSc",
+                        "Employee Qualification[Study Start Date]": "1999-09-01",
+                        "Employee Qualification[Study End Date]": "2003-12-01",
+                    },
+                ]),
+                json.dumps([
+                    {
+                        "Employee Qualification[Qualification Title]": "MSc",
+                        "Employee Qualification[Study Start Date]": "2005-09-01",
+                        "Employee Qualification[Study End Date]": "2011-12-01",
+                    },
+                ]),
+            ],
+        }
+        df = pd.DataFrame(data)
+        parse_json_array_columns(df)
+        # Schema only declares the (non-date) title field, NOT the dates.
+        df.schema = SemanticLayerSchema(
+            name="enterprise_data",
+            source={"type": "csv", "path": "/tmp/dummy.csv"},
+            columns=[
+                Column(name="[Employee Qualification[Qualification Title]]", type="string"),
+            ],
+        )
+
+        db = DuckDBConnectionManager()
+        db.register("enterprise_data", df)
+        describe = db.sql("DESCRIBE enterprise_data").fetchall()
+        db.close()
+        struct_type = next(
+            row[1] for row in describe if "Qualification" in row[0]
+        )
+        assert "Study Start Date]\" DATE" in struct_type, (
+            f"Expected sniffed DATE for Study Start Date, got: {struct_type}"
+        )
+        assert "Study End Date]\" DATE" in struct_type, (
+            f"Expected sniffed DATE for Study End Date, got: {struct_type}"
+        )
+
+    def test_malformed_date_does_not_collapse_to_varchar(self):
+        """One malformed date-shaped value -> NULL, field stays DATE."""
+        data = {
+            "id": ["1", "2"],
+            "[Employee Qualification[Qualification Title][Study Start Date]]": [
+                json.dumps([{
+                    "Employee Qualification[Qualification Title]": "BSc",
+                    "Employee Qualification[Study Start Date]": "1999-09-01",
+                }]),
+                json.dumps([{
+                    "Employee Qualification[Qualification Title]": "MSc",
+                    "Employee Qualification[Study Start Date]": "0202-11-19",  # bad
+                }]),
+            ],
+        }
+        df = pd.DataFrame(data)
+        parse_json_array_columns(df)
+        df.schema = SemanticLayerSchema(
+            name="enterprise_data",
+            source={"type": "csv", "path": "/tmp/dummy.csv"},
+            columns=[Column(name="[Employee Qualification[Qualification Title]]", type="string")],
+        )
+        db = DuckDBConnectionManager()
+        db.register("enterprise_data", df)
+        describe = db.sql("DESCRIBE enterprise_data").fetchall()
+        db.close()
+        struct_type = next(row[1] for row in describe if "Qualification" in row[0])
+        assert "Study Start Date]\" DATE" in struct_type, (
+            f"Malformed value collapsed field to VARCHAR, got: {struct_type}"
+        )

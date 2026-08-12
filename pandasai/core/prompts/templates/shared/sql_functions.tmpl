@@ -8,3 +8,19 @@ def execute_sql_query(sql_query: str) -> pd.DataFrame
 {{ skill }}
 {% endfor %}
 {% endif %}
+The following date helper functions are available in BOTH the Python sandbox AND
+DuckDB SQL (they are defined as DuckDB macros, so use them inside SQL too).
+Prefer these over hand-rolling date arithmetic, which is a common source of
+errors. Do not redefine them.
+<function>
+def years_between(a, b) -> float
+    """Whole (signed) years between two date-like values. Use for
+    tenure/experience: years_between(earlier, later)."""
+
+def as_date(x) -> date
+    """Coerce any date-like value (string / timestamp / date) to a DATE.
+    Use inside SQL: as_date("[Employee Master[Date of Joining]]")."""
+
+def today() -> date
+    """Today's date. Use inside SQL: today()."""
+</function>

@@ -120,6 +120,55 @@ print(df['skill_name'])
     assert problems == [], problems
 
 
+# -- SQL function allowlist (Q35-class: invented / foreign-dialect functions) --
+
+
+def test_unknown_sql_function_julianday_detected():
+    """SQLite's `julianday` is not a DuckDB function -> must be flagged."""
+    code = """\
+df = execute_sql_query('SELECT julianday(CURRENT_DATE) AS j FROM t')
+result = len(df)
+"""
+    problems = _validate(code)
+    assert any("julianday" in p and "does NOT exist" in p for p in problems), problems
+
+
+def test_unknown_sql_function_to_date_detected():
+    """`to_date` is not a DuckDB function."""
+    code = """\
+df = execute_sql_query("SELECT to_date('2020-01-01') AS d FROM t")
+result = len(df)
+"""
+    problems = _validate(code)
+    assert any("to_date" in p and "does NOT exist" in p for p in problems), problems
+
+
+def test_native_duckdb_functions_pass():
+    """Real DuckDB functions must NOT be flagged."""
+    code = """\
+df = execute_sql_query(
+    "SELECT date_diff('day', a, b) AS d, strptime('2020-01-01', '%Y-%m-%d') AS dt, "
+    "EXTRACT(YEAR FROM d) AS y, CAST(a AS DATE) AS c, "
+    "DATE_TRUNC('year', d) AS tr, LOWER(n) AS ln, COALESCE(x, 0) AS cx FROM t"
+)
+result = len(df)
+"""
+    problems = _validate(code)
+    assert problems == [], problems
+
+
+def test_helper_macros_pass():
+    """Our injected helpers (years_between / as_date / today) are valid SQL."""
+    code = """\
+df = execute_sql_query(
+    "SELECT years_between(start, today()) AS yrs, as_date(start) AS sd FROM t"
+)
+result = len(df)
+"""
+    problems = _validate(code)
+    assert problems == [], problems
+
+
 if __name__ == "__main__":
     import sys
     import traceback

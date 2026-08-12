@@ -1,3 +1,4 @@
+import time
 import traceback
 
 from pandasai.agent.state import AgentState
@@ -31,13 +32,16 @@ class CodeGenerator:
         Raises:
             Exception: If any step fails during the process.
         """
+        step_timings = {}
         try:
             # Build per-call sampling params for code generation.
             # These override the LLM's default settings for this call only.
             sampling_params = self._get_sampling_params()
 
             # Generate the code
+            _t0 = time.monotonic()
             code = self._context.config.llm.generate_code(prompt, self._context, sampling_params=sampling_params)
+            step_timings["llm_call_s"] = round(time.monotonic() - _t0, 3)
             # Store the original generated code (for logging purposes)
             self._context.last_code_generated = code
             # Capture the raw LLM response for code generation debug logging
@@ -64,10 +68,17 @@ class CodeGenerator:
                 self._context.code_generation_structured_verification_checks = svc
             self._context.logger.log(f"Code Generated:\n{code}")
 
-            # Validate and clean the code
-            cleaned_code = self.validate_and_clean_code(code)
+            # Validate and clean the code (timed in sub-steps inside
+            # validate_and_clean_code, which keeps the public entry point
+            # intact so callers can mock it).
+            cleaned_code = self.validate_and_clean_code(code, step_timings)
             # Update with the final cleaned code (for subsequent processing and multi-turn conversations)
             self._context.last_code_generated = cleaned_code
+
+            step_timings["total_s"] = round(
+                step_timings["llm_call_s"] + step_timings.get("validation_s", 0.0), 3
+            )
+            self._context.code_generation_step_timings.append(step_timings)
 
             return cleaned_code
 
@@ -102,11 +113,14 @@ class CodeGenerator:
             params["presence_penalty"] = cfg.code_generation_presence_penalty
         return params if params else None
 
-    def validate_and_clean_code(self, code: str) -> str:
+    def validate_and_clean_code(self, code: str, step_timings: dict | None = None) -> str:
         # Validate code requirements
         self._context.logger.log("Validating code requirements...")
+        _t1 = time.monotonic()
         if not self._code_validator.validate(code):
             raise ValueError("Code validation failed due to unmet requirements.")
+        if step_timings is not None:
+            step_timings["code_validation_s"] = round(time.monotonic() - _t1, 3)
         self._context.logger.log("Code validation successful.")
 
         # Deterministic self-review: replay the schema-name checks against the
@@ -114,11 +128,23 @@ class CodeGenerator:
         # field key, left a placeholder, or drifted an alias, we raise a precise,
         # targeted error NOW so the retry prompt receives it — instead of only
         # discovering it at execution time (and re-using a wasted retry).
+        _t2 = time.monotonic()
         self._run_structural_self_review(code)
+        if step_timings is not None:
+            step_timings["structural_review_s"] = round(time.monotonic() - _t2, 3)
 
         # Clean the code
         self._context.logger.log("Cleaning the generated code...")
-        return self._code_cleaner.clean_code(code)
+        _t3 = time.monotonic()
+        cleaned_code = self._code_cleaner.clean_code(code)
+        if step_timings is not None:
+            step_timings["cleaning_s"] = round(time.monotonic() - _t3, 3)
+            step_timings["validation_s"] = round(
+                step_timings["code_validation_s"]
+                + step_timings["structural_review_s"]
+                + step_timings["cleaning_s"], 3
+            )
+        return cleaned_code
 
     def _run_structural_self_review(self, code: str) -> None:
         """Run the deterministic structural self-review over generated code.

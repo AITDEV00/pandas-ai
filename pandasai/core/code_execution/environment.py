@@ -31,6 +31,67 @@ def get_environment() -> dict:
         "np": import_dependency("numpy"),
     }
 
+    # Expose date-arithmetic helper functions mirroring the DuckDB SQL macros
+    # (years_between / as_date / today).  LLM-generated code mixes SQL and
+    # pandas, so providing a consistent Python-side helper (matching the SQL
+    # macro of the same name) lets the model compute "years of service" etc.
+    # without hand-rolling fragile date arithmetic that errors on string vs
+    # date mismatches.  These are injected into the exec namespace so the code
+    # can call them directly; they're documented in the prompt contract too.
+    try:
+        from datetime import date
+
+        import pandas as pd
+
+        def years_between(a, b) -> float:
+            """Whole years between two date-like values (signed).
+
+            Mirrors the DuckDB SQL macro of the same name: args may be strings,
+            ``datetime.date`` or ``datetime.datetime``; they are coerced to
+            dates and the (signed) difference in whole years is returned.
+            ``years_between(earlier, later)`` is non-negative; reversed args
+            give a negative result.
+            """
+
+            def _as_date(v):
+                if v is None:
+                    return None
+                if hasattr(v, "date") and not isinstance(v, date):
+                    return v.date()
+                if isinstance(v, str):
+                    return pd.to_datetime(v, errors="coerce").date()
+                if isinstance(v, pd.Timestamp):
+                    return v.date()
+                return v
+
+            a_d, b_d = _as_date(a), _as_date(b)
+            if a_d is None or b_d is None:
+                return None
+            years = abs(b_d.year - a_d.year)
+            if (b_d.month, b_d.day) < (a_d.month, a_d.day):
+                years -= 1
+            return years if b_d >= a_d else -years
+
+        def as_date(x):
+            """Coerce an arbitrary date-like value to ``datetime.date``."""
+            import pandas as pd
+
+            if hasattr(x, "date") and not isinstance(x, date):
+                return x.date()
+            if isinstance(x, str):
+                return pd.to_datetime(x, errors="coerce").date()
+            return x
+
+        def today():
+            """Today's date, matching ``date.today()``."""
+            return date.today()
+
+        env["years_between"] = years_between
+        env["as_date"] = as_date
+        env["today"] = today
+    except Exception:  # pragma: no cover - helpers are non-critical
+        pass
+
     return env
 
 
