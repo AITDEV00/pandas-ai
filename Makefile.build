@@ -63,9 +63,15 @@ login:
 	@echo "Logging into Dockerhub as user $(DOCKER_USER)..."
 	docker login -u $(DOCKER_USER)
 
+# Harbor registry credentials (aiadmin account) for local interactive use.
+# NOTE: These are for convenience when running `make harbor_upload` locally.
+# Prefer a secret store / CI credentials in shared environments.
+HARBOR_USER ?= aiadmin
+HARBOR_PASSWORD ?= qsdre34uiOO10
+
 harbor_upload:
-	@echo "Logging into Harbor registry..."
-	docker login zdc-ai-harbor.ecouncil.ae
+	@echo "Logging into Harbor registry as $(HARBOR_USER)..."
+	@echo "$(HARBOR_PASSWORD)" | docker login zdc-ai-harbor.ecouncil.ae -u $(HARBOR_USER) --password-stdin
 	@echo "Tagging image for Harbor..."
 	docker tag $(IMAGE_NAME):$(VERSION) $(HARBOR_REPO)/$(IMAGE_NAME):$(VERSION)
 	@echo "Pushing image to Harbor..."
