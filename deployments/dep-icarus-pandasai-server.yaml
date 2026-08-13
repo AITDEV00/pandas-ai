@@ -45,11 +45,21 @@ spec:
           value: "10000"
         - name: COLUMN_SELECTION_MAX_TOKENS
           value: "10000"
+        # --- Structural pre-catch retry cap (see config.py) ---
+        - name: MAX_STRUCTURAL_RETRIES
+          value: "3"
         # --- TLS bypass (internal inference gateway) ---
         - name: NODE_TLS_REJECT_UNAUTHORIZED
           value: "0"
         ports:
         - containerPort: 8000
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
 
 ---
 apiVersion: v1

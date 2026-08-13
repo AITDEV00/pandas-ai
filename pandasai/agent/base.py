@@ -2,13 +2,17 @@ import os
 import time
 import traceback
 import warnings
-from typing import Any, List, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from pandasai.core.code_execution.code_executor import CodeExecutor
+from pandasai.core.code_execution.code_executor import (
+    CodeExecutor,
+    _root_cause_message,
+)
 from pandasai.core.code_generation.base import CodeGenerator
+from pandasai.core.column_selector import ColumnSelector
 from pandasai.core.prompts import (
     get_chat_prompt_for_sql,
     get_correct_error_prompt_for_sql,
@@ -16,6 +20,7 @@ from pandasai.core.prompts import (
 )
 from pandasai.core.response.error import ErrorResponse
 from pandasai.core.response.parser import ResponseParser
+from pandasai.core.response.string import StringResponse
 from pandasai.core.user_query import UserQuery
 from pandasai.dataframe.base import DataFrame
 from pandasai.dataframe.virtual_dataframe import VirtualDataFrame
@@ -23,6 +28,12 @@ from pandasai.exceptions import (
     CodeExecutionError,
     InvalidLLMOutputType,
     MissingVectorStoreError,
+    StructuralValidationError,
+)
+from pandasai.helpers.concept_registry import (
+    collect_struct_groups,
+    concepts_for_query,
+    expected_groups_by_path,
 )
 from pandasai.helpers.memory import Memory
 from pandasai.sandbox import Sandbox
@@ -42,13 +53,11 @@ class Agent:
 
     def __init__(
         self,
-        dfs: Union[
-            Union[DataFrame, VirtualDataFrame], List[Union[DataFrame, VirtualDataFrame]]
-        ],
-        config: Optional[Union[Config, dict]] = None,
-        memory_size: Optional[int] = 10,
-        vectorstore: Optional[VectorStore] = None,
-        description: Optional[str] = None,
+        dfs: DataFrame | VirtualDataFrame | list[DataFrame | VirtualDataFrame],
+        config: Config | dict | None = None,
+        memory_size: int | None = 10,
+        vectorstore: VectorStore | None = None,
+        description: str | None = None,
         sandbox: Sandbox = None,
     ):
         """
@@ -90,10 +99,10 @@ class Agent:
         self._response_parser = ResponseParser()
         self._sandbox = sandbox
 
-    def is_pd_dataframe(self, df: Union[DataFrame, VirtualDataFrame]) -> bool:
+    def is_pd_dataframe(self, df: DataFrame | VirtualDataFrame) -> bool:
         return not isinstance(df, DataFrame) and isinstance(df, pd.DataFrame)
 
-    def chat(self, query: str, output_type: Optional[str] = None):
+    def chat(self, query: str, output_type: str | None = None):
         """
         Start a new chat interaction with the assistant on Dataframe.
         """
@@ -106,13 +115,13 @@ class Agent:
         self.start_new_conversation()
         return self._process_query(query, output_type)
 
-    def follow_up(self, query: str, output_type: Optional[str] = None):
+    def follow_up(self, query: str, output_type: str | None = None):
         """
         Continue the existing chat interaction with the assistant on Dataframe.
         """
         return self._process_query(query, output_type)
 
-    def generate_code(self, query: Union[UserQuery, str]) -> str:
+    def generate_code(self, query: UserQuery | str) -> str:
         """Generate code using the LLM."""
 
         self._state.memory.add(str(query), is_user=True)
@@ -225,12 +234,23 @@ class Agent:
         """Generate code with retry logic.
 
         Total attempts = 1 (initial) + max_retries (regeneration attempts).
+
+        Structural (pre-catch) failures are capped separately: a
+        ``StructuralValidationError`` rejection (deterministic schema-name
+        self-review) usually cannot be fixed by re-asking the LLM against the
+        same bad schema, so those retries are bounded by
+        ``max_structural_retries`` (default 3 = initial + 2 regenerations)
+        rather than the full ``max_retries``. This stops the pre-catch from
+        burning the whole retry budget (and 5-25s LLM calls each) on a failure
+        class that is unlikely to converge.
         """
         max_retries = self._state.config.max_retries
+        max_structural_retries = self._state.config.max_structural_retries
         exception = None
 
         # Reset per-query retry tracking
         self._state.code_attempts = []
+        structural_failures = 0
 
         for attempt in range(1 + max_retries):
             _attempt_t0 = time.time()
@@ -261,6 +281,9 @@ class Agent:
                 exception = e
                 error_tb = traceback.format_exc()
                 self._state.last_error_traceback = error_tb
+                is_structural = self._is_structural_failure(e)
+                if is_structural:
+                    structural_failures += 1
                 self._state.code_attempts.append({
                     "phase": "generation",
                     "attempt": attempt + 1,
@@ -271,6 +294,27 @@ class Agent:
                     "time_s": round(time.time() - _attempt_t0, 3),
                     "thinking_trace": self._state.code_generation_thinking_trace,
                 })
+                # A structural (pre-catch) failure gets its own, smaller cap.
+                # Once we've hit it, stop re-asking the LLM — it will keep
+                # regenerating against the same bad schema. Raise a
+                # CodeExecutionError so _process_query's except branch converts
+                # it into a clean ErrorResponse the upstream caller can read,
+                # instead of a bare ValueError that becomes a generic 500.
+                if is_structural and structural_failures > max_structural_retries:
+                    self._state.logger.log(
+                        f"Maximum structural retries exceeded ({max_structural_retries}). "
+                        f"Pre-catch rejected generation {structural_failures} times. "
+                        f"Last error: {e}"
+                    )
+                    raise CodeExecutionError(
+                        "Structural validation (deterministic code self-review) rejected "
+                        f"the generated code {structural_failures} times after "
+                        f"{max_structural_retries} retry attempt(s). The last structural "
+                        f"rejection was: {e}. This usually indicates a schema mismatch "
+                        "the model cannot resolve by regeneration (e.g. a misspelled "
+                        "column name or fabricated struct field key). Check the schema "
+                        "or the rejected code in the pipeline trace."
+                    ) from e
                 if attempt >= max_retries:
                     self._state.logger.log(
                         f"Maximum retry attempts exceeded. Last error: {e}"
@@ -280,12 +324,17 @@ class Agent:
                     f"Retrying Code Generation ({attempt}/{max_retries})..."
                 )
 
+        # Loop only exits via return (success) or raise (exhausted retries);
+        # this line is unreachable but makes the control flow explicit.
+        raise exception
+
     def execute_with_retries(self, code: str) -> Any:
         """Execute the code with retry logic.
 
         Total attempts = 1 (initial) + max_retries (regeneration attempts).
         """
         max_retries = self._state.config.max_retries
+        exception = None
 
         for attempt in range(1 + max_retries):
             _attempt_t0 = time.time()
@@ -309,6 +358,7 @@ class Agent:
                 self._state.timings["code_execution_retries"] = attempt
                 return self._response_parser.parse(result, code)
             except Exception as e:
+                exception = e
                 error_tb = traceback.format_exc()
                 self._state.last_error_traceback = error_tb
                 self._state.code_attempts.append({
@@ -329,11 +379,15 @@ class Agent:
                 )
                 code = self._regenerate_code_after_error(code, e)
 
+        # Loop only exits via return (success) or raise (exhausted retries);
+        # this line is unreachable but makes the control flow explicit.
+        raise exception
+
     def train(
         self,
-        queries: Optional[List[str]] = None,
-        codes: Optional[List[str]] = None,
-        docs: Optional[List[str]] = None,
+        queries: list[str] | None = None,
+        codes: list[str] | None = None,
+        docs: list[str] | None = None,
     ) -> None:
         """
         Trains the context to be passed to model
@@ -391,7 +445,7 @@ class Agent:
         """
         self.clear_memory()
 
-    def _process_query(self, query: str, output_type: Optional[str] = None):
+    def _process_query(self, query: str, output_type: str | None = None):
         """Process a user query and return the result.
 
         Supports a 2-step column selection pipeline for wide tables:
@@ -428,6 +482,7 @@ class Agent:
         self._state.config_snapshot = {
             "llm_type": getattr(cfg.llm, 'type', None) if cfg.llm else None,
             "max_retries": cfg.max_retries,
+            "max_structural_retries": cfg.max_structural_retries,
             "column_selection_enabled": cfg.column_selection_enabled,
             "column_selection_threshold": cfg.column_selection_threshold,
             "column_selection_memory_size": cfg.column_selection_memory_size,
@@ -464,7 +519,7 @@ class Agent:
                     schema_names = [c.name for c in df.schema.columns]
                     self._state.logger.log(f"[Column Selection] Trimmed DF[{i}] schema: {schema_names}")
             # Capture trimmed DF info for debug logging
-            for i, (orig_df, trimmed_df) in enumerate(zip(original_dfs, self._state.dfs)):
+            for i, (orig_df, trimmed_df) in enumerate(zip(original_dfs, self._state.dfs, strict=True)):
                 self._state.trimmed_df_info.append({
                     "df_index": i,
                     "original_columns": list(orig_df.columns) if hasattr(orig_df, 'columns') else [],
@@ -516,7 +571,6 @@ class Agent:
             if original_dfs is not None:
                 self._state.dfs = original_dfs
             # Return a special result indicating Step 1 only
-            from pandasai.core.response.string import StringResponse
             selected = self._state.last_selected_names or []
             return StringResponse(
                 value=f"[STEP1_ONLY] Column selection complete. {len(selected)} columns selected.",
@@ -549,7 +603,7 @@ class Agent:
             return result
 
         except CodeExecutionError as exc:
-            error_result = self._handle_exception(code)
+            error_result = self._handle_exception(code, exc)
             # Store the error as an assistant message so that the merge-back
             # in the finally block can transfer it to the original memory.
             self._store_error_message(error_result, code)
@@ -575,6 +629,20 @@ class Agent:
             if original_dfs is not None:
                 self._state.dfs = original_dfs
 
+    def _is_structural_failure(self, error: Exception) -> bool:
+        """Return True when the failure came from the structural pre-catch.
+
+        The ``CodeGenerator._run_structural_self_review`` raises a
+        ``StructuralValidationError`` (a ``ValueError`` subclass) when the
+        deterministic schema-name self-review rejects generated code.
+        Distinguishing it by TYPE — not by matching its message string — lets
+        the retry loop apply the smaller ``max_structural_retries`` cap instead
+        of burning the full ``max_retries`` budget on a failure class (schema
+        typos, fabricated struct keys, alias drift) that another LLM call is
+        unlikely to fix.
+        """
+        return isinstance(error, StructuralValidationError)
+
     def _regenerate_code_after_error(self, code: str, error: Exception) -> str:
         """Generate a new code snippet based on the error.
 
@@ -599,14 +667,28 @@ class Agent:
 
         return self._code_generator.generate_code(prompt)
 
-    def _handle_exception(self, code: str) -> ErrorResponse:
-        """Handle exceptions and return an error message."""
+    def _handle_exception(self, code: str, exc: Exception | None = None) -> ErrorResponse:
+        """Handle exceptions and return an error message.
+
+        When an exception is supplied (the ``CodeExecutionError`` that triggered
+        the branch), the returned ``ErrorResponse.error`` is the CONCISE root
+        cause (``<ExceptionType>: <message>``) rather than a huge traceback
+        dump. This lets the upstream caller (chat handler) surface a readable
+        explanation of what went wrong instead of an opaque internal error.
+        The full traceback is preserved on ``_state.last_error_traceback`` and
+        in the pipeline trace for debugging.
+        """
+        if exc is not None:
+            error_message = _root_cause_message(exc)
+            self._state.logger.log(f"Processing failed with error: {error_message}")
+            return ErrorResponse(last_code_executed=code, error=error_message)
+
         error_message = traceback.format_exc()
         self._state.logger.log(f"Processing failed with error: {error_message}")
 
         return ErrorResponse(last_code_executed=code, error=error_message)
 
-    def _store_assistant_message(self, result, output_type: Optional[str] = None):
+    def _store_assistant_message(self, result, output_type: str | None = None):
         """Store the assistant's response in memory for multi-turn context.
 
         Issue 8: Stores for output_type "string" and "number" — these produce
@@ -678,8 +760,6 @@ class Agent:
         self._state.column_selection_log = []
 
         try:
-            from pandasai.core.column_selector import ColumnSelector
-
             selector = ColumnSelector(self._state)
 
             # Capture the column selection prompt for debug logging
@@ -780,11 +860,6 @@ class Agent:
         Concept definitions live in ``pandasai.helpers.concept_registry``
         (single source of truth shared with the repair path).
         """
-        from pandasai.helpers.concept_registry import (
-            collect_struct_groups,
-            concepts_for_query,
-            expected_groups_by_path,
-        )
 
         # Build a map of struct parent group name → df column names from the
         # actual DataFrame columns (the source of truth for what can be queried).

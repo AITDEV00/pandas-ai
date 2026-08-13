@@ -3,6 +3,7 @@ import traceback
 
 from pandasai.agent.state import AgentState
 from pandasai.core.prompts.base import BasePrompt
+from pandasai.exceptions import StructuralValidationError
 
 from .code_cleaning import CodeCleaner
 from .code_validation import CodeRequirementValidator
@@ -153,9 +154,10 @@ class CodeGenerator:
     def _run_structural_self_review(self, code: str) -> None:
         """Run the deterministic structural self-review over generated code.
 
-        Raises a ValueError describing the exact problems found. The retry
-        loop in the agent picks this up and feeds it back to the LLM as the
-        error message, so the model can fix the precise issue.
+        Raises a ``StructuralValidationError`` describing the exact problems
+        found. The retry loop in the agent picks this up (by type, not by
+        string matching) and feeds it back to the LLM as the error message, so
+        the model can fix the precise issue.
         """
         if self._structural_validator is None:
             return
@@ -163,7 +165,7 @@ class CodeGenerator:
         if problems:
             msg = StructuralCodeValidator.format_problems(problems)
             self._context.logger.log(msg)
-            raise ValueError(msg)
+            raise StructuralValidationError(msg)
 
     def _build_structural_validator(self):
         """Build a StructuralCodeValidator from the current schema columns.

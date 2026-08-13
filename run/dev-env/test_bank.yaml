@@ -1,0 +1,68 @@
+# Dev Question Bank — pandas-ai server test queries
+# Baseline status quo captured from run/dev-env/queries.txt on 2026-08-13.
+# Each entry records the query, the observed latency, and whether it crashed (500).
+#
+# "status":
+#   pass       -> returned a valid answer
+#   fail_500   -> HTTP 500 internal server error
+# "time": duration as observed (may be None if not measured)
+
+version: 1
+baseline: "2026-08-13"
+questions:
+  - id: Q_DEV_PROJECTS
+    category: multi-employee
+    query: >
+      For employee Eisa Rames Khamis AlDhaheri (Employee ID 1269) and employee
+      Ayesha Jumaa Mubarak Al Qubaisi (Employee ID 0111), list all projects each
+      worked on. Include any columns related to projects, initiatives,
+      assignments, or tasks associated with these employees. Show all matching rows.
+    time: 66        # 1 min 6 seconds
+    status: pass
+
+  - id: Q_DEV_SKILLS
+    category: multi-employee
+    query: >
+      For employee Eisa Rames Khamis AlDhaheri (Employee ID 1269) and Ayesha
+      Jumaa Mubarak Al Qubaisi (Employee ID 0111), list all skills and
+      competencies for each. Include any columns related to skills,
+      competencies, ratings, or expertise. Show all matching rows for both employees.
+    time: 67
+    status: pass
+
+  - id: Q_DEV_ORGUNIT
+    category: multi-employee
+    query: >
+      For employee Eisa Rames Khamis AlDhaheri (Employee ID 1269) and Ayesha
+      Jumaa Mubarak Al Qubaisi (Employee ID 0111), show their current
+      organization unit, current assignment/position title, and department.
+      Include Employee Master Organization Unit, Assignment History (Position
+      Title, Assignment Start/End dates), and any current position information.
+    time: 50
+    status: fail_500
+
+  - id: Q_DEV_CHINESE_AI_AND
+    category: search
+    query: >
+      Search all employees for any that speak Chinese (Mandarin/Chinese
+      language) AND have AI-related experience or skills (artificial
+      intelligence, AI, machine learning, data science). Check all relevant
+      fields including language/proficiency columns, CV technical
+      competencies/skills, CV summary, work experience, and qualifications.
+      List matching Employee Name, Employee Number, and indicate which
+      language/skill/experience matched. If no employees match, report the
+      closest relevant findings separately for Chinese speakers and for AI
+      experience.
+    time: 150
+    status: fail_500
+
+  - id: Q_DEV_CHINESE_AI_OR
+    category: search
+    query: >
+      List all employees who speak Chinese (any language column containing
+      Chinese/Mandarin) OR have AI-related experience (CV technical competency,
+      skill, work experience, or summary containing artificial intelligence, AI,
+      or machine learning). Show Employee Name, Employee Number, and the
+      matching language/skill. Report no-match findings for each criterion separately.
+    time: 83
+    status: pass

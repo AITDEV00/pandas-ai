@@ -477,7 +477,9 @@ class TestAgent:
 
         # Verify error handling
         assert result == "Error handled"
-        agent._handle_exception.assert_called_once_with("invalid_code")
+        # _process_query now passes the raised exception so _handle_exception can
+        # surface a concise root-cause message (see _handle_exception signature).
+        agent._handle_exception.assert_called_once_with("invalid_code", ANY)
 
     def test_regenerate_code_after_invalid_llm_output_error(self, agent):
         """Test code regeneration with InvalidLLMOutputType error"""

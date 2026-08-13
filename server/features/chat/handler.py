@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Tuple
+from typing import Any
 from fastapi import HTTPException
 from server.core.agent_store import agent_store
 
@@ -71,7 +71,7 @@ def _write_readable_log(log_dir: Path, conversation_id: str, payload: dict) -> N
         # ── 2. OUTCOME ──
         f.write("## ◆ OUTCOME\n\n")
         if "error" in payload:
-            f.write(f"**Status:** ❌ ERROR\n\n")
+            f.write("**Status:** ❌ ERROR\n\n")
             f.write(f"**Error:** {payload['error']}\n\n")
             # Full error traceback if available
             pipeline = payload.get("pipeline", {})
@@ -350,7 +350,7 @@ def _write_readable_log(log_dir: Path, conversation_id: str, payload: dict) -> N
 SUPPORTED_OUTPUT_TYPES = {"string", "number", "dataframe", "plot", "evidence", "auto"}
 
 
-def _validate_output_type(output_type: Optional[str]) -> Optional[str]:
+def _validate_output_type(output_type: str | None) -> str | None:
     """Validate output_type against PandasAI's supported types.
 
     Returns the validated type, or None for auto/null.
@@ -377,7 +377,7 @@ def _validate_output_type(output_type: Optional[str]) -> Optional[str]:
 
 def _coerce_response_type(
     response_obj: Any, actual_type: str, requested_type: str
-) -> Optional[Tuple[Any, str]]:
+) -> tuple[Any, str] | None:
     """Attempt to coerce a response object from actual_type to requested_type.
 
     Args:
@@ -423,7 +423,6 @@ def _make_json_safe(obj):
     anything non-serializable into its string form so the pipeline can be
     returned safely in the API response.
     """
-    import json as _json
 
     if isinstance(obj, dict):
         return {k: _make_json_safe(v) for k, v in obj.items()}
@@ -433,7 +432,7 @@ def _make_json_safe(obj):
         return obj
     # Try direct serialization (dict/list/primitive cases)
     try:
-        _json.dumps(obj)
+        json.dumps(obj)
         return obj
     except (TypeError, ValueError):
         pass
@@ -523,7 +522,6 @@ def _extract_pipeline_log(agent) -> dict:
     if state.raw_execution_result is not None:
         # Try to serialize; skip if it contains non-serializable objects
         try:
-            import json
             json.dumps(state.raw_execution_result, default=str)
             pipeline["raw_execution_result"] = state.raw_execution_result
         except (TypeError, ValueError):
@@ -577,18 +575,18 @@ def _extract_error_trace(agent) -> dict:
 def handle_chat_query(
     conversation_id: str,
     query: str,
-    output_type: Optional[str] = None,
-    message_history: Optional[int] = None,
-    column_selection_enabled: Optional[bool] = None,
-    column_selection_threshold: Optional[int] = None,
-    column_values_budget_ratio: Optional[float] = None,
-    column_selection_temperature: Optional[float] = None,
-    column_selection_top_p: Optional[float] = None,
-    column_selection_top_k: Optional[int] = None,
-    code_generation_temperature: Optional[float] = None,
-    code_generation_top_p: Optional[float] = None,
-    code_generation_top_k: Optional[int] = None,
-    step1_only: Optional[bool] = None,
+    output_type: str | None = None,
+    message_history: int | None = None,
+    column_selection_enabled: bool | None = None,
+    column_selection_threshold: int | None = None,
+    column_values_budget_ratio: float | None = None,
+    column_selection_temperature: float | None = None,
+    column_selection_top_p: float | None = None,
+    column_selection_top_k: int | None = None,
+    code_generation_temperature: float | None = None,
+    code_generation_top_p: float | None = None,
+    code_generation_top_k: int | None = None,
+    step1_only: bool | None = None,
 ) -> dict:
     """Retrieves session state, queries the LLM, and formats the response object safely."""
     agent = agent_store.get_agent(conversation_id)
@@ -660,6 +658,20 @@ def handle_chat_query(
         # Falls back to the requested type, then "auto"
         actual_type = getattr(response, 'type', None) or validated_output_type or "auto"
 
+        # If the agent produced an error response (e.g. structural pre-catch
+        # cap exhausted, or code generation retries exhausted), surface it as
+        # a real HTTP error with the meaningful root-cause message — NOT a
+        # 200 with type="error". The upstream caller must be able to detect
+        # the failure from the status code and understand why it failed.
+        if actual_type == "error":
+            err_msg = getattr(response, 'error', None) or str(response)
+            _log_conversation(conversation_id, {
+                "query": query,
+                "error": err_msg,
+                "pipeline": _extract_pipeline_log(agent),
+            })
+            raise HTTPException(status_code=500, detail=err_msg)
+
         # Issue 11: Normalize "chart" → "plot" for backward compatibility
         if actual_type == "chart":
             actual_type = "plot"
@@ -727,7 +739,14 @@ def handle_chat_query(
             "error": str(e),
             "pipeline": _extract_pipeline_log(agent),
         })
-        raise HTTPException(status_code=500, detail="Internal server error. Check server logs for details.")
+        # Surface the actual failure reason so the upstream caller understands
+        # what happened (e.g. "Maximum retry attempts exceeded"), rather than a
+        # generic opaque message. The root cause text is still included so it
+        # is not lost. ``from e`` preserves the original exception chain so the
+        # real cause is not masked by the HTTPException conversion.
+        detail = str(e) if str(e) and "Internal server error" not in str(e) else \
+            "Internal server error. Check server logs for details."
+        raise HTTPException(status_code=500, detail=detail) from e
     finally:
         # Always restore step1_only flag
         agent._state.step1_only = False

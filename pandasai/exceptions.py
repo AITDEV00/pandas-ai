@@ -4,8 +4,6 @@ This module contains the implementation of Custom Exceptions.
 
 """
 
-from pandasai.constants import PANDABI_SETUP_MESSAGE
-
 
 class InvalidRequestError(Exception):
     """
@@ -277,6 +275,15 @@ class CodeExecutionError(Exception):
     Raise error if code execution fails
     Args:
         Exception (Exception): CodeExecutionError
+    """
+
+
+class StructuralValidationError(ValueError):
+    """Raised when the deterministic structural self-review rejects code.
+
+    Subclasses ``ValueError`` so existing generic error handling still works,
+    but gives the agent's retry loop a type to match on so it can apply the
+    structural-specific retry cap without relying on fragile string matching.
     """
 
 

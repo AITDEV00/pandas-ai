@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -7,7 +7,7 @@ from pandasai.helpers.filemanager import DefaultFileManager, FileManager
 from pandasai.llm.base import LLM
 
 
-def _env_float(name: str) -> Optional[float]:
+def _env_float(name: str) -> float | None:
     """Read a float env var, returning None when unset/blank.
 
     Unset env vars map to None so the caller (code generation / column
@@ -25,7 +25,7 @@ def _env_float(name: str) -> Optional[float]:
         return None
 
 
-def _env_int(name: str) -> Optional[int]:
+def _env_int(name: str) -> int | None:
     """Parse an int env var, returning None when unset/blank/invalid."""
     raw = os.environ.get(name)
     if raw is None or raw.strip() == "":
@@ -40,11 +40,21 @@ class Config(BaseModel):
     save_logs: bool = True
     verbose: bool = False
     max_retries: int = 3
-    llm: Optional[LLM] = None
+    # Cap on how many times the deterministic structural self-review ("pre-catch")
+    # may trigger a regeneration before giving up. Structural failures (schema
+    # typos, fabricated struct keys, alias drift) are usually NOT fixed by another
+    # LLM call — the model re-generates against the same bad schema. Capping this
+    # separately from max_retries prevents the pre-catch from burning the whole
+    # retry budget on a failure class that is unlikely to converge. Reads
+    # MAX_STRUCTURAL_RETRIES; defaults to 3 (initial + 2 regenerations).
+    max_structural_retries: int = int(
+        os.environ.get("MAX_STRUCTURAL_RETRIES", "3")
+    )
+    llm: LLM | None = None
     # Dedicated LLM for structured JSON calls (column selection, description
     # auto-fill).  When set, the ColumnSelector and description filler use this
     # instead of ``llm``.  Falls back to ``llm`` when None.
-    structured_llm: Optional[LLM] = None
+    structured_llm: LLM | None = None
     file_manager: FileManager = Field(default_factory=DefaultFileManager)
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -52,13 +62,13 @@ class Config(BaseModel):
     enrich_column_values: bool = True
     llm_context_window: int = int(os.environ.get("LLM_CONTEXT_WINDOW", "250000"))
     column_values_budget_ratio: float = 0.10
-    column_values_token_budget: Optional[int] = None
+    column_values_token_budget: int | None = None
     categorical_max_unique: int = 50
     sample_head_size: int = 10
 
     # Column selection pipeline (Issue 19)
     # Tri-state: True = force on, False = force off, None = auto-detect via threshold
-    column_selection_enabled: Optional[bool] = None
+    column_selection_enabled: bool | None = None
     column_selection_threshold: int = 30
     column_selection_memory_size: int = 5
     auto_fill_descriptions: bool = True
@@ -70,16 +80,16 @@ class Config(BaseModel):
     # Each value reads an env var; when unset it becomes None so the param is
     # omitted and the model applies its own default.  Override via config dict,
     # HTTP request body, or env vars (e.g. COLUMN_SELECTION_TEMPERATURE=0.6).
-    column_selection_temperature: Optional[float] = _env_float("COLUMN_SELECTION_TEMPERATURE")
-    column_selection_top_p: Optional[float] = _env_float("COLUMN_SELECTION_TOP_P")
-    column_selection_top_k: Optional[int] = _env_int("COLUMN_SELECTION_TOP_K")
-    column_selection_min_p: Optional[float] = _env_float("COLUMN_SELECTION_MIN_P")
-    column_selection_repetition_penalty: Optional[float] = _env_float("COLUMN_SELECTION_REPETITION_PENALTY")
-    column_selection_presence_penalty: Optional[float] = _env_float("COLUMN_SELECTION_PRESENCE_PENALTY")
+    column_selection_temperature: float | None = _env_float("COLUMN_SELECTION_TEMPERATURE")
+    column_selection_top_p: float | None = _env_float("COLUMN_SELECTION_TOP_P")
+    column_selection_top_k: int | None = _env_int("COLUMN_SELECTION_TOP_K")
+    column_selection_min_p: float | None = _env_float("COLUMN_SELECTION_MIN_P")
+    column_selection_repetition_penalty: float | None = _env_float("COLUMN_SELECTION_REPETITION_PENALTY")
+    column_selection_presence_penalty: float | None = _env_float("COLUMN_SELECTION_PRESENCE_PENALTY")
     # Hard cap on output tokens for Step-1 (column selection) calls.  Bounds a
     # runaway selection/analysis so a single query cannot loop indefinitely.
     # Reads COLUMN_SELECTION_MAX_TOKENS; when unset the model default applies.
-    column_selection_max_tokens: Optional[int] = _env_int("COLUMN_SELECTION_MAX_TOKENS")
+    column_selection_max_tokens: int | None = _env_int("COLUMN_SELECTION_MAX_TOKENS")
     # Force JSON structured output for column selection (vllm supports this
     # via response_format={"type": "json_object"}).  When True, the LLM is
     # constrained to emit valid JSON, eliminating parse failures.
@@ -102,18 +112,18 @@ class Config(BaseModel):
     # configuration is temperature=1.0, top_p=0.95, everything else None
     # (i.e. leave top_k / min_p / repetition_penalty / presence_penalty to the
     # model defaults).  Override via env vars or HTTP request body.
-    code_generation_temperature: Optional[float] = _env_float("CODE_GENERATION_TEMPERATURE")
-    code_generation_top_p: Optional[float] = _env_float("CODE_GENERATION_TOP_P")
-    code_generation_top_k: Optional[int] = _env_int("CODE_GENERATION_TOP_K")
-    code_generation_min_p: Optional[float] = _env_float("CODE_GENERATION_MIN_P")
-    code_generation_repetition_penalty: Optional[float] = _env_float("CODE_GENERATION_REPETITION_PENALTY")
-    code_generation_presence_penalty: Optional[float] = _env_float("CODE_GENERATION_PRESENCE_PENALTY")
+    code_generation_temperature: float | None = _env_float("CODE_GENERATION_TEMPERATURE")
+    code_generation_top_p: float | None = _env_float("CODE_GENERATION_TOP_P")
+    code_generation_top_k: int | None = _env_int("CODE_GENERATION_TOP_K")
+    code_generation_min_p: float | None = _env_float("CODE_GENERATION_MIN_P")
+    code_generation_repetition_penalty: float | None = _env_float("CODE_GENERATION_REPETITION_PENALTY")
+    code_generation_presence_penalty: float | None = _env_float("CODE_GENERATION_PRESENCE_PENALTY")
     # Hard cap on the number of output tokens for Step-2 (code generation)
     # calls.  This bounds the response so a runaway reasoning/code generation
     # cannot loop indefinitely (a key cause of multi-hundred-second latencies
     # on complex multi-struct questions like R9-R13).  Reads
     # CODE_GENERATION_MAX_TOKENS; when unset the model default applies.
-    code_generation_max_tokens: Optional[int] = _env_int("CODE_GENERATION_MAX_TOKENS")
+    code_generation_max_tokens: int | None = _env_int("CODE_GENERATION_MAX_TOKENS")
 
     # Use the instructor library for structured code generation. When True,
     # the code generator requests a bounded 3-section response (reasoning_trace,
@@ -125,7 +135,7 @@ class Config(BaseModel):
     )
 
     @classmethod
-    def from_dict(cls, config: Dict[str, Any]) -> "Config":
+    def from_dict(cls, config: dict[str, Any]) -> "Config":
         return cls(**config)
 
 
@@ -135,7 +145,7 @@ class ConfigManager:
     _config: Config = Config()
 
     @classmethod
-    def set(cls, config_dict: Dict[str, Any]) -> None:
+    def set(cls, config_dict: dict[str, Any]) -> None:
         """Set the global configuration."""
         cls._config = Config.from_dict(config_dict)
 
@@ -148,7 +158,7 @@ class ConfigManager:
         return cls._config
 
     @classmethod
-    def update(cls, config_dict: Dict[str, Any]) -> None:
+    def update(cls, config_dict: dict[str, Any]) -> None:
         """Update the existing configuration with new values."""
         current_config = cls._config.model_dump()
         current_config.update(config_dict)
@@ -156,7 +166,7 @@ class ConfigManager:
 
 
 class APIKeyManager:
-    _api_key: Optional[str] = None
+    _api_key: str | None = None
 
     @classmethod
     def set(cls, api_key: str):
@@ -164,5 +174,5 @@ class APIKeyManager:
         cls._api_key = api_key
 
     @classmethod
-    def get(cls) -> Optional[str]:
+    def get(cls) -> str | None:
         return cls._api_key

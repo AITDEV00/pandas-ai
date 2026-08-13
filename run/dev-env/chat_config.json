@@ -1,0 +1,7 @@
+{
+  "output_type": "string",
+  "column_selection_enabled": true,
+  "column_selection_threshold": 30,
+  "column_values_budget_ratio": 0.1,
+  "message_history": 10
+}
