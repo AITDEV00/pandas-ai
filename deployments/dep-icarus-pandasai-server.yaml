@@ -15,7 +15,7 @@ spec:
       containers:
       - name: icarus-pandasai-server
         # Image built & pushed to Harbor (see Makefile.build harbor_upload)
-        image: zdc-ai-harbor.ecouncil.ae/aiteam/adeo-icarus-pandasai-server:latest
+        image: zdc-ai-harbor.ecouncil.ae/aiteam/adeo-icarus-pandasai-server:20260813
         imagePullPolicy: Always
         env:
         # --- Main LLM — DeepSeek-V4-Flash-0731 via LiteLLM gateway ---
